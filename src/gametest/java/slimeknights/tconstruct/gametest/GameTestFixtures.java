@@ -1,10 +1,13 @@
 package slimeknights.tconstruct.gametest;
 
+import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.util.FakePlayerFactory;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.materials.definition.MaterialId;
 import slimeknights.tconstruct.library.recipe.material.MaterialRecipe;
@@ -20,6 +23,7 @@ import slimeknights.tconstruct.tools.TinkerTools;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.UUID;
 
 /**
  * Shared fixtures for the {@code tconstruct} gametest suite: fixed material ids, tool stack builders, and a
@@ -63,6 +67,23 @@ public final class GameTestFixtures {
   public static ToolStack createSledgeHammer() {
     return ToolStack.createTool(TinkerTools.sledgeHammer.get(), ToolDefinitions.SLEDGE_HAMMER,
       MaterialNBT.builder().add(IRON).add(WOOD).add(IRON).add(IRON).build());
+  }
+
+  /**
+   * Creates a fresh {@link net.minecraftforge.common.util.FakePlayer} for a test that needs a real
+   * {@link ServerPlayer} for a harvest call, without the network {@code Connection} that
+   * {@link GameTestHelper#makeMockServerPlayerInLevel} requires (and which a headless gametest server never
+   * provides a working one for).
+   * <p>
+   * Deliberately does <em>not</em> use {@link FakePlayerFactory#getMinecraft}: that method caches a single
+   * {@code FakePlayer} instance keyed by level, and every gametest in a batch shares the same {@link
+   * net.minecraft.server.level.ServerLevel}. A test that repositions that shared player (as the AoE hammer test
+   * does) would otherwise be racing every other test in the batch that also asks for a fake player. A unique
+   * {@link GameProfile} per call keeps each test's fake player private to it.
+   * @param name  Distinct name for this test's fake player; only needs to be unique within one gametest run
+   */
+  public static ServerPlayer createFakePlayer(GameTestHelper helper, String name) {
+    return FakePlayerFactory.get(helper.getLevel(), new GameProfile(UUID.randomUUID(), name));
   }
 
   /**

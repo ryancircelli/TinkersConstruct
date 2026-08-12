@@ -138,9 +138,10 @@ public class ModifierGameTests {
     helper.assertTrue(tool.isBroken(), "tool was not marked broken once damage reached its durability");
 
     ItemStack stack = tool.createStack();
-    // a Forge FakePlayer avoids GameTestHelper#makeMockServerPlayerInLevel, which needs a real network
-    // Connection with an attached channel that a headless gametest server never provides
-    LivingEntity player = net.minecraftforge.common.util.FakePlayerFactory.getMinecraft(helper.getLevel());
+    // BlockPos.ZERO is never dereferenced here (mineBlock returns as soon as it sees the broken tool, before it
+    // would need a real position), so it does not need helper.absolutePos translation the way a position that's
+    // actually used against the world would
+    LivingEntity player = GameTestFixtures.createFakePlayer(helper, "durability_zero_test");
     boolean minedSuccessfully = ToolHarvestLogic.mineBlock(stack, helper.getLevel(), Blocks.STONE.defaultBlockState(), BlockPos.ZERO, player);
     helper.assertFalse(minedSuccessfully, "a broken tool was still usable to mine a block");
     helper.succeed();
