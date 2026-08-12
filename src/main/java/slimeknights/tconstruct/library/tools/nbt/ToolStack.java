@@ -160,23 +160,28 @@ public class ToolStack implements IToolStackView {
 
   /**
    * Creates a tool stack from an item stack
-   * @param stack    Base stack
-   * @param copyNbt  If true, NBT is copied from the stack
+   * @param stack      Base stack
+   * @param copyNbt    If true, NBT is copied from the stack
+   * @param createTag  If true, a stack with no NBT is given the tag this tool will use, so writes made through the
+   *                   tool land on the stack. Only for factories handing out a writable tool.
    * @return  Tool stack
    */
-  private static ToolStack from(ItemStack stack, boolean copyNbt) {
+  private static ToolStack from(ItemStack stack, boolean copyNbt, boolean createTag) {
     Item item = stack.getItem();
     ToolDefinition definition = item instanceof IModifiable mod
                                 ? mod.getToolDefinition()
                                 : ToolDefinition.EMPTY;
     CompoundTag nbt = stack.getTag();
     if (nbt == null) {
+      // a stack with no NBT reads as an empty tool either way, so the tag is only worth creating for a writer
       nbt = new CompoundTag();
       if (!copyNbt) {
         // only a wrongly made tool will have an empty definition. check preferred to a tag check as tags may not be loaded when this is first called
         if (definition != ToolDefinition.EMPTY) {
-          writeTag(stack, nbt);
-          // no need to set the damage value, if the tool wanted it set the stack would have had a tag already
+          if (createTag) {
+            writeTag(stack, nbt);
+            // no need to set the damage value, if the tool wanted it set the stack would have had a tag already
+          }
         } else {
           switch (Config.COMMON.logInvalidToolStack.get()) {
             case STACKTRACE ->
@@ -193,24 +198,26 @@ public class ToolStack implements IToolStackView {
   }
 
   /**
-   * Creates a read only view of the given item stack, not copying NBT.
+   * Creates a read only view of the given item stack, not copying NBT and not changing the stack in any way.
    * Prefer this over {@link #mutable(ItemStack)} whenever the tool is only read, as it prevents accidentally editing a tool you do not own.
+   * A stack with no NBT yields a view of an empty tool that the stack does not share; take {@link #mutable(ItemStack)} if the tool has to write.
    * @param stack  Stack
    * @return  Read only view of the stack
    */
   public static IToolStackView from(ItemStack stack) {
-    return mutable(stack);
+    return from(stack, false, false);
   }
 
   /**
    * Creates a mutable tool stack from the given item stack, not copying NBT.
    * The returned instance shares NBT with the stack, so every change made through it is immediately visible on {@code stack}.
+   * A stack with no NBT is given one, as otherwise there would be nothing for the changes to be visible on.
    * Use {@link #from(ItemStack)} if you only need to read the tool, or {@link #copyFrom(ItemStack)} if you need to edit a tool without changing the stack.
    * @param stack  Stack
    * @return  Mutable tool stack sharing NBT with the passed stack
    */
   public static ToolStack mutable(ItemStack stack) {
-    return from(stack, false);
+    return from(stack, false, true);
   }
 
   /**
@@ -219,7 +226,7 @@ public class ToolStack implements IToolStackView {
    * @return  Tool stack
    */
   public static ToolStack copyFrom(ItemStack stack) {
-    return from(stack, true);
+    return from(stack, true, false);
   }
 
   /**
