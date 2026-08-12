@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -98,7 +98,7 @@ public class ToolTierStat implements IToolStat<Tier> {
   }
 
   @Override
-  public Tier fromNetwork(FriendlyByteBuf buffer) {
+  public Tier fromNetwork(RegistryFriendlyByteBuf buffer) {
     ResourceLocation id = buffer.readResourceLocation();
     Tier tier = HarvestTiers.byId(id);
     if (tier != null) {
@@ -108,7 +108,7 @@ public class ToolTierStat implements IToolStat<Tier> {
   }
 
   @Override
-  public void toNetwork(FriendlyByteBuf buffer, Tier value) {
+  public void toNetwork(RegistryFriendlyByteBuf buffer, Tier value) {
     buffer.writeResourceLocation(Objects.requireNonNull(HarvestTiers.getId(value)));
   }
 

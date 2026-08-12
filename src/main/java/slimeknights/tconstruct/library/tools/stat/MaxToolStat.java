@@ -7,7 +7,7 @@ import lombok.Getter;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.GsonHelper;
@@ -97,12 +97,12 @@ public class MaxToolStat implements IToolStat<Integer> {
   }
 
   @Override
-  public Integer fromNetwork(FriendlyByteBuf buffer) {
+  public Integer fromNetwork(RegistryFriendlyByteBuf buffer) {
     return buffer.readVarInt();
   }
 
   @Override
-  public void toNetwork(FriendlyByteBuf buffer, Integer value) {
+  public void toNetwork(RegistryFriendlyByteBuf buffer, Integer value) {
     buffer.writeVarInt(value);
   }
 

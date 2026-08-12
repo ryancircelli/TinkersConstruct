@@ -6,7 +6,7 @@ import lombok.Getter;
 import net.minecraft.nbt.FloatTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.tags.TagKey;
@@ -136,12 +136,12 @@ public class FloatToolStat implements INumericToolStat<Float> {
   }
 
   @Override
-  public Float fromNetwork(FriendlyByteBuf buffer) {
+  public Float fromNetwork(RegistryFriendlyByteBuf buffer) {
     return buffer.readFloat();
   }
 
   @Override
-  public void toNetwork(FriendlyByteBuf buffer, Float value) {
+  public void toNetwork(RegistryFriendlyByteBuf buffer, Float value) {
     buffer.writeFloat(value);
   }
 
