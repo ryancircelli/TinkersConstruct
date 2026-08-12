@@ -1,10 +1,16 @@
 package slimeknights.tconstruct.library.modifiers.fluid.entity;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.Potions;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import slimeknights.mantle.data.loadable.primitive.FloatLoadable;
@@ -14,6 +20,7 @@ import slimeknights.tconstruct.library.modifiers.fluid.FluidEffect;
 import slimeknights.tconstruct.library.modifiers.fluid.FluidEffectContext;
 import slimeknights.tconstruct.library.recipe.TagPredicate;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /** Spilling effect that pulls the potion from a NBT potion fluid and applies it */
@@ -28,12 +35,31 @@ public record PotionFluidEffect(float scale, TagPredicate predicate) implements 
     return LOADER;
   }
 
+  /**
+   * Gets the potion named by a fluid stack's tag.
+   * @apiNote {@code PotionUtils} is gone in 1.21; potions are a built-in registry (same split as attributes and
+   * mob effects), so the lookup is a direct {@link BuiltInRegistries#POTION} query, defaulting to
+   * {@link Potions#EMPTY} exactly as {@code PotionUtils.getPotion} did for a missing or unrecognized key.
+   */
+  private static Potion getPotion(@Nullable CompoundTag tag) {
+    if (tag != null && tag.contains("Potion", Tag.TAG_STRING)) {
+      ResourceLocation id = ResourceLocation.tryParse(tag.getString("Potion"));
+      if (id != null) {
+        Potion potion = BuiltInRegistries.POTION.get(id);
+        if (potion != null) {
+          return potion;
+        }
+      }
+    }
+    return Potions.EMPTY.value();
+  }
+
   @Override
   public float apply(FluidStack fluid, EffectLevel level, FluidEffectContext.Entity context, FluidAction action) {
     LivingEntity target = context.getLivingTarget();
     // must match the tag predicate
     if (target != null && predicate.test(fluid.getTag())) {
-      List<MobEffectInstance> effects = PotionUtils.getPotion(fluid.getTag()).getEffects();
+      List<MobEffectInstance> effects = getPotion(fluid.getTag()).getEffects();
       if (!effects.isEmpty()) {
         LivingEntity attacker = context.getEntity();
         Entity directSource = context.getDirectSource();
@@ -43,13 +69,13 @@ public record PotionFluidEffect(float scale, TagPredicate predicate) implements 
         // report whichever effect used the most
         float used = 0;
         for (MobEffectInstance instance : effects) {
-          MobEffect effect = instance.getEffect();
-          if (effect.isInstantenous()) {
+          Holder<MobEffect> effect = instance.getEffect();
+          if (effect.value().isInstantenous()) {
             // instant effects just apply full value always
             used = level.value();
             if (action.execute()) {
               target.invulnerableTime = 0;
-              effect.applyInstantenousEffect(directSource, attacker, target, instance.getAmplifier(), used * scale);
+              effect.value().applyInstantenousEffect(directSource, attacker, target, instance.getAmplifier(), used * scale);
             }
           } else {
             // if the potion already exists, we scale up the existing time

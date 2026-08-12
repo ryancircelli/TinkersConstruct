@@ -3,7 +3,9 @@ package slimeknights.tconstruct.test.characterization;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.netty.buffer.Unpooled;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import slimeknights.mantle.data.loadable.Loadable;
 import slimeknights.mantle.util.typed.TypedMap;
 
@@ -73,7 +75,9 @@ public final class RoundTripAssertions {
   /** Network round trip starting from an already parsed object. */
   public static <T> void assertNetworkRoundTrip(Loadable<T> loadable, T original, TypedMap context) {
     JsonElement originalJson = loadable.serialize(original);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    // Loadable#encode/#decode want a RegistryFriendlyByteBuf now (M4 SS1); T5's pattern for a registry access
+    // with no live game to draw one from.
+    RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
     loadable.encode(buffer, original);
     int written = buffer.readableBytes();
     T decoded = loadable.decode(buffer, context);
