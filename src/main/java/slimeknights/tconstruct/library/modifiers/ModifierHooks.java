@@ -267,17 +267,45 @@ public class ModifierHooks {
   /** Hook called when an entity is attacked by a monster that lacks player left click actions */
   public static final ModuleHook<MonsterMeleeHitModifierHook> MONSTER_MELEE_HIT = register("monster_melee_hit", MonsterMeleeHitModifierHook.class, MonsterMeleeHitModifierHook.AllMerger::new, (tool, modifier, context, damage) -> {});
 
+  /*
+   * The damage sequence.
+   *
+   * 1.21 replaced the two Forge events this family was built on with three. LivingAttackEvent and LivingHurtEvent are gone, and the slots are now:
+   *
+   *   LivingIncomingDamageEvent   before any mitigation, still cancellable. DAMAGE_BLOCK, ON_ATTACKED and MODIFY_HURT all run here: the first two came from
+   *                               LivingAttackEvent, the third from LivingHurtEvent, which has no successor of its own.
+   *   LivingDamageEvent.Pre       after armor, enchantment and effect reduction, before absorption. MODIFY_DAMAGE runs here.
+   *   LivingDamageEvent.Post      after the health change, and immutable. Nothing runs here.
+   *
+   * The one hook whose meaning moved is MODIFY_DAMAGE: LivingDamageEvent fired after absorption had been taken out, while Pre fires before it. See its javadoc.
+   * PROTECTION keeps its slot but not its mechanism: Tinkers no longer recomputes vanilla's armor reduction from inside the event, it adjusts it through
+   * LivingIncomingDamageEvent#addReductionModifier, so the hook runs between MODIFY_HURT and MODIFY_DAMAGE even though those are now two different events.
+   * None of that is visible in a hook signature; every hook here still takes the DamageSource and the amount it always took.
+   */
+
   /** Hook called when taking damage wearing this armor to reduce the damage, runs after {@link #MODIFY_HURT} and before {@link #MODIFY_DAMAGE} */
   public static final ModuleHook<ProtectionModifierHook> PROTECTION = register("protection", ProtectionModifierHook.class, ProtectionModifierHook.AllMerger::new, (tool, modifier, context, slotType, source, modifierValue) -> modifierValue);
 
-  /** Hook called when taking damage wearing this armor to cancel the damage */
+  /**
+   * Hook called when taking damage wearing this armor to cancel the damage.
+   * Runs from {@link net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent}, which is the event that can still cancel an attack outright.
+   */
   public static final ModuleHook<DamageBlockModifierHook> DAMAGE_BLOCK = register("damage_block", DamageBlockModifierHook.class, DamageBlockModifierHook.AnyMerger::new, (tool, modifier, context, slotType, source, amount) -> false);
-  /** Hook called when taking damage to apply secondary effects such as counterattack or healing. Runs after {@link #DAMAGE_BLOCK} but before vanilla effects that cancel damage. */
+  /**
+   * Hook called when taking damage to apply secondary effects such as counterattack or healing. Runs after {@link #DAMAGE_BLOCK} but before vanilla effects that cancel damage.
+   * Shares {@link net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent} with {@link #DAMAGE_BLOCK}; the amount passed is the damage before any reduction.
+   */
   public static final ModuleHook<OnAttackedModifierHook> ON_ATTACKED = register("on_attacked", OnAttackedModifierHook.class, OnAttackedModifierHook.AllMerger::new, (tool, modifier, context, slotType, source, amount, isDirectDamage) -> {});
 
-  /** Hook allowing modifying damage taken or responding when damage is taken. Runs after {@link #ON_ATTACKED} and any vanilla effects that cancel damage, but before armor reduction and {@link #PROTECTION}.  */
+  /** Hook allowing modifying damage taken or responding when damage is taken. Runs after {@link #ON_ATTACKED} and any vanilla effects that cancel damage, but before armor reduction and {@link #PROTECTION}. */
   public static final ModuleHook<ModifyDamageModifierHook> MODIFY_HURT;
-  /** Hook allowing modifying damage taken or responding when damage is taken. Runs after {@link #PROTECTION}, armor damage reduction, and absorption.  */
+  /**
+   * Hook allowing modifying damage taken or responding when damage is taken. Runs after {@link #PROTECTION} and armor damage reduction, and <b>before</b> absorption.
+   * <p>
+   * The absorption half is new in 1.21: this hook ran from {@code LivingDamageEvent}, which fired once absorption had already been taken out of the amount, and its successor
+   * {@link net.neoforged.neoforge.event.entity.living.LivingDamageEvent.Pre} fires before that. A modifier reading the amount here now sees the damage the entity would take with
+   * no absorption hearts, and one that reduces the amount reduces what absorption has left to soak.
+   */
   public static final ModuleHook<ModifyDamageModifierHook> MODIFY_DAMAGE;
   static {
     Function<Collection<ModifyDamageModifierHook>,ModifyDamageModifierHook> merger = ModifyDamageModifierHook.AllMerger::new;

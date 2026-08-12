@@ -1,13 +1,12 @@
 {
-    "total": 705,
+    "total": 701,
     "islandFiles": 374,
     "categories": {
         "other: static import only from classes and interfaces": 2,
         "package BasicModifier": 1,
         "package ModuleBuilder": 1,
-        "package TinkerDataCapability": 4,
+        "package TinkerDataCapability": 3,
         "package net.minecraftforge.common": 1,
-        "package net.minecraftforge.common.util": 1,
         "package slimeknights.tconstruct.common": 13,
         "package slimeknights.tconstruct.common.TinkerTags": 2,
         "package slimeknights.tconstruct.common.config": 2,
@@ -44,7 +43,6 @@
         "symbol class IModifiable": 1,
         "symbol class IncrementalModifierEntry": 1,
         "symbol class LazyModifier": 3,
-        "symbol class LazyOptional": 2,
         "symbol class Modifier": 33,
         "symbol class ModifierBuilder": 7,
         "symbol class ModifierCondition": 3,
