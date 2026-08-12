@@ -80,8 +80,46 @@ if (System.getenv().ARTIFACT_VERSION != null) {
 version = "${minecraft_version}-${artifact_version}"
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}, Version: ${version}"
 
+/*
+ * ---------------------------------------------------------------------------
+ * Porting frontier
+ * ---------------------------------------------------------------------------
+ * porting/unported.txt and porting/unported-test.txt are the ledger of source
+ * files that have not been ported to 1.21.1 yet. Everything listed is kept out
+ * of its source set, so the build compiles only what has actually crossed over.
+ *
+ * The ledger is self-liquidating: a port PR deletes lines from it, never adds
+ * them, and the last PR of the port deletes the files outright. checkPortingFrontier
+ * below is what makes that a rule rather than an intention.
+ */
+ext.frontiers = [
+        [name: 'main', ledger: file('porting/unported.txt'), roots: ['src/main/java']],
+        [name: 'test', ledger: file('porting/unported-test.txt'), roots: ['src/test/java', 'src/gametest/java']],
+]
+
+// Reads a ledger into repo-relative paths, dropping blank lines and # comments.
+ext.readFrontier = { File ledger ->
+    if (!ledger.exists()) {
+        return [] as List<String>
+    }
+    return ledger.readLines('UTF-8')
+            *.trim()
+            .findAll { !it.isEmpty() && !it.startsWith('#') }
+}
+
+// The entries of a ledger that live under one source root, relative to that root:
+// Ant-style excludes are relative to the source directory, so the prefix comes off.
+ext.frontierExcludes = { File ledger, String root ->
+    return readFrontier(ledger)
+            .findAll { it.startsWith("${root}/") }
+            .collect { it.substring(root.length() + 1) }
+}
+
 sourceSets {
     main {
+        java {
+            frontierExcludes(frontiers[0].ledger, 'src/main/java').each { exclude it }
+        }
         resources {
             srcDirs "src/generated/resources"
             //But exclude the cache of the generated data from what gets built
@@ -93,9 +131,99 @@ sourceSets {
     // in-game behavior tests, run via the gameTestServer run config; not packaged into the mod jar
     // resources/java dirs use the sourceSet's default convention (src/gametest/resources, src/gametest/java)
     gametest {
+        java {
+            frontierExcludes(frontiers[1].ledger, 'src/gametest/java').each { exclude it }
+        }
         compileClasspath += main.compileClasspath + main.output
         runtimeClasspath += main.runtimeClasspath + main.output
     }
+    test {
+        java {
+            frontierExcludes(frontiers[1].ledger, 'src/test/java').each { exclude it }
+        }
+    }
+}
+
+/*
+ * Guards the frontier on every `check`:
+ *
+ *  (a) every path in a ledger must exist, so a file cannot be renamed or deleted
+ *      out from under the ledger and leave a stale line behind;
+ *  (b) every path must live under one of that ledger's source roots, since a path
+ *      outside them would excite no exclude and silently hide nothing; and
+ *  (c) a ledger may only shrink. The baseline is the committed copy at HEAD~,
+ *      read with `git show HEAD~:<path>` - so on a branch each commit is checked
+ *      against its parent, and CI checking out a PR head sees the same thing.
+ *      Any entry present now but absent from the baseline fails the build: that
+ *      is a file being pushed back behind the frontier instead of ported.
+ *
+ * If HEAD~ has no copy of the ledger (the commit that introduces it, or a shallow
+ * clone with no parent) there is no baseline and the shrink check is skipped; the
+ * other checks still run.
+ */
+tasks.register('checkPortingFrontier') {
+    group = 'verification'
+    description = 'Verifies the porting frontier is intact and has not grown since HEAD~.'
+
+    def projectDirectory = projectDir
+    def ledgers = frontiers.collect { [name: it.name, roots: it.roots, path: rootDir.toPath().relativize(it.ledger.toPath()).toString(), file: it.ledger] }
+    def read = readFrontier
+    inputs.files(frontiers*.ledger).withPropertyName('ledgers')
+
+    doLast {
+        // Reads the committed copy of a ledger at HEAD~; null when there is no baseline.
+        def baselineOf = { String path ->
+            def out = new ByteArrayOutputStream()
+            def proc = new ProcessBuilder('git', 'show', "HEAD~:${path}".toString())
+                    .directory(projectDirectory)
+                    .redirectErrorStream(false)
+                    .start()
+            proc.inputStream.transferTo(out)
+            proc.errorStream.transferTo(OutputStream.nullOutputStream())
+            return proc.waitFor() == 0 ? out.toString('UTF-8') : null
+        }
+
+        def failures = []
+        ledgers.each { ledger ->
+            def entries = read(ledger.file)
+
+            def duplicates = entries.countBy { it }.findAll { it.value > 1 }.keySet()
+            if (!duplicates.isEmpty()) {
+                failures << "${ledger.path} lists ${duplicates.size()} path(s) more than once:\n  ${duplicates.join('\n  ')}"
+            }
+
+            def stray = entries.findAll { entry -> ledger.roots.every { !entry.startsWith("${it}/") } }
+            if (!stray.isEmpty()) {
+                failures << "${ledger.path} lists ${stray.size()} path(s) outside its source root(s) ${ledger.roots}, which would exclude nothing:\n  ${stray.join('\n  ')}"
+            }
+
+            def missing = entries.findAll { !new File(projectDirectory, it).exists() }
+            if (!missing.isEmpty()) {
+                failures << "${ledger.path} lists ${missing.size()} path(s) that do not exist. Delete the line if the file was ported or removed:\n  ${missing.join('\n  ')}"
+            }
+
+            def baselineText = baselineOf(ledger.path)
+            if (baselineText == null) {
+                logger.lifecycle("porting frontier [${ledger.name}]: ${entries.size()} unported file(s); no copy at HEAD~, shrink check skipped")
+                return
+            }
+            def baseline = baselineText.readLines()*.trim().findAll { !it.isEmpty() && !it.startsWith('#') } as Set
+            def added = entries.findAll { !baseline.contains(it) }
+            if (!added.isEmpty()) {
+                failures << "${ledger.path} grew by ${added.size()} entr(y/ies) since HEAD~. The porting frontier only shrinks:\n  ${added.join('\n  ')}"
+            }
+            def ported = baseline.size() - entries.size()
+            logger.lifecycle("porting frontier [${ledger.name}]: ${entries.size()} unported file(s), ${ported >= 0 ? ported : 0} ported since HEAD~")
+        }
+
+        if (!failures.isEmpty()) {
+            throw new GradleException("Porting frontier check failed:\n\n${failures.join('\n\n')}\n")
+        }
+    }
+}
+
+tasks.named('check').configure {
+    dependsOn 'checkPortingFrontier'
 }
 
 idea {

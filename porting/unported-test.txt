@@ -1,0 +1,95 @@
+# Porting frontier - test and gametest source sets
+#
+# Every path listed here is a src/test/java or src/gametest/java file that has
+# not been ported to 1.21.1 yet; sourceSets.test.java and sourceSets.gametest.java
+# exclude them respectively. Kept separate from porting/unported.txt so a test can
+# come back the moment its subject ports, rather than all of them landing at the end.
+#
+# Same rules as the main ledger: it only shrinks, every listed path must exist,
+# and checkPortingFrontier enforces both.
+#
+# Sorted, repo-relative, one path per line.
+src/gametest/java/slimeknights/tconstruct/gametest/CastingGameTests.java
+src/gametest/java/slimeknights/tconstruct/gametest/FluidGameTests.java
+src/gametest/java/slimeknights/tconstruct/gametest/GameTestFixtures.java
+src/gametest/java/slimeknights/tconstruct/gametest/MaterialGameTests.java
+src/gametest/java/slimeknights/tconstruct/gametest/ModifierGameTests.java
+src/gametest/java/slimeknights/tconstruct/gametest/SmelteryGameTests.java
+src/gametest/java/slimeknights/tconstruct/gametest/ToolGameTests.java
+src/test/java/slimeknights/mantle/data/listener/MergingJsonFileLoader.java
+src/test/java/slimeknights/tconstruct/common/TagFixture.java
+src/test/java/slimeknights/tconstruct/fixture/MaterialFixture.java
+src/test/java/slimeknights/tconstruct/fixture/MaterialItemFixture.java
+src/test/java/slimeknights/tconstruct/fixture/MaterialRegistryFixture.java
+src/test/java/slimeknights/tconstruct/fixture/MaterialStatsFixture.java
+src/test/java/slimeknights/tconstruct/fixture/RegistrationFixture.java
+src/test/java/slimeknights/tconstruct/fixture/ToolDefinitionFixture.java
+src/test/java/slimeknights/tconstruct/fixture/package-info.java
+src/test/java/slimeknights/tconstruct/library/materials/MaterialRegistryExtension.java
+src/test/java/slimeknights/tconstruct/library/materials/definition/MaterialManagerTest.java
+src/test/java/slimeknights/tconstruct/library/materials/definition/TestMaterial.java
+src/test/java/slimeknights/tconstruct/library/materials/definition/UpdateMaterialPacketTest.java
+src/test/java/slimeknights/tconstruct/library/materials/stats/ComplexTestStats.java
+src/test/java/slimeknights/tconstruct/library/materials/stats/MaterialStatsManagerTest.java
+src/test/java/slimeknights/tconstruct/library/materials/stats/UpdateMaterialStatsPacketTest.java
+src/test/java/slimeknights/tconstruct/library/materials/traits/MaterialTraitsManagerTest.java
+src/test/java/slimeknights/tconstruct/library/materials/traits/UpdateMaterialTraitsPacketTest.java
+src/test/java/slimeknights/tconstruct/library/modifiers/ModifierFixture.java
+src/test/java/slimeknights/tconstruct/library/modifiers/util/EnchantmentLevelsTest.java
+src/test/java/slimeknights/tconstruct/library/tools/definition/ToolDefinitionDataTest.java
+src/test/java/slimeknights/tconstruct/library/tools/definition/ToolDefinitionLoaderTest.java
+src/test/java/slimeknights/tconstruct/library/tools/definition/UpdateToolDefinitionDataPacketTest.java
+src/test/java/slimeknights/tconstruct/library/tools/helper/ArmorUtilMathTest.java
+src/test/java/slimeknights/tconstruct/library/tools/helper/ToolHarvestLogicTest.java
+src/test/java/slimeknights/tconstruct/library/tools/item/ToolItemDurabilityTest.java
+src/test/java/slimeknights/tconstruct/library/tools/item/ToolItemHarvestTest.java
+src/test/java/slimeknights/tconstruct/library/tools/item/ToolItemTest.java
+src/test/java/slimeknights/tconstruct/library/tools/layout/LayoutIconTest.java
+src/test/java/slimeknights/tconstruct/library/tools/layout/StationSlotLayoutLoaderTest.java
+src/test/java/slimeknights/tconstruct/library/tools/layout/StationSlotLayoutTest.java
+src/test/java/slimeknights/tconstruct/library/tools/layout/UpdateTinkerSlotLayoutsPacketTest.java
+src/test/java/slimeknights/tconstruct/library/tools/nbt/MaterialNBTTest.java
+src/test/java/slimeknights/tconstruct/library/tools/nbt/ModifierNBTest.java
+src/test/java/slimeknights/tconstruct/library/tools/nbt/MultiplierNBTTest.java
+src/test/java/slimeknights/tconstruct/library/tools/nbt/StatsNBTTest.java
+src/test/java/slimeknights/tconstruct/library/tools/nbt/ToolDataNBTTest.java
+src/test/java/slimeknights/tconstruct/library/tools/nbt/ToolStackTest.java
+src/test/java/slimeknights/tconstruct/library/tools/stat/StatProviderTest.java
+src/test/java/slimeknights/tconstruct/library/tools/stat/ToolStatsModifierBuilderTest.java
+src/test/java/slimeknights/tconstruct/test/BaseMcTest.java
+src/test/java/slimeknights/tconstruct/test/JsonFileLoader.java
+src/test/java/slimeknights/tconstruct/test/TestHelper.java
+src/test/java/slimeknights/tconstruct/test/TestLivingEntity.java
+src/test/java/slimeknights/tconstruct/test/TestModContainer.java
+src/test/java/slimeknights/tconstruct/test/TestModInfo.java
+src/test/java/slimeknights/tconstruct/test/TestPlayerEntity.java
+src/test/java/slimeknights/tconstruct/test/TestServerWorld.java
+src/test/java/slimeknights/tconstruct/test/TestWorld.java
+src/test/java/slimeknights/tconstruct/test/TestWorldVersion.java
+src/test/java/slimeknights/tconstruct/test/characterization/CommonNetworkPacketsTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/FixtureFiles.java
+src/test/java/slimeknights/tconstruct/test/characterization/FluidEffectCharacterizationTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/FluidIngredientTagNetworkAsymmetryTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/FormulaSerializationAsymmetryTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/IngredientTagNetworkAsymmetryTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/IsEffectiveModuleSerializationAsymmetryTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/MaterialDefinitionCharacterizationTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/MaterialStatTypeRegistry.java
+src/test/java/slimeknights/tconstruct/test/characterization/MaterialStatsCharacterizationTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/MaterialTraitsCharacterizationTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/ModifierCharacterizationTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/ModifiersNetworkPacketsTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/ModuleTypeRegistrations.java
+src/test/java/slimeknights/tconstruct/test/characterization/NoDataRecipeCharacterizationTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/PredicateInversionJsonAsymmetryTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/RealItemStubs.java
+src/test/java/slimeknights/tconstruct/test/characterization/RecipeCharacterizationTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/RecipeLoaderRegistry.java
+src/test/java/slimeknights/tconstruct/test/characterization/RoundTripAssertions.java
+src/test/java/slimeknights/tconstruct/test/characterization/SmelteryNetworkPacketsTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/StationLayoutCharacterizationTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/TablesNetworkPacketsTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/ToolDefinitionCharacterizationTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/ToolModuleRegistrations.java
+src/test/java/slimeknights/tconstruct/test/characterization/ToolsNetworkPacketsTest.java
+src/test/java/slimeknights/tconstruct/test/package-info.java
