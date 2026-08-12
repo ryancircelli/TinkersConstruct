@@ -259,7 +259,7 @@ public final class ModifierUtil {
       if (stack.is(TinkerTags.Items.MODIFIABLE)) {
         // skip making the tool stack object if not needed, might be asking just for the hand.
         if (applyCooldown || damage > 0) {
-          IToolStackView tool = ToolStack.from(stack);
+          ToolStack tool = ToolStack.mutable(stack);
           // trigger cooldown on the item
           if (applyCooldown && living instanceof Player player) {
             addCooldown(tool, player);

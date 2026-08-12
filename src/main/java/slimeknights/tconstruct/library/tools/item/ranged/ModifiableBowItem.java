@@ -103,7 +103,7 @@ public class ModifiableBowItem extends ModifiableLauncherItem {
   @Override
   public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
     ItemStack bow = player.getItemInHand(hand);
-    ToolStack tool = ToolStack.from(bow);
+    ToolStack tool = ToolStack.mutable(bow);
     if (tool.isBroken()) {
       return InteractionResultHolder.fail(bow);
     }
@@ -157,7 +157,7 @@ public class ModifiableBowItem extends ModifiableLauncherItem {
   @Override
   public void releaseUsing(ItemStack bow, Level level, LivingEntity living, int timeLeft) {
     // call the stop using hook
-    ToolStack tool = ToolStack.from(bow);
+    ToolStack tool = ToolStack.mutable(bow);
     int duration = getUseDuration(bow);
     for (ModifierEntry entry : tool.getModifiers()) {
       entry.getHook(ModifierHooks.TOOL_USING).beforeReleaseUsing(tool, entry, living, duration, timeLeft, ModifierEntry.EMPTY);

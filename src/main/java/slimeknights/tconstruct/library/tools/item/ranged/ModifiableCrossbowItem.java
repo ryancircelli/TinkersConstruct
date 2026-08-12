@@ -131,7 +131,7 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
   public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
     ItemStack bow = player.getItemInHand(hand);
 
-    ToolStack tool = ToolStack.from(bow);
+    ToolStack tool = ToolStack.mutable(bow);
     if (tool.isBroken()) {
       return InteractionResultHolder.fail(bow);
     }
@@ -298,7 +298,7 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
 
   @Override
   public void releaseUsing(ItemStack bow, Level level, LivingEntity living, int chargeRemaining) {
-    ToolStack tool = ToolStack.from(bow);
+    ToolStack tool = ToolStack.mutable(bow);
 
     // call the stop using modifier hook
     int duration = getUseDuration(bow);

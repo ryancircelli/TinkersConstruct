@@ -244,7 +244,7 @@ public class ToolHarvestLogic {
     }
 
     // if broken, clear the item stack temporarily then break
-    ToolStack tool = ToolStack.from(stack);
+    ToolStack tool = ToolStack.mutable(stack);
     Direction sideHit = BlockSideHitListener.getSideHit(player);
     ServerLevel world = serverPlayer.serverLevel();
     BlockState state = world.getBlockState(pos);
@@ -323,7 +323,7 @@ public class ToolHarvestLogic {
     if (!stack.is(TinkerTags.Items.HARVEST)) {
       return false;
     }
-    ToolStack tool = ToolStack.from(stack);
+    ToolStack tool = ToolStack.mutable(stack);
     if (tool.isBroken()) {
       return false;
     }

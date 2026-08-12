@@ -209,7 +209,7 @@ public abstract class ModifiableLauncherItem extends ProjectileWeaponItem implem
   @Override
   public void setDamage(ItemStack stack, int damage) {
     if (canBeDepleted()) {
-      ToolStack.from(stack).setDamage(damage);
+      ToolStack.mutable(stack).setDamage(damage);
     }
   }
 
@@ -310,7 +310,7 @@ public abstract class ModifiableLauncherItem extends ProjectileWeaponItem implem
 
   @Override
   public void onStopUsing(ItemStack stack, LivingEntity entity, int timeLeft) {
-    onStopUsing(ToolStack.from(stack), entity, timeLeft);
+    onStopUsing(ToolStack.mutable(stack), entity, timeLeft);
   }
 
   /** Same as {@link #onStopUsing(ItemStack, LivingEntity, int)} but uses a tool. */

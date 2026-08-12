@@ -836,7 +836,7 @@ public class ToolStack implements IToolStackView {
       return;
     }
     // time to initialize
-    ToolStack.from(stack).ensureHasData();
+    ToolStack.mutable(stack).ensureHasData();
   }
 
   /**

@@ -227,7 +227,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
   @Override
   public void setDamage(ItemStack stack, int damage) {
     if (canBeDepleted()) {
-      ToolStack.from(stack).setDamage(damage);
+      ToolStack.mutable(stack).setDamage(damage);
     }
   }
 
@@ -425,7 +425,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
   public boolean canContinueUsing(ItemStack oldStack, ItemStack newStack) {
     if (super.canContinueUsing(oldStack, newStack)) {
       if (oldStack != newStack) {
-        GeneralInteractionModifierHook.finishUsing(ToolStack.from(oldStack));
+        GeneralInteractionModifierHook.finishUsing(ToolStack.mutable(oldStack));
       }
     }
     return super.canContinueUsing(oldStack, newStack);
@@ -459,7 +459,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
   @Override
   public void onStopUsing(ItemStack stack, LivingEntity entity, int timeLeft) {
     // triggers on scroll away and all that
-    ToolStack tool = ToolStack.from(stack);
+    ToolStack tool = ToolStack.mutable(stack);
     UsingToolModifierHook.afterStopUsing(tool, entity, timeLeft);
     GeneralInteractionModifierHook.finishUsing(tool);
   }

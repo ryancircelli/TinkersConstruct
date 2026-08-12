@@ -100,7 +100,7 @@ public interface EntityInteractionModifierHook {
 
   /** Logic to left click an entity using interaction modifiers */
   static boolean leftClickEntity(ItemStack stack, Player player, Entity target) {
-    ToolStack tool = ToolStack.from(stack);
+    ToolStack tool = ToolStack.mutable(stack);
     boolean noMelee = meleeDisabled(tool);
     if (stack.is(TinkerTags.Items.INTERACTABLE_LEFT)) {
       if (!player.getCooldowns().isOnCooldown(stack.getItem())) {
