@@ -6,8 +6,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.LazyOptional;
-import slimeknights.mantle.util.LogicHelper;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.tools.capability.TinkerDataCapability;
 import slimeknights.tconstruct.library.tools.context.EquipmentIterator.EquipmentEntry;
@@ -32,8 +30,11 @@ public class EquipmentContext {
   protected final boolean[] fetchedTool = new boolean[6];
   /** Array of tools currently on the entity */
   protected final IToolStackView[] toolsInSlots = new IToolStackView[6];
-  /** Cached tinker data capability, saves capability lookup times slightly */
-  private LazyOptional<TinkerDataCapability.Holder> tinkerData = null;
+  /** Cached tinker data capability, saves capability lookup times slightly. Null is a valid value, hence the flag beside it */
+  @Nullable
+  private TinkerDataCapability.Holder tinkerData = null;
+  /** Determines whether {@link #tinkerData} was fetched */
+  private boolean fetchedData = false;
 
   /** Creates a context with an existing tool instance */
   public static EquipmentContext withTool(LivingEntity living, IToolStackView tool, EquipmentSlot slot) {
@@ -94,18 +95,21 @@ public class EquipmentContext {
     return hasModifiableArmor(EquipmentSlot.values());
   }
 
-  /** Gets the tinker data capability */
-  public LazyOptional<TinkerDataCapability.Holder> getTinkerData() {
-    if (tinkerData == null) {
-      tinkerData = entity.getCapability(TinkerDataCapability.CAPABILITY);
-    }
-    return tinkerData;
-  }
-
-  /** Gets the tinker data capability, or null if absent */
+  /**
+   * Gets the tinker data capability, or null if absent.
+   * @apiNote Replaces {@code getTinkerData()}, which returned a {@code LazyOptional}. 1.21 deleted that type along
+   * with the capability system that produced it; a capability query now simply returns null when it is absent, so
+   * there is nothing left to wrap and this is the only accessor. A caller that used
+   * {@code getTinkerData().ifPresent(data -> ...)} becomes a null check, and one that used
+   * {@code LogicHelper.orElseNull(getTinkerData())} just drops the call.
+   */
   @Nullable
   public TinkerDataCapability.Holder getDataHolder() {
-    return LogicHelper.orElseNull(getTinkerData());
+    if (!fetchedData) {
+      tinkerData = TinkerDataCapability.getData(entity);
+      fetchedData = true;
+    }
+    return tinkerData;
   }
 
 

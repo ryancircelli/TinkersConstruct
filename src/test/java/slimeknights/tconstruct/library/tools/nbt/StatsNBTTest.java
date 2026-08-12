@@ -7,7 +7,6 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.Tiers;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import slimeknights.tconstruct.library.materials.MaterialRegistryExtension;
@@ -21,10 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MaterialRegistryExtension.class)
 class StatsNBTTest extends BaseMcTest {
-  @BeforeAll
-  static void setupTiers() {
-    setupTierSorting();
-  }
 
   @Test
   void empty_ensureEmpty() {

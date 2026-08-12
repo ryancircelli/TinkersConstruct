@@ -3,7 +3,7 @@ package slimeknights.tconstruct.library.tools.definition.module.material;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.GsonHelper;
 import slimeknights.mantle.data.loadable.field.RecordField;
 import slimeknights.mantle.util.typed.TypedMap;
@@ -48,7 +48,7 @@ record StatScaleField(String nestKey, String listKey) implements RecordField<flo
   }
 
   @Override
-  public float[] decode(FriendlyByteBuf buffer, TypedMap context) {
+  public float[] decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
     int size = buffer.readVarInt();
     float[] scales = new float[size];
     for (int i = 0; i < size; i++) {
@@ -58,7 +58,7 @@ record StatScaleField(String nestKey, String listKey) implements RecordField<flo
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer, MaterialStatsModule parent) {
+  public void encode(RegistryFriendlyByteBuf buffer, MaterialStatsModule parent) {
     buffer.writeVarInt(parent.scales.length);
     for (float scale : parent.scales) {
       buffer.writeFloat(scale);

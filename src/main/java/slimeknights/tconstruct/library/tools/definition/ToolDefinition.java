@@ -34,7 +34,7 @@ public class ToolDefinition implements IdAwareObject {
   }
 
   /** Creates and registers a new tool definition */
-  public static ToolDefinition create(DeferredHolder<? extends ItemLike> item) {
+  public static ToolDefinition create(DeferredHolder<?, ? extends ItemLike> item) {
     return create(item.getId());
   }
 

@@ -4,9 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import slimeknights.mantle.network.packet.IThreadsafePacket;
+import slimeknights.mantle.network.packet.IPacket;
+import slimeknights.mantle.network.packet.PacketContext;
 import slimeknights.tconstruct.TConstruct;
 
 import java.util.Map;
@@ -14,11 +15,11 @@ import java.util.Map.Entry;
 
 /** Packet to sync tool definitions to the client */
 @RequiredArgsConstructor
-public class UpdateToolDefinitionDataPacket implements IThreadsafePacket {
+public class UpdateToolDefinitionDataPacket implements IPacket.Threadsafe {
   @Getter(AccessLevel.PROTECTED)
   private final Map<ResourceLocation, ToolDefinitionData> dataMap;
 
-  public UpdateToolDefinitionDataPacket(FriendlyByteBuf buffer) {
+  public UpdateToolDefinitionDataPacket(RegistryFriendlyByteBuf buffer) {
     int size = buffer.readVarInt();
     ImmutableMap.Builder<ResourceLocation, ToolDefinitionData> builder = ImmutableMap.builder();
     for (int i = 0; i < size; i++) {
@@ -35,7 +36,7 @@ public class UpdateToolDefinitionDataPacket implements IThreadsafePacket {
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer) {
+  public void encode(RegistryFriendlyByteBuf buffer) {
     buffer.writeVarInt(dataMap.size());
     for (Entry<ResourceLocation, ToolDefinitionData> entry : dataMap.entrySet()) {
       ResourceLocation name = entry.getKey();
@@ -50,7 +51,7 @@ public class UpdateToolDefinitionDataPacket implements IThreadsafePacket {
   }
 
   @Override
-  public void handleThreadsafe(Context context) {
+  public void handleThreadsafe(PacketContext context) {
     ToolDefinitionLoader.getInstance().updateDataFromServer(dataMap);
   }
 }
