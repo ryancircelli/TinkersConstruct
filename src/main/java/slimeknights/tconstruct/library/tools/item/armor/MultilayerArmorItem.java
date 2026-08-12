@@ -6,7 +6,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import slimeknights.tconstruct.library.client.armor.ArmorModelManager.ArmorModelDispatcher;
 import slimeknights.tconstruct.library.tools.definition.ModifiableArmorMaterial;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
@@ -29,7 +29,7 @@ public class MultilayerArmorItem extends ModifiableArmorItem {
 
   @SuppressWarnings("removal")
   public MultilayerArmorItem(ArmorMaterial material, ArmorItem.Type slot, Properties properties, ToolDefinition toolDefinition) {
-    this(material, slot, properties, toolDefinition, new ResourceLocation(material.getName()));
+    this(material, slot, properties, toolDefinition, ResourceLocation.parse(material.getName()));
   }
 
   public MultilayerArmorItem(ArmorMaterial material, ArmorItem.Type slot, Properties properties, ToolDefinition toolDefinition, ResourceLocation name) {

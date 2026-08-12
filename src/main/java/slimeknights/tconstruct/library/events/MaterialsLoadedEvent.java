@@ -1,6 +1,6 @@
 package slimeknights.tconstruct.library.events;
 
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.bus.api.Event;
 
 /**
  * Event fired on {@link net.minecraftforge.common.MinecraftForge#EVENT_BUS} on both sides when the material registry reloads

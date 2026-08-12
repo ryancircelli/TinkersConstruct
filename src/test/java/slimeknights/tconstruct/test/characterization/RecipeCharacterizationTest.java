@@ -3,10 +3,10 @@ package slimeknights.tconstruct.test.characterization;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.crafting.CompoundIngredient;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.DifferenceIngredient;
-import net.minecraftforge.common.crafting.IntersectionIngredient;
+import net.neoforged.neoforge.common.crafting.CompoundIngredient;
+import net.neoforged.neoforge.common.crafting.CraftingHelper;
+import net.neoforged.neoforge.common.crafting.DifferenceIngredient;
+import net.neoforged.neoforge.common.crafting.IntersectionIngredient;
 import net.minecraftforge.common.crafting.VanillaIngredientSerializer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
@@ -50,7 +50,7 @@ class RecipeCharacterizationTest extends BaseMcTest {
 
   @BeforeAll
   static void registerIngredientSerializers() {
-    register(new ResourceLocation("minecraft", "item"), VanillaIngredientSerializer.INSTANCE);
+    register(ResourceLocation.fromNamespaceAndPath("minecraft", "item"), VanillaIngredientSerializer.INSTANCE);
     register(MaterialIngredient.Serializer.ID, MaterialIngredient.Serializer.INSTANCE);
     register(MaterialValueIngredient.Serializer.ID, MaterialValueIngredient.Serializer.INSTANCE);
     register(ToolHookIngredient.Serializer.ID, ToolHookIngredient.Serializer.INSTANCE);
@@ -58,9 +58,9 @@ class RecipeCharacterizationTest extends BaseMcTest {
     register(BlockTagIngredient.Serializer.ID, BlockTagIngredient.Serializer.INSTANCE);
     // forge's own built-in ingredient types are normally registered by ForgeMod's mod construction, which never
     // runs in these headless unit tests (see BaseMcTest) - register them the same way ForgeMod does
-    register(new ResourceLocation("forge", "difference"), DifferenceIngredient.Serializer.INSTANCE);
-    register(new ResourceLocation("forge", "compound"), CompoundIngredient.Serializer.INSTANCE);
-    register(new ResourceLocation("forge", "intersection"), IntersectionIngredient.Serializer.INSTANCE);
+    register(ResourceLocation.fromNamespaceAndPath("forge", "difference"), DifferenceIngredient.Serializer.INSTANCE);
+    register(ResourceLocation.fromNamespaceAndPath("forge", "compound"), CompoundIngredient.Serializer.INSTANCE);
+    register(ResourceLocation.fromNamespaceAndPath("forge", "intersection"), IntersectionIngredient.Serializer.INSTANCE);
     register(FluidContainerIngredient.ID, FluidContainerIngredient.SERIALIZER);
     register(slimeknights.mantle.Mantle.getResource("potion_display"), slimeknights.mantle.recipe.ingredient.PotionDisplayIngredient.SERIALIZER);
     ModuleTypeRegistrations.ensureRegistered();

@@ -9,7 +9,6 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.network.NetworkEvent.Context;
 import net.minecraftforge.network.NetworkHooks;
 import slimeknights.mantle.network.packet.IThreadsafePacket;
 import slimeknights.tconstruct.common.network.TinkerNetwork;

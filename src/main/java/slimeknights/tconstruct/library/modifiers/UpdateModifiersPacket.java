@@ -9,7 +9,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraftforge.network.NetworkEvent.Context;
 import net.minecraftforge.registries.ForgeRegistries;
 import slimeknights.mantle.network.packet.IThreadsafePacket;
 import slimeknights.tconstruct.TConstruct;

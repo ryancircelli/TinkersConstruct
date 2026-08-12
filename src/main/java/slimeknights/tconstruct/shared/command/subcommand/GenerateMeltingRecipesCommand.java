@@ -30,10 +30,10 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.apache.commons.lang3.mutable.MutableInt;
 import slimeknights.mantle.command.GeneratePackHelper;
 import slimeknights.mantle.command.MantleCommand;
@@ -270,7 +270,7 @@ public class GenerateMeltingRecipesCommand {
           builder.setDamagable(10);
         }
         ResourceLocation id = Loadables.ITEM.getKey(result);
-        builder.save(consumer, new ResourceLocation("tinkers_generated", "melting/" + id.getNamespace() + '/' + id.getPath()));
+        builder.save(consumer, ResourceLocation.fromNamespaceAndPath("tinkers_generated", "melting/" + id.getNamespace() + '/' + id.getPath()));
       }
     }
 

@@ -3,8 +3,8 @@ package slimeknights.tconstruct.test.characterization;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.DifferenceIngredient;
+import net.neoforged.neoforge.common.crafting.CraftingHelper;
+import net.neoforged.neoforge.common.crafting.DifferenceIngredient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import slimeknights.mantle.data.loadable.field.ContextKey;
@@ -53,12 +53,12 @@ class PredicateInversionJsonAsymmetryTest extends BaseMcTest {
   static void registerPredicateTypes() {
     ModuleTypeRegistrations.ensureRegistered();
     try {
-      CraftingHelper.register(new ResourceLocation("minecraft", "item"), net.minecraftforge.common.crafting.VanillaIngredientSerializer.INSTANCE);
+      CraftingHelper.register(ResourceLocation.fromNamespaceAndPath("minecraft", "item"), net.minecraftforge.common.crafting.VanillaIngredientSerializer.INSTANCE);
     } catch (Exception ignored) {
       // already registered - fine
     }
     try {
-      CraftingHelper.register(new ResourceLocation("forge", "difference"), DifferenceIngredient.Serializer.INSTANCE);
+      CraftingHelper.register(ResourceLocation.fromNamespaceAndPath("forge", "difference"), DifferenceIngredient.Serializer.INSTANCE);
     } catch (Exception ignored) {
       // already registered - fine
     }

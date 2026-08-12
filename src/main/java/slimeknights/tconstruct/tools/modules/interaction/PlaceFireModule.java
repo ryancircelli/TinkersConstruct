@@ -23,7 +23,7 @@ import net.minecraft.world.level.block.TntBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraftforge.common.ToolAction;
+import net.neoforged.neoforge.common.ItemAbility;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.loadable.record.SingletonLoader;
 import slimeknights.tconstruct.common.TinkerTags;
@@ -69,7 +69,7 @@ public enum PlaceFireModule implements ModifierModule, EntityInteractionModifier
   }
 
   @Override
-  public boolean canPerformAction(IToolStackView tool, ModifierEntry modifier, ToolAction toolAction) {
+  public boolean canPerformAction(IToolStackView tool, ModifierEntry modifier, ItemAbility toolAction) {
     return toolAction == TinkerToolActions.LIGHT_CAMPFIRE || toolAction == TinkerToolActions.LIGHT_FIRE;
   }
 

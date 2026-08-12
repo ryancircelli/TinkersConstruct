@@ -17,7 +17,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.network.TinkerNetwork;
 import slimeknights.tconstruct.shared.inventory.ConfigurableInvWrapperCapability;

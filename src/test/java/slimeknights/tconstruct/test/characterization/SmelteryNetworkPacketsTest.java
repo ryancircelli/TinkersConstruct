@@ -5,7 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.junit.jupiter.api.Test;
 import slimeknights.tconstruct.smeltery.network.ChannelFlowPacket;
 import slimeknights.tconstruct.smeltery.network.FaucetActivationPacket;

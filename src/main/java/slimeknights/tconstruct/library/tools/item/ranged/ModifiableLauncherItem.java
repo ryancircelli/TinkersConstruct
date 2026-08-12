@@ -27,8 +27,8 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.common.ToolAction;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.common.ItemAbility;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import slimeknights.mantle.client.SafeClientAccess;
 import slimeknights.tconstruct.TConstruct;
@@ -264,7 +264,7 @@ public abstract class ModifiableLauncherItem extends ProjectileWeaponItem implem
   }
 
   @Override
-  public boolean canPerformAction(ItemStack stack, ToolAction toolAction) {
+  public boolean canPerformAction(ItemStack stack, ItemAbility toolAction) {
     return ModifierUtil.canPerformAction(ToolStack.from(stack), toolAction);
   }
 

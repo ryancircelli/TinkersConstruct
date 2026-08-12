@@ -14,8 +14,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.fluids.FluidStack;
+
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.recipe.FluidValues;
@@ -132,8 +132,8 @@ public class CopperCanItem extends Item {
     CompoundTag nbt = stack.getTag();
     if (nbt != null && nbt.contains(TAG_FLUID, Tag.TAG_STRING)) {
       ResourceLocation location = ResourceLocation.tryParse(nbt.getString(TAG_FLUID));
-      if (location != null && ForgeRegistries.FLUIDS.containsKey(location)) {
-        Fluid fluid = ForgeRegistries.FLUIDS.getValue(location);
+      if (location != null && BuiltInRegistries.FLUID.containsKey(location)) {
+        Fluid fluid = BuiltInRegistries.FLUID.getValue(location);
         if (fluid != null) {
           return fluid;
         }

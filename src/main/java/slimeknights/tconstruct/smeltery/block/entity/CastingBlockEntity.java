@@ -26,11 +26,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.wrapper.SidedInvWrapper;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.wrapper.SidedInvWrapper;
 import slimeknights.mantle.fluid.FluidTransferHelper;
 import slimeknights.mantle.recipe.helper.RecipeHelper;
 import slimeknights.mantle.util.BlockEntityHelper;
@@ -599,7 +599,7 @@ public abstract class CastingBlockEntity extends TableBlockEntity implements Wor
     tank.readFromTag(tags.getCompound(TAG_TANK));
     timer = tags.getInt(TAG_TIMER);
     if (tags.contains(TAG_RECIPE, CompoundTag.TAG_STRING)) {
-      ResourceLocation name = new ResourceLocation(tags.getString(TAG_RECIPE));
+      ResourceLocation name = ResourceLocation.parse(tags.getString(TAG_RECIPE));
       // if we have a level, fetch the recipe
       if (level != null) {
         loadRecipe(level, name);
