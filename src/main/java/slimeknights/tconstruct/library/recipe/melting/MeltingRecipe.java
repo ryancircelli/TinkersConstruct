@@ -2,7 +2,6 @@ package slimeknights.tconstruct.library.recipe.melting;
 
 import lombok.Getter;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -10,7 +9,6 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import slimeknights.mantle.data.loadable.common.IngredientLoadable;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.field.LoadableField;
 import slimeknights.mantle.data.loadable.primitive.IntLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
@@ -35,10 +33,8 @@ public class MeltingRecipe implements IMeltingRecipe {
   protected static final LoadableField<Integer, MeltingRecipe> TIME = IntLoadable.FROM_ONE.requiredField("time", MeltingRecipe::getTime);
   protected static final LoadableField<List<FluidOutput>, MeltingRecipe> BYPRODUCTS = FluidOutput.Loadable.REQUIRED.list(0).defaultField("byproducts", List.of(), r -> r.byproducts);
   /** Loader instance */
-  public static final RecordLoadable<MeltingRecipe> LOADER = RecordLoadable.create(ContextKey.ID.requiredField(), LoadableRecipeSerializer.RECIPE_GROUP, INPUT, OUTPUT, TEMPERATURE, TIME, BYPRODUCTS, MeltingRecipe::new);
+  public static final RecordLoadable<MeltingRecipe> LOADER = RecordLoadable.create(LoadableRecipeSerializer.RECIPE_GROUP, INPUT, OUTPUT, TEMPERATURE, TIME, BYPRODUCTS, MeltingRecipe::new);
 
-  @Getter
-  private final ResourceLocation id;
   @Getter
   protected final String group;
   @Getter
@@ -52,13 +48,12 @@ public class MeltingRecipe implements IMeltingRecipe {
   protected final List<FluidOutput> byproducts;
   protected List<List<FluidStack>> outputWithByproducts;
 
-  public MeltingRecipe(ResourceLocation id, String group, Ingredient input, FluidOutput output, int temperature, int time, List<FluidOutput> byproducts) {
-    this(id, group, input, output, temperature, time, byproducts, true);
+  public MeltingRecipe(String group, Ingredient input, FluidOutput output, int temperature, int time, List<FluidOutput> byproducts) {
+    this(group, input, output, temperature, time, byproducts, true);
   }
 
   /** Constructor that allows canceling the lookup addition, for generated recipes in JEI */
-  public MeltingRecipe(ResourceLocation id, String group, Ingredient input, FluidOutput output, int temperature, int time, List<FluidOutput> byproducts, boolean addLookup) {
-    this.id = id;
+  public MeltingRecipe(String group, Ingredient input, FluidOutput output, int temperature, int time, List<FluidOutput> byproducts, boolean addLookup) {
     this.group = group;
     this.input = input;
     this.output = output;
@@ -125,7 +120,7 @@ public class MeltingRecipe implements IMeltingRecipe {
       // boost for foundry rate, this method is used for the foundry only
       OreRateType rate = getOreType();
       if (rate != null) {
-        return new FluidStack(output.get(), Config.COMMON.foundryOreRate.applyOreBoost(rate, output.getAmount()));
+        return output.get().copyWithAmount(Config.COMMON.foundryOreRate.applyOreBoost(rate, output.getAmount()));
       }
       return output.get();
     });
