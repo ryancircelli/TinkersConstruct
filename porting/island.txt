@@ -296,6 +296,13 @@ src/main/java/slimeknights/tconstruct/library/module/ModuleHook.java
 src/main/java/slimeknights/tconstruct/library/module/ModuleHookMap.java
 src/main/java/slimeknights/tconstruct/library/module/WithHooks.java
 src/main/java/slimeknights/tconstruct/library/module/package-info.java
+src/main/java/slimeknights/tconstruct/library/recipe/FluidValues.java
+src/main/java/slimeknights/tconstruct/library/recipe/ITinkerableContainer.java
+src/main/java/slimeknights/tconstruct/library/recipe/RandomItem.java
+src/main/java/slimeknights/tconstruct/library/recipe/RecipeResult.java
+src/main/java/slimeknights/tconstruct/library/recipe/SingleItemContainer.java
+src/main/java/slimeknights/tconstruct/library/recipe/TagPredicate.java
+src/main/java/slimeknights/tconstruct/library/recipe/package-info.java
 src/main/java/slimeknights/tconstruct/library/recipe/partbuilder/Pattern.java
 src/main/java/slimeknights/tconstruct/library/tools/context/EquipmentChangeContext.java
 src/main/java/slimeknights/tconstruct/library/tools/context/EquipmentContext.java

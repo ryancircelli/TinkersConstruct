@@ -1,6 +1,6 @@
 {
-    "total": 386,
-    "islandFiles": 539,
+    "total": 377,
+    "islandFiles": 546,
     "categories": {
         "other: static import only from classes and interfaces": 7,
         "package TinkerDataCapability": 8,
@@ -48,10 +48,8 @@
         "symbol class MutableUseOnContext": 5,
         "symbol class OreRateType": 1,
         "symbol class OvergrowthModule": 1,
-        "symbol class RecipeResult": 5,
         "symbol class SlotType": 32,
         "symbol class TConstruct": 65,
-        "symbol class TagPredicate": 4,
         "symbol class TagUtil": 2,
         "symbol class TeleportHelper": 1,
         "symbol class TinkerDataKey": 22,
