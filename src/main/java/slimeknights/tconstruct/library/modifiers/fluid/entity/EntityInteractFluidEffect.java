@@ -10,7 +10,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeHooks;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import slimeknights.mantle.data.loadable.record.SingletonLoader;
@@ -50,11 +51,12 @@ public enum EntityInteractFluidEffect implements FluidEffect<FluidEffectContext.
         // unfortunately, our projectiles always are considered hitting the entity's position making this 0
         Vec3 hit = context.getLocation().subtract(target.position());
 
-        // check if forge wants to override
-        InteractionResult result = ForgeHooks.onInteractEntityAt(player, target, hit, hand);
+        // check if a listener wants to override
+        PlayerInteractEvent.EntityInteractSpecific event = NeoForge.EVENT_BUS.post(new PlayerInteractEvent.EntityInteractSpecific(player, hand, target, hit));
+        InteractionResult result = event.isCanceled() ? event.getCancellationResult() : null;
         // skipped: never spectator mode if we made it this far
         if (result == null) {
-          // no forge override, so find first success from vanilla hooks
+          // no override, so find first success from vanilla hooks
           result = target.interactAt(player, hit, hand);
           if (!result.consumesAction()) {
             result = player.interactOn(context.getTarget(), hand);

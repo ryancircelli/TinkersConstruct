@@ -541,3 +541,17 @@ src/main/java/slimeknights/tconstruct/library/modifiers/fluid/block/OffsetBlockF
 src/main/java/slimeknights/tconstruct/library/modifiers/fluid/block/PlaceBlockFluidEffect.java
 src/main/java/slimeknights/tconstruct/library/modifiers/fluid/block/PotionCloudFluidEffect.java
 src/main/java/slimeknights/tconstruct/library/modifiers/fluid/block/package-info.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/AddBreathFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/AwardStatFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/CureEffectsFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/DamageFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/EntityInteractFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/FireFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/FreezeFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/MobEffectFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/PotionFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/PushEntityFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/RandomTeleportFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/RemoveEffectFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/RestoreHungerFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/package-info.java

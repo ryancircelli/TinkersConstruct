@@ -1,6 +1,8 @@
 package slimeknights.tconstruct.library.modifiers.fluid.entity;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,10 +28,13 @@ public record RemoveEffectFluidEffect(MobEffect effect) implements FluidEffect<F
   public float apply(FluidStack fluid, EffectLevel level, Entity context, FluidAction action) {
     LivingEntity living = context.getLivingTarget();
     if (living != null && level.isFull()) {
+      // mob effects are a built-in registry in 1.21, but LivingEntity#hasEffect/#removeEffect still want a
+      // Holder regardless (same split as attributes and the other fluid mob-effect usages in this package)
+      Holder<MobEffect> holder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);
       if (action.simulate()) {
-        return living.hasEffect(effect) ? 1 : 0;
+        return living.hasEffect(holder) ? 1 : 0;
       }
-      return living.removeEffect(effect) ? 1 : 0;
+      return living.removeEffect(holder) ? 1 : 0;
     }
     return 0;
   }
