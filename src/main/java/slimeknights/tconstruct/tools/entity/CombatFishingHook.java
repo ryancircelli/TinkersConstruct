@@ -184,7 +184,7 @@ public class CombatFishingHook extends FishingHook implements ProjectileWithKnoc
       }
       // must be modifiable
       if (stack.is(TinkerTags.Items.MODIFIABLE)) {
-        ToolDamageUtil.damageAnimated(ToolStack.from(stack), 1, living, hand);
+        ToolDamageUtil.damageAnimated(ToolStack.mutable(stack), 1, living, hand);
       }
     }
   }

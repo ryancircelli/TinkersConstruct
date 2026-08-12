@@ -263,7 +263,7 @@ public class InteractionHandler {
       if (attacker.getMainHandItem().isEmpty()) {
         ItemStack chestplate = attacker.getItemBySlot(EquipmentSlot.CHEST);
         if (chestplate.is(TinkerTags.Items.UNARMED)) {
-          ToolStack tool = ToolStack.from(chestplate);
+          ToolStack tool = ToolStack.mutable(chestplate);
           Entity target = event.getTarget();
           if (!tool.isBroken() && ToolAttackUtil.isAttackable(attacker, target)) {
             ToolAttackUtil.performAttack(tool, ToolAttackContext.attacker(attacker).target(target).slot(EquipmentSlot.CHEST, InteractionHand.MAIN_HAND).defaultCooldown().toolAttributes(tool).build());
@@ -314,7 +314,7 @@ public class InteractionHandler {
     if (!player.isSpectator()) {
       ItemStack helmet = player.getItemBySlot(slotType);
       if (helmet.is(TinkerTags.Items.ARMOR)) {
-        ToolStack tool = ToolStack.from(helmet);
+        ToolStack tool = ToolStack.mutable(helmet);
         // fetch interaction data if present
         int chargeTime = 0;
         ModifierEntry activeModifier = ModifierEntry.EMPTY;
@@ -483,7 +483,7 @@ public class InteractionHandler {
     LivingEntity entity = event.getEntity();
     ItemStack activeStack = entity.getUseItem();
     if (!activeStack.isEmpty() && activeStack.is(TinkerTags.Items.MODIFIABLE)) {
-      ToolStack tool = ToolStack.from(activeStack);
+      ToolStack tool = ToolStack.mutable(activeStack);
       // first check block angle
       if (!tool.isBroken() && canBlock(event.getEntity(), event.getDamageSource().getSourcePosition(), tool)) {
         // TODO: hook for conditioning block amount based on on damage type

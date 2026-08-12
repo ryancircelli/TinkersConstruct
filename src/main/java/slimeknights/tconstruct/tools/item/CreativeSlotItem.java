@@ -103,7 +103,7 @@ public class CreativeSlotItem extends Item {
     if (slotType != null && !toolItem.isEmpty() && toolItem.is(TinkerTags.Items.MODIFIABLE)) {
       if (!player.level().isClientSide || (player.isCreative() && player.containerMenu.menuType == null)) {
         if (canApply(player)) {
-          ToolStack tool = ToolStack.from(toolItem);
+          ToolStack tool = ToolStack.mutable(toolItem);
           // do nothing if the tool already has 0 slots and we are removing
           if (tool.getFreeSlots(slotType) + amount < 0) {
             return true;

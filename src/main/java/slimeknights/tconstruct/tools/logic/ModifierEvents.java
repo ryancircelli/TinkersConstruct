@@ -388,7 +388,7 @@ public class ModifierEvents {
         ItemStack stack = target.getUseItem();
         // living entity must be using one of our shields
         if (stack.is(TinkerTags.Items.SHIELDS)) {
-          ToolStack tool = ToolStack.from(stack);
+          ToolStack tool = ToolStack.mutable(stack);
           // make sure we actually have the modifier
           int reflectingTime = tool.getVolatileData().getInt(REFLECTING);
           if (reflectingTime > 0) {
