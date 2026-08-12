@@ -1,7 +1,7 @@
 /*
  * Tinkers Construct
  * Master build file
- * 
+ *
  * Authors: boni, Sunstrike, ProgWML6
  * Help from AbrarSyed
  */
@@ -10,49 +10,43 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '[6.0,6.0.37]'
-    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
-    id 'io.freefair.lombok' version '8.6'
+    // ModDevGradle replaces ForgeGradle 6 + Librarian for the 1.21.1 / NeoForge port.
+    id 'net.neoforged.moddev' version '2.0.143'
+    id 'io.freefair.lombok' version '8.14.4'
 }
-//apply plugin: 'maven'
-
-//import net.minecraftforge.gradle.common.task.SignJar
 
 repositories {
     mavenCentral()
-    maven { // Mantle
-        name 'DVS1 Maven FS'
-        url 'https://dvs1.progwml6.com/files/maven'
-    }
-    maven { // TOP
-        name 'tterrag maven'
-        url "https://maven.tterrag.com/"
-    }
-    maven { // CraftTweaker, Immersive Engineering, JEI
-        name 'BlameJared Maven'
-        url 'https://maven.blamejared.com'
-    }
-    maven { // JSON Things
-        name 'Dogforce Games'
-        url 'https://www.dogforce-games.com/maven/'
+    maven { // our maven
+        name = 'DVS1 Maven FS'
+        url = 'https://dvs1.progwml6.com/files/maven'
     }
     maven {
-        url "https://www.cursemaven.com"
-        content {
-            includeGroup "curse.maven"
-        }
+        // Parchment; also mirrored on the NeoForged maven that ModDevGradle adds itself,
+        // declared here so the mappings source is obvious from the build script.
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
     }
-    // If you have mod jar dependencies in ./libs, you can declare them as a repository like so:
-     flatDir {
-         dir '../Mantle/build/libs'
-     }
+    // Mantle for 1.21.1 is our own in-flight port and is not on any maven yet, so it is
+    // consumed as a flat-dir artifact out of the sibling port checkout. See the dependencies
+    // block below; `mantle_version` in gradle.properties is the only line that moves when
+    // Mantle rebuilds, and this repository entry is the only line that moves when Mantle
+    // starts publishing for real.
+    flatDir {
+        dir "${rootDir}/../libs"
+    }
+    // Gone with their dependencies, all pending T20 (compat/integration):
+    //   maven.blamejared.com   - CraftTweaker, Immersive Engineering, JEI
+    //   maven.tterrag.com      - The One Probe
+    //   dogforce-games.com     - JSON Things
+    //   cursemaven.com         - Diet, Balm, Crafting Tweaks, Moonlight, Mmm Mmm Mmm Mmm
 }
 
 group = 'slimeknights.tconstruct'
 base {
     archivesName = 'TinkersConstruct'
-}                                                          
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+}
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 // sets version to the slimeKnights version format
 task buildInfo {
@@ -86,8 +80,46 @@ if (System.getenv().ARTIFACT_VERSION != null) {
 version = "${minecraft_version}-${artifact_version}"
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}, Version: ${version}"
 
+/*
+ * ---------------------------------------------------------------------------
+ * Porting frontier
+ * ---------------------------------------------------------------------------
+ * porting/unported.txt and porting/unported-test.txt are the ledger of source
+ * files that have not been ported to 1.21.1 yet. Everything listed is kept out
+ * of its source set, so the build compiles only what has actually crossed over.
+ *
+ * The ledger is self-liquidating: a port PR deletes lines from it, never adds
+ * them, and the last PR of the port deletes the files outright. checkPortingFrontier
+ * below is what makes that a rule rather than an intention.
+ */
+ext.frontiers = [
+        [name: 'main', ledger: file('porting/unported.txt'), roots: ['src/main/java']],
+        [name: 'test', ledger: file('porting/unported-test.txt'), roots: ['src/test/java', 'src/gametest/java']],
+]
+
+// Reads a ledger into repo-relative paths, dropping blank lines and # comments.
+ext.readFrontier = { File ledger ->
+    if (!ledger.exists()) {
+        return [] as List<String>
+    }
+    return ledger.readLines('UTF-8')
+            *.trim()
+            .findAll { !it.isEmpty() && !it.startsWith('#') }
+}
+
+// The entries of a ledger that live under one source root, relative to that root:
+// Ant-style excludes are relative to the source directory, so the prefix comes off.
+ext.frontierExcludes = { File ledger, String root ->
+    return readFrontier(ledger)
+            .findAll { it.startsWith("${root}/") }
+            .collect { it.substring(root.length() + 1) }
+}
+
 sourceSets {
     main {
+        java {
+            frontierExcludes(frontiers[0].ledger, 'src/main/java').each { exclude it }
+        }
         resources {
             srcDirs "src/generated/resources"
             //But exclude the cache of the generated data from what gets built
@@ -99,9 +131,345 @@ sourceSets {
     // in-game behavior tests, run via the gameTestServer run config; not packaged into the mod jar
     // resources/java dirs use the sourceSet's default convention (src/gametest/resources, src/gametest/java)
     gametest {
+        java {
+            frontierExcludes(frontiers[1].ledger, 'src/gametest/java').each { exclude it }
+        }
         compileClasspath += main.compileClasspath + main.output
         runtimeClasspath += main.runtimeClasspath + main.output
     }
+    test {
+        java {
+            frontierExcludes(frontiers[1].ledger, 'src/test/java').each { exclude it }
+        }
+    }
+}
+
+/*
+ * Guards the frontier on every `check`:
+ *
+ *  (a) every path in a ledger must exist, so a file cannot be renamed or deleted
+ *      out from under the ledger and leave a stale line behind;
+ *  (b) every path must live under one of that ledger's source roots, since a path
+ *      outside them would excite no exclude and silently hide nothing; and
+ *  (c) a ledger may only shrink. The baseline is the committed copy at HEAD~,
+ *      read with `git show HEAD~:<path>` - so on a branch each commit is checked
+ *      against its parent, and CI checking out a PR head sees the same thing.
+ *      Any entry present now but absent from the baseline fails the build: that
+ *      is a file being pushed back behind the frontier instead of ported.
+ *
+ * If HEAD~ has no copy of the ledger (the commit that introduces it, or a shallow
+ * clone with no parent) there is no baseline and the shrink check is skipped; the
+ * other checks still run.
+ */
+tasks.register('checkPortingFrontier') {
+    group = 'verification'
+    description = 'Verifies the porting frontier is intact and has not grown since HEAD~.'
+
+    def projectDirectory = projectDir
+    def ledgers = frontiers.collect { [name: it.name, roots: it.roots, path: rootDir.toPath().relativize(it.ledger.toPath()).toString(), file: it.ledger] }
+    def read = readFrontier
+    inputs.files(frontiers*.ledger).withPropertyName('ledgers')
+
+    doLast {
+        // Reads the committed copy of a ledger at HEAD~; null when there is no baseline.
+        def baselineOf = { String path ->
+            def out = new ByteArrayOutputStream()
+            def proc = new ProcessBuilder('git', 'show', "HEAD~:${path}".toString())
+                    .directory(projectDirectory)
+                    .redirectErrorStream(false)
+                    .start()
+            proc.inputStream.transferTo(out)
+            proc.errorStream.transferTo(OutputStream.nullOutputStream())
+            return proc.waitFor() == 0 ? out.toString('UTF-8') : null
+        }
+
+        def failures = []
+        ledgers.each { ledger ->
+            def entries = read(ledger.file)
+
+            def duplicates = entries.countBy { it }.findAll { it.value > 1 }.keySet()
+            if (!duplicates.isEmpty()) {
+                failures << "${ledger.path} lists ${duplicates.size()} path(s) more than once:\n  ${duplicates.join('\n  ')}"
+            }
+
+            def stray = entries.findAll { entry -> ledger.roots.every { !entry.startsWith("${it}/") } }
+            if (!stray.isEmpty()) {
+                failures << "${ledger.path} lists ${stray.size()} path(s) outside its source root(s) ${ledger.roots}, which would exclude nothing:\n  ${stray.join('\n  ')}"
+            }
+
+            def missing = entries.findAll { !new File(projectDirectory, it).exists() }
+            if (!missing.isEmpty()) {
+                failures << "${ledger.path} lists ${missing.size()} path(s) that do not exist. Delete the line if the file was ported or removed:\n  ${missing.join('\n  ')}"
+            }
+
+            def baselineText = baselineOf(ledger.path)
+            if (baselineText == null) {
+                logger.lifecycle("porting frontier [${ledger.name}]: ${entries.size()} unported file(s); no copy at HEAD~, shrink check skipped")
+                return
+            }
+            def baseline = baselineText.readLines()*.trim().findAll { !it.isEmpty() && !it.startsWith('#') } as Set
+            def added = entries.findAll { !baseline.contains(it) }
+            if (!added.isEmpty()) {
+                failures << "${ledger.path} grew by ${added.size()} entr(y/ies) since HEAD~. The porting frontier only shrinks:\n  ${added.join('\n  ')}"
+            }
+            def ported = baseline.size() - entries.size()
+            logger.lifecycle("porting frontier [${ledger.name}]: ${entries.size()} unported file(s), ${ported >= 0 ? ported : 0} ported since HEAD~")
+        }
+
+        if (!failures.isEmpty()) {
+            throw new GradleException("Porting frontier check failed:\n\n${failures.join('\n\n')}\n")
+        }
+    }
+}
+
+tasks.named('check').configure {
+    dependsOn 'checkPortingFrontier'
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Error budget
+ * ---------------------------------------------------------------------------
+ * The frontier above works for anything that can be ported a file at a time. The
+ * island - library/ + common/ + shared/ + fluids/ + the two root classes, ~1115
+ * files - cannot: its classes reference one another densely enough that any cut
+ * leaves both halves broken. It therefore ports through a RED stretch where the
+ * set is known not to compile, and what has to be measured is not "does it
+ * compile" but "is it getting better".
+ *
+ * porting/island.txt is a third ledger naming the files currently in that state.
+ * They stay listed in porting/unported.txt as well, so they are still out of the
+ * main source set and the real build stays green; the island is compiled
+ * separately, for measurement only, into a scratch directory.
+ *
+ *   errorBudget        compiles the island with failOnError=false, parses javac's
+ *                      diagnostics, and writes build/errorBudget/errors.json:
+ *                      a total and a count per error category.
+ *   checkErrorBudget   compares that measurement against the committed budget in
+ *                      porting/errors.json. Fails if the total went up, or if a
+ *                      category appeared that the budget does not name. Wired
+ *                      into `check`.
+ *   errorBudgetUpdate  promotes the measurement to porting/errors.json. Run by
+ *                      hand; the resulting diff is the reviewable record of a PR
+ *                      moving the budget, in either direction.
+ *
+ * Why the measurement never writes porting/errors.json itself: `check` must not
+ * mutate a committed file, or the gate would silently rubber-stamp whatever it
+ * measured. The budget only moves when someone runs errorBudgetUpdate and commits
+ * the diff.
+ *
+ * Why javac is forked rather than run through a JavaCompile task: Gradle's
+ * JavaCompile gives no access to the compiler's DiagnosticListener, so the
+ * diagnostics it prints cannot be collected. Forking the toolchain's own javac and
+ * reading its output is the only way to count them.
+ *
+ * Categories are the shape of the breakage, not its location:
+ *   package <name>          an import of a package that does not exist here
+ *   symbol <kind> <name>    a reference to a type, method or field that does not
+ *   other: <message>        everything else, message text as javac phrased it
+ * A new category means a new *kind* of breakage, which is the interesting event -
+ * it usually means a file arrived referencing something nobody has looked at yet.
+ */
+ext.islandLedger = file('porting/island.txt')
+ext.errorBudgetLedger = file('porting/errors.json')
+
+// Reads an errors.json into [total: int, islandFiles: int, categories: Map<String, int>].
+ext.readErrorBudget = { File f ->
+    def parsed = new groovy.json.JsonSlurper().parse(f, 'UTF-8')
+    return [total: parsed.total as int, islandFiles: (parsed.islandFiles ?: 0) as int,
+            categories: (parsed.categories ?: [:]).collectEntries { k, v -> [(k as String): v as int] }]
+}
+
+tasks.register('errorBudget') {
+    group = 'verification'
+    description = 'Compiles the island named by porting/island.txt and counts the errors.'
+
+    def islandEntries = readFrontier(islandLedger)
+    def mainEntries = readFrontier(frontiers[0].ledger) as Set
+    def ledgerPath = rootDir.toPath().relativize(islandLedger.toPath()).toString()
+    def mainLedgerPath = rootDir.toPath().relativize(frontiers[0].ledger.toPath()).toString()
+    def projectDirectory = projectDir
+    def islandSources = files(islandEntries.collect { file(it) })
+    def compileClasspath = sourceSets.main.compileClasspath
+    def processorPath = sourceSets.main.annotationProcessorPath
+    def javac = javaToolchains.compilerFor(java.toolchain).map { it.executablePath.asFile.absolutePath }
+    def outputDir = layout.buildDirectory.dir('errorBudget')
+
+    inputs.file(islandLedger).withPropertyName('island')
+    inputs.files(islandSources).withPropertyName('islandSources')
+    // Resolving these is deliberate even when the island is empty: it is what proves, on
+    // every build, that the Minecraft, NeoForge and Mantle artifacts are actually there.
+    inputs.files(compileClasspath).withPropertyName('compileClasspath')
+    inputs.files(processorPath).withPropertyName('processorPath')
+    outputs.dir(outputDir)
+
+    doLast {
+        // The island has to be internally consistent or the measurement means nothing.
+        def problems = []
+        def duplicates = islandEntries.countBy { it }.findAll { it.value > 1 }.keySet()
+        if (!duplicates.isEmpty()) {
+            problems << "${ledgerPath} lists ${duplicates.size()} path(s) more than once:\n  ${duplicates.join('\n  ')}"
+        }
+        def stray = islandEntries.findAll { !it.startsWith('src/main/java/') }
+        if (!stray.isEmpty()) {
+            problems << "${ledgerPath} lists ${stray.size()} path(s) outside src/main/java:\n  ${stray.join('\n  ')}"
+        }
+        def missing = islandEntries.findAll { !new File(projectDirectory, it).exists() }
+        if (!missing.isEmpty()) {
+            problems << "${ledgerPath} lists ${missing.size()} path(s) that do not exist:\n  ${missing.join('\n  ')}"
+        }
+        def escaped = islandEntries.findAll { !mainEntries.contains(it) }
+        if (!escaped.isEmpty()) {
+            problems << ("${ledgerPath} lists ${escaped.size()} path(s) that ${mainLedgerPath} does not. A file on the island " +
+                    "is compiled for measurement only and must stay excluded from the main source set:\n  ${escaped.join('\n  ')}")
+        }
+        if (!problems.isEmpty()) {
+            throw new GradleException("Island ledger is inconsistent:\n\n${problems.join('\n\n')}\n")
+        }
+
+        def dir = outputDir.get().asFile
+        def classesDir = new File(dir, 'classes')
+        classesDir.deleteDir()
+        classesDir.mkdirs()
+        def log = new File(dir, 'javac.log')
+
+        def diagnostics = []
+        if (islandEntries.isEmpty()) {
+            log.text = ''
+        } else {
+            def argFile = new File(dir, 'sources.txt')
+            argFile.text = islandEntries.collect { new File(projectDirectory, it).absolutePath.replace('\\', '/') }.join('\n')
+
+            def command = [javac.get(), '-d', classesDir.absolutePath, '-encoding', 'UTF-8', '-nowarn',
+                           '-implicit:none', '-Xmaxerrs', '100000', '-classpath', compileClasspath.asPath]
+            if (!processorPath.isEmpty()) {
+                // Lombok. Without it every generated accessor reads as a missing symbol and the
+                // measurement is dominated by errors that do not exist.
+                command += ['-processorpath', processorPath.asPath]
+                command += ['-J--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED',
+                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
+                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED',
+                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED',
+                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED',
+                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED',
+                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED',
+                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED']
+            } else {
+                command += ['-proc:none']
+            }
+            command << "@${argFile.absolutePath}".toString()
+
+            // failOnError=false, spelled out: javac's exit code is ignored, its diagnostics are the product.
+            def output = new ByteArrayOutputStream()
+            def proc = new ProcessBuilder(command).directory(projectDirectory).redirectErrorStream(true).start()
+            proc.outputStream.close()
+            proc.inputStream.transferTo(output)
+            proc.waitFor()
+            log.bytes = output.toByteArray()
+
+            // javac writes an error as a `path:line: error: message` line, sometimes followed by
+            // the offending source line, a caret, and `  symbol:`/`  location:` detail lines.
+            def current = null
+            log.readLines('UTF-8').each { line ->
+                def head = line =~ /^(.*\.java):(\d+): (error|warning): (.*)$/
+                if (head.find()) {
+                    current = head.group(3) == 'error' ? [message: head.group(4).trim(), symbol: null] : null
+                    if (current != null) {
+                        diagnostics << current
+                    }
+                    return
+                }
+                def detail = line =~ /^\s+symbol:\s+(.*)$/
+                if (detail.find() && current != null && current.symbol == null) {
+                    current.symbol = detail.group(1).trim()
+                }
+            }
+        }
+
+        def categorise = { d ->
+            def pkg = d.message =~ /^package (\S+) (?:does not exist|is not visible)/
+            if (pkg.find()) {
+                return "package ${pkg.group(1)}".toString()
+            }
+            if (d.symbol != null) {
+                // "class ToolAction", "method getFoo(int,int)", "variable bar" -> drop the argument
+                // list, which varies per call site and would shatter one missing method into many.
+                def parts = d.symbol.replaceAll(/\s+/, ' ').split(' ', 2)
+                def name = parts.length > 1 ? parts[1].replaceAll(/\(.*$/, '') : parts[0]
+                return "symbol ${parts[0]} ${name}".toString()
+            }
+            // Strip absolute paths so the key does not depend on where the repo is checked out.
+            def message = d.message.replace(projectDirectory.absolutePath, '').replaceAll(/\s+/, ' ')
+            return "other: ${message.length() > 120 ? message.substring(0, 120) : message}".toString()
+        }
+
+        def categories = new TreeMap<String, Integer>()
+        diagnostics.each { categories.merge(categorise(it), 1, Integer.&sum) }
+        def measurement = [total: diagnostics.size(), islandFiles: islandEntries.size(), categories: categories]
+
+        new File(dir, 'errors.json').text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(measurement)) + '\n'
+        logger.lifecycle("error budget: ${measurement.total} error(s) across ${categories.size()} categor(y/ies) " +
+                "in ${measurement.islandFiles} island file(s)")
+        categories.each { name, count -> logger.lifecycle("  ${count.toString().padLeft(6)}  ${name}") }
+    }
+}
+
+tasks.register('checkErrorBudget') {
+    group = 'verification'
+    description = 'Fails if the island got worse than porting/errors.json allows.'
+    dependsOn 'errorBudget'
+
+    def budgetFile = errorBudgetLedger
+    def budgetPath = rootDir.toPath().relativize(errorBudgetLedger.toPath()).toString()
+    def measuredFile = layout.buildDirectory.file('errorBudget/errors.json')
+    def readBudget = readErrorBudget
+
+    inputs.file(budgetFile).withPropertyName('budget')
+    inputs.file(measuredFile).withPropertyName('measurement')
+
+    doLast {
+        def budget = readBudget(budgetFile)
+        def measured = readBudget(measuredFile.get().asFile)
+
+        def failures = []
+        if (measured.total > budget.total) {
+            failures << ("The island produces ${measured.total} error(s); ${budgetPath} allows ${budget.total}. " +
+                    "The error budget only goes up on purpose: fix the regression, or run `gradlew errorBudgetUpdate` " +
+                    "and commit the new budget so the increase is on the record.")
+        }
+        def novel = measured.categories.keySet().findAll { !budget.categories.containsKey(it) }
+        if (!novel.isEmpty()) {
+            failures << ("${novel.size()} error categor(y/ies) appeared that ${budgetPath} does not name. A new category is a " +
+                    "new kind of breakage, not more of a known one:\n" +
+                    novel.collect { "  ${measured.categories[it]}  ${it}" }.join('\n'))
+        }
+
+        if (!failures.isEmpty()) {
+            throw new GradleException("Error budget check failed:\n\n${failures.join('\n\n')}\n")
+        }
+
+        if (measured.total < budget.total) {
+            logger.lifecycle("error budget: ${measured.total} of ${budget.total} used. " +
+                    "Run `gradlew errorBudgetUpdate` to ratchet ${budgetPath} down to what the island actually costs.")
+        } else {
+            logger.lifecycle("error budget: ${measured.total} of ${budget.total} used, exactly on budget")
+        }
+    }
+}
+
+tasks.register('errorBudgetUpdate', Copy) {
+    group = 'verification'
+    description = 'Writes the measured island errors to porting/errors.json, to be reviewed and committed.'
+    dependsOn 'errorBudget'
+    from layout.buildDirectory.file('errorBudget/errors.json')
+    into errorBudgetLedger.parentFile
+}
+
+tasks.named('check').configure {
+    dependsOn 'checkErrorBudget'
 }
 
 idea {
@@ -111,122 +479,119 @@ idea {
     }
 }
 
-minecraft {
-    mappings channel: 'parchment', version: "${parchment_version}-${minecraft_version}"
+neoForge {
+    version = neoforge_version
 
-    // enableIdeaPrepareRuns = true
-    copyIdeResources = true
+    parchment {
+        minecraftVersion = parchment_minecraft_version
+        mappingsVersion = project.parchment_version
+    }
 
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    /*
+     * src/main/resources/META-INF/accesstransformer.cfg is still SRG-named (f_97726_,
+     * m_280092_, ...) and cannot load under 1.21, which is Mojang-named end to end.
+     * T2 translates it and deletes this block.
+     *
+     * Clearing the collection is load-bearing rather than cosmetic: ModDevGradle applies a
+     * *convention* pointing at exactly that path, so saying nothing about access transformers
+     * would pick the file up and fail the build. setFrom() with no arguments overrides it.
+     */
+    accessTransformers {
+        files.setFrom()
+    }
+    // validateAccessTransformers is left at its default (off) until T2 makes the file real;
+    // it gets switched on there so a line that stops resolving fails the build.
+
+    mods {
+        tconstruct {
+            sourceSet sourceSets.main
+            // the gametests ride along with the mod classes so they can see production code,
+            // while staying out of the shipped jar (the jar task only takes main)
+            sourceSet sourceSets.gametest
+        }
+    }
 
     runs {
         // applies to all the run configs below
         configureEach {
-            workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
-            // The markers can be added/remove as needed separated by commas.
-            // "SCAN": For mods scan.
-            // "REGISTRIES": For firing of registry events.
-            // "REGISTRYDUMP": For getting the contents of all registries.
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP,CORE'
-
-            // Recommended logging level for the console
-            // You can set various levels here.
+            gameDirectory = project.file('run')
+            // Recommended logging level for the console.
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            property 'forge.logging.console.level', 'debug'
-            
-            // IE uses mixins, remap their mixins to work in dev
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-
-            mods {
-                tconstruct {
-                    source sourceSets.main
-                }
-            }
+            logLevel = org.slf4j.event.Level.DEBUG
         }
-    
+
         client {
+            client()
             //The below if statements are to add args to your gradle.properties file in user home
             // (DO NOT add them directly to the gradle.properties file for this project)
             // Setting the below properties allows use of your normal Minecraft account in the
             // dev environment including having your skin load. Each property also has a comment
             // explaining what information to set the value to/format it expects
-            // One thing to note is because of the caching that goes on, after changing these
-            // variables, you need to refresh the project and rerun genIntellijRuns/genEclipseRuns
             if (project.hasProperty('mc_uuid')) {
                 //Your uuid without any dashes in the middle
-                args '--uuid', project.getProperty('mc_uuid')
+                programArguments.addAll('--uuid', project.getProperty('mc_uuid'))
             }
             if (project.hasProperty('mc_username')) {
                 //Your username/display name, this is the name that shows up in chat
                 // Note: This is not your email, even if you have a Mojang account
-                args '--username', project.getProperty('mc_username')
+                programArguments.addAll('--username', project.getProperty('mc_username'))
             }
             if (project.hasProperty('mc_accessToken')) {
                 //Your access token, you can find it in your '.minecraft/launcher_profiles.json' file
-                args '--accessToken', project.getProperty('mc_accessToken')
+                programArguments.addAll('--accessToken', project.getProperty('mc_accessToken'))
             }
         }
 
         server {
-            args '--nogui'
+            server()
+            programArgument '--nogui'
         }
 
         data {
-            args '--mod', 'tconstruct', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/'), '--existing-mod', 'mantle'
+            data()
+            // ModDevGradle does not synthesise the data generator arguments the way ForgeGradle
+            // did, so they are carried over by hand, --existing-mod included.
+            programArguments.addAll(
+                    '--mod', 'tconstruct',
+                    '--all',
+                    '--output', file('src/generated/resources/').absolutePath,
+                    '--existing', file('src/main/resources/').absolutePath,
+                    '--existing-mod', 'mantle')
         }
 
         gameTestServer {
+            type = 'gameTestServer'
             // isolate the gametest world from the regular dev server's save data
-            workingDirectory project.file('run/gameTestServer')
-
-            // scans mod classes for @GameTestHolder("tconstruct") methods; without this Forge registers none
-            property 'forge.enabledGameTestNamespaces', 'tconstruct'
-
-            mods {
-                tconstruct {
-                    // ride along with the main mod classes so tests can see production code,
-                    // but keep the test sources out of the shipped jar
-                    source sourceSets.gametest
-                }
-            }
+            gameDirectory = project.file('run/gameTestServer')
+            // run out of the gametest source set, which pulls main along with it
+            sourceSet = sourceSets.gametest
+            // scans mod classes for @GameTestHolder("tconstruct") methods; the NeoForge spelling
+            // of what was forge.enabledGameTestNamespaces under ForgeGradle
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'tconstruct'
         }
     }
-}
 
-configurations {
-    deployerJars
+    // neoForge.unitTest (which puts a loaded Minecraft on the test classpath and bootstraps FML
+    // around JUnit) stays off while every test is behind the porting frontier. It gets enabled,
+    // with testedMod = mods.tconstruct, by the PR that brings the first Minecraft-touching test
+    // back across.
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:' + minecraft_version + '-' + forge_version
+    // Minecraft and NeoForge come from the neoForge block above, not from a dependency line.
 
-    // would ideally use API for this, but that does not work well with fg.deobf in my understanding
-    implementation fg.deobf("slimeknights.mantle:Mantle:${minecraft_version}-${mantle_version}")
+    // Mantle: our own 1.21.1 port, taken from the sibling checkout's build/libs via the flatDir
+    // repository above. `implementation` puts it on the compile classpath and on the run
+    // configs' runtime classpath, where NeoForge's classpath mod locator picks it up as a mod.
+    implementation "slimeknights.mantle:Mantle:${mantle_version}"
 
-    // compile against the JEI API but do not include it at runtime
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
-    // at runtime, use the full JEI jar
-    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
-
-    // implementation fg.deobf("mcjty.theoneprobe:TheOneProbe-${minecraft_base_version}:${minecraft_base_version}-${probe_version}")
-
-    compileOnly fg.deobf("blusunrize.immersiveengineering:ImmersiveEngineering:${minecraft_version}-${ie_version}")
-    runtimeOnly fg.deobf("curse.maven:MoonlightLib-499980:6000197")
-    implementation fg.deobf("curse.maven:MmmMmmMmmMmm-225738:5737040")
-//    runtimeOnly fg.deobf("curse.maven:the-twilight-forest-227639:5468648")
-
-    compileOnly fg.deobf("curse.maven:diet-443570:4813904")
-
-    compileOnly fg.deobf("dev.gigaherz.jsonthings:JsonThings-${minecraft_version}:${json_things_version}")
-
-    compileOnly fg.deobf("curse.maven:balm-531761:5999476")
-    compileOnly fg.deobf("curse.maven:crafting-tweaks-233071:5623639")
-
-    deployerJars 'org.apache.maven.wagon:wagon-ssh:2.2'
+    // pending, T20: JEI (compileOnly common+forge api, runtimeOnly full jar)
+    // pending, T20: Immersive Engineering
+    // pending, T20: JSON Things
+    // pending, T20: the CurseMaven compat/runtime mods - Diet, Balm, Crafting Tweaks,
+    //               Moonlight Lib, Mmm Mmm Mmm Mmm, The One Probe
+    // None of the source that references them has been ported, so nothing on the compiled
+    // source set needs them and none of them is published in a shape this build can consume.
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
@@ -244,15 +609,15 @@ tasks.named('processResources', ProcessResources).configure {
         'version': artifact_version,
         'loader_range': loader_range,
         'minecraft_range': minecraft_range,
-        'forge_range': forge_range,
-        'mantle_range': mantle_range,
-        'jei_range': jei_range,
-        'json_things_range': json_things_range
+        'neoforge_range': neoforge_range,
+        'mantle_range': mantle_range
     ]
     inputs.properties replaceProperties
 
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
-        expand replaceProperties + [project: project]
+    // No `project` in the binding: neither template references it, and reaching for
+    // Task.project at execution time is deprecated and configuration-cache hostile.
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties
     }
 }
 
@@ -270,7 +635,8 @@ tasks.named('jar', Jar).configure {
     }
 }
 
-jar.finalizedBy('reobfJar')
+// no reobfJar: 1.21 userdev and production are both Mojang-named, so there is nothing to
+// reobfuscate and ModDevGradle does not provide the task.
 
 java {
     withSourcesJar()
@@ -281,65 +647,23 @@ sourcesJar {
     exclude 'data/**'
     exclude 'pack.png'
     exclude 'pack.mcmeta'
-    exclude 'META-INF/mods.toml'
+    exclude 'META-INF/neoforge.mods.toml'
 }
 
 artifacts {
     archives sourcesJar
 }
 
-// verify the properties exist.. or initialize.
-if (!project.hasProperty("keystore_location")) // keystore location
-    ext.keystore_location = "."
-
-if (!project.hasProperty("keystore_user_alias")) // keystore user alias
-    ext.keystore_user_alias = ""
-if (!project.hasProperty("sftp_username"))
-    ext.sftp_username = ""
-if (!project.hasProperty("sftp_key"))
-    ext.sftp_key = ""
-if (!project.hasProperty("keystore_user_password")) // keystore user pass
-    ext.keystore_user_password = ""
-if (System.getenv().KSK_PW != null)
-    ext.keystore_user_password = System.getenv().KSK_PW
-
-
-task("uploadJars", dependsOn: "build") {
-
-    description = "uploads JARs"
-
-    if (project.hasProperty("local_maven") || project.hasProperty("sftp_maven")) {
-        apply plugin: 'maven'
-        uploadArchives {
-            repositories {
-                if (project.hasProperty("local_maven")) {
-                    mavenDeployer {
-                        repository(url: "file://${local_maven}")
-                    }
-                }
-                if (project.hasProperty("sftp_maven")) {
-                    repositories.mavenDeployer {
-                        configuration = configurations.deployerJars
-                        repository(url: "sftp://${sftp_maven}") {
-                            authentication(userName: "${sftp_username}", privateKey: "${sftp_key}")
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 // task signUniversal(type: SignJar, dependsOn: 'jar') {
 //     onlyIf {
 //         project.hasProperty('jarsigner')
 //     }
-// 
+//
 //     def jarsigner = [:]
-// 
+//
 //     if (project.hasProperty('jarsigner'))
 //         jarsigner = project.jarsigner
-// 
+//
 //     alias = 'tcon'
 //     storePass = jarsigner.storepass
 //     keyPass = jarsigner.keypass
@@ -347,7 +671,6 @@ task("uploadJars", dependsOn: "build") {
 //     inputFile = jar.archivePath
 //     outputFile = jar.archivePath
 // }
-// uploadArchives.dependsOn signUniversal
 // build.dependsOn signUniversal
 
 publishing {

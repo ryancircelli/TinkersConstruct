@@ -1,7 +1,6 @@
 modLoader="javafml"
 loaderVersion="${loader_range}"
 issueTrackerURL="https://github.com/SlimeKnights/TinkersConstruct/issues"
-logoFile="logo.png"
 license="MIT"
 
 [[mods]]
@@ -13,38 +12,28 @@ license="MIT"
 A little of this, a little of that, a lot of tinkering, and a lot of tools
     '''
     displayURL="https://www.curseforge.com/minecraft/mc-mods/tinkers-construct"
-    
+    logoFile="logo.png"
+
 [[dependencies.tconstruct]]
-    modId="forge"
-    mandatory=true
-    versionRange="${forge_range}"
+    modId="neoforge"
+    type="required"
+    versionRange="${neoforge_range}"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.tconstruct]]
     modId="minecraft"
-    mandatory=true
+    type="required"
     versionRange="${minecraft_range}"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.tconstruct]]
     modId="mantle"
-    mandatory=true
+    type="required"
     versionRange="${mantle_range}"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.tconstruct]]
-    modId="jei"
-    mandatory=false
-    versionRange="${jei_range}"
-    ordering="NONE"
-    side="BOTH"
-
-[[dependencies.tconstruct]]
-    modId="jsonthings"
-    mandatory=false
-    versionRange="${json_things_range}"
-    ordering="NONE"
-    side="BOTH"
+# pending, T20: the optional jei and jsonthings dependencies come back with the
+# compat source that needs them. Their version ranges left gradle.properties too.

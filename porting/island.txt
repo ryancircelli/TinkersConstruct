@@ -1,0 +1,29 @@
+# The island - files under the error budget
+#
+# The island is library/ + common/ + shared/ + fluids/ + the two root classes:
+# the ~1115-class core that the rest of Tinkers sits on. It cannot be ported one
+# file at a time the way the outer packages can, because its classes reference
+# each other densely enough that any single-file cut leaves both halves broken.
+# So it ports through a deliberate RED stretch: files land here first, compile
+# with errors, and the errors are paid down until the island is green in one go.
+#
+# Every path listed here is compiled by the `errorBudget` task with
+# failOnError=false into build/errorBudget/classes - a scratch directory that is
+# never packaged. The resulting diagnostic counts are compared against
+# porting/errors.json by `checkErrorBudget`, which is wired into `check`.
+#
+# Invariants, enforced by `errorBudget`:
+#   - every listed path exists and lives under src/main/java
+#   - no duplicates
+#   - every listed path is ALSO listed in porting/unported.txt. A file on the
+#     island is still excluded from the main source set: it is being compiled
+#     for measurement only, and the real build must stay green.
+#
+# Lifecycle: T4 onwards adds paths here as it ports files into the island, and
+# pays the budget down. When the budget reaches 0 (T13), the same PR deletes
+# these paths from porting/unported.txt and from this file at once, and the
+# island joins the real compile.
+#
+# Empty at T1: the machinery exists, the island does not.
+#
+# Sorted, repo-relative, one path per line.
