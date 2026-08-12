@@ -30,15 +30,24 @@ public class ModDataNBT implements IModDataView {
     this(new CompoundTag());
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <T> T get(ResourceLocation name, BiFunction<CompoundTag,String,T> function) {
-    return function.apply(data, name.toString());
+    String key = name.toString();
+    T value = function.apply(data, key);
+    // a getter such as CompoundTag::getCompound hands back the stored tag instead of building a value.
+    // returning that would make this read a write path into the data, so copy anything that came back by reference.
+    // a getter that builds its value, which is every getter of a primitive, fails the type check and pays nothing
+    if (value instanceof Tag tag && tag == data.get(key)) {
+      return (T)tag.copy();
+    }
+    return value;
   }
 
   @Override
   public ListTag getList(ResourceLocation name, int type) {
-    // save generation of the extra lambda object
-    return data.getList(name.toString(), type);
+    // save generation of the extra lambda object; copy for the reason described in get
+    return data.getList(name.toString(), type).copy();
   }
 
   @Override
@@ -52,7 +61,8 @@ public class ModDataNBT implements IModDataView {
   }
 
   /**
-   * Sets the given NBT into the data
+   * Sets the given NBT into the data.
+   * This is how an edit to a tag from {@link #get(ResourceLocation, BiFunction)} reaches the data, as reads hand out copies.
    * @param name  Key name
    * @param nbt   NBT value
    */
