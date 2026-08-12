@@ -1,18 +1,15 @@
 package slimeknights.tconstruct.library.recipe.casting.material;
 
 import lombok.Getter;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.primitive.IntLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.recipe.ICustomOutputRecipe;
 import slimeknights.mantle.recipe.ingredient.FluidIngredient;
-import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariant;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
@@ -26,17 +23,14 @@ import java.util.List;
 /** Recipe defining casting and composite fluids for a given input */
 public class MaterialFluidRecipe implements ICustomOutputRecipe<ICastingContainer> {
   public static final RecordLoadable<MaterialFluidRecipe> LOADER = RecordLoadable.create(
-    ContextKey.ID.requiredField(),
     FluidIngredient.LOADABLE.requiredField("fluid", r -> r.fluid),
     IntLoadable.FROM_ZERO.requiredField("temperature", r -> r.temperature),
     MaterialVariantId.LOADABLE.nullableField("input", r -> r.input != null ? r.input.getVariant() : null),
     MaterialVariantId.LOADABLE.nullableField("output", r -> r.output.getVariant()),
     MaterialFluidRecipe::new);
   /** Empty recipe instance, used as a fallback */
-  public static final MaterialFluidRecipe EMPTY = new MaterialFluidRecipe(TConstruct.getResource("missingno"), FluidIngredient.EMPTY, 0, null, IMaterial.UNKNOWN_ID);
+  public static final MaterialFluidRecipe EMPTY = new MaterialFluidRecipe(FluidIngredient.EMPTY, 0, null, IMaterial.UNKNOWN_ID);
 
-  @Getter
-  private final ResourceLocation id;
   private final FluidIngredient fluid;
   @Getter
   private final int temperature;
@@ -47,8 +41,7 @@ public class MaterialFluidRecipe implements ICustomOutputRecipe<ICastingContaine
   @Getter
   private final MaterialVariant output;
 
-  public MaterialFluidRecipe(ResourceLocation id, FluidIngredient fluid, int temperature, @Nullable MaterialVariantId inputId, MaterialVariantId outputId) {
-    this.id = id;
+  public MaterialFluidRecipe(FluidIngredient fluid, int temperature, @Nullable MaterialVariantId inputId, MaterialVariantId outputId) {
     this.fluid = fluid;
     this.temperature = temperature;
     this.input = inputId == null ? null : MaterialVariant.of(inputId);

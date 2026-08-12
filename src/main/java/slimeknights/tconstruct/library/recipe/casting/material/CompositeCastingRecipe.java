@@ -8,7 +8,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.predicate.IJsonPredicate;
 import slimeknights.mantle.recipe.helper.LoadableRecipeSerializer;
@@ -32,7 +31,7 @@ import java.util.List;
  */
 public class CompositeCastingRecipe extends MaterialCastingRecipe {
   public static final RecordLoadable<CompositeCastingRecipe> LOADER = RecordLoadable.create(
-    LoadableRecipeSerializer.TYPED_SERIALIZER.requiredField(), ContextKey.ID.requiredField(),
+    LoadableRecipeSerializer.TYPED_SERIALIZER.requiredField(),
     LoadableRecipeSerializer.RECIPE_GROUP, ITEM_COST_FIELD, RESULT_FIELD, MATERIALS_FIELD,
     MaterialStatsId.PARSER.nullableField("casting_stat_conflict", r -> r.castingStatConflict),
     CompositeCastingRecipe::new);
@@ -40,15 +39,15 @@ public class CompositeCastingRecipe extends MaterialCastingRecipe {
   @Nullable
   private final MaterialStatsId castingStatConflict;
 
-  public CompositeCastingRecipe(TypeAwareRecipeSerializer<?> serializer, ResourceLocation id, String group, int itemCost, IMaterialItem result, IJsonPredicate<MaterialVariantId> materials, @Nullable MaterialStatsId castingStatConflict) {
-    super(serializer, id, group, Ingredient.of(result), itemCost, result, materials, true, false);
+  public CompositeCastingRecipe(TypeAwareRecipeSerializer<?> serializer, String group, int itemCost, IMaterialItem result, IJsonPredicate<MaterialVariantId> materials, @Nullable MaterialStatsId castingStatConflict) {
+    super(serializer, group, Ingredient.of(result), itemCost, result, materials, true, false);
     this.castingStatConflict = castingStatConflict;
   }
 
   /** @deprecated use {@link #CompositeCastingRecipe(TypeAwareRecipeSerializer, ResourceLocation, String, int, IMaterialItem, IJsonPredicate, MaterialStatsId)} */
   @Deprecated(forRemoval = true)
-  public CompositeCastingRecipe(TypeAwareRecipeSerializer<?> serializer, ResourceLocation id, String group, IMaterialItem result, int itemCost, @Nullable MaterialStatsId castingStatConflict) {
-    this(serializer, id, group, itemCost, result, MaterialPredicate.ANY, castingStatConflict);
+  public CompositeCastingRecipe(TypeAwareRecipeSerializer<?> serializer, String group, IMaterialItem result, int itemCost, @Nullable MaterialStatsId castingStatConflict) {
+    this(serializer, group, itemCost, result, MaterialPredicate.ANY, castingStatConflict);
   }
 
   @Override
@@ -100,7 +99,7 @@ public class CompositeCastingRecipe extends MaterialCastingRecipe {
               inputs = List.of(result.withMaterial(inputId));
             }
             if (!inputs.isEmpty()) {
-              recipes.add(new DisplayCastingRecipe(getId(), type, inputs, fluids, result.withMaterial(output.getVariant()),
+              recipes.add(new DisplayCastingRecipe(null, type, inputs, fluids, result.withMaterial(output.getVariant()),
                 ICastingRecipe.calcCoolingTime(recipe.getTemperature(), itemCost * fluids.stream().mapToInt(FluidStack::getAmount).max().orElse(0)),
                 isConsumed()));
             }

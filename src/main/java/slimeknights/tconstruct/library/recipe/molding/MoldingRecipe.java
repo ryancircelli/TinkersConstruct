@@ -2,15 +2,13 @@ package slimeknights.tconstruct.library.recipe.molding;
 
 import lombok.Getter;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import slimeknights.mantle.data.loadable.common.IngredientLoadable;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.primitive.BooleanLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.recipe.ICommonRecipe;
@@ -22,7 +20,6 @@ import slimeknights.mantle.recipe.helper.TypeAwareRecipeSerializer;
 public class MoldingRecipe implements ICommonRecipe<IMoldingContainer> {
   public static final RecordLoadable<MoldingRecipe> LOADER = RecordLoadable.create(
     LoadableRecipeSerializer.TYPED_SERIALIZER.requiredField(),
-    ContextKey.ID.requiredField(),
     IngredientLoadable.DISALLOW_EMPTY.requiredField("material", MoldingRecipe::getMaterial),
     IngredientLoadable.ALLOW_EMPTY.defaultField("pattern", Ingredient.EMPTY, MoldingRecipe::getPattern),
     BooleanLoadable.INSTANCE.defaultField("pattern_consumed", false, false, MoldingRecipe::isPatternConsumed),
@@ -34,8 +31,6 @@ public class MoldingRecipe implements ICommonRecipe<IMoldingContainer> {
   @Getter
   private final RecipeSerializer<?> serializer;
   @Getter
-  private final ResourceLocation id;
-  @Getter
   private final Ingredient material;
   @Getter
   private final Ingredient pattern;
@@ -43,10 +38,9 @@ public class MoldingRecipe implements ICommonRecipe<IMoldingContainer> {
   private final boolean patternConsumed;
   private final ItemOutput recipeOutput;
 
-  public MoldingRecipe(TypeAwareRecipeSerializer<?> serializer, ResourceLocation id, Ingredient material, Ingredient pattern, boolean patternConsumed, ItemOutput recipeOutput) {
+  public MoldingRecipe(TypeAwareRecipeSerializer<?> serializer, Ingredient material, Ingredient pattern, boolean patternConsumed, ItemOutput recipeOutput) {
     this.type = serializer.getType();
     this.serializer = serializer;
-    this.id = id;
     this.material = material;
     this.pattern = pattern;
     this.patternConsumed = pattern != Ingredient.EMPTY && patternConsumed;
@@ -64,7 +58,7 @@ public class MoldingRecipe implements ICommonRecipe<IMoldingContainer> {
   }
 
   @Override
-  public ItemStack getResultItem(RegistryAccess access) {
+  public ItemStack getResultItem(HolderLookup.Provider access) {
     return recipeOutput.get();
   }
 }
