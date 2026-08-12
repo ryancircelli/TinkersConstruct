@@ -3,7 +3,9 @@ package slimeknights.tconstruct.library.tools.nbt;
 import io.netty.buffer.Unpooled;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import slimeknights.tconstruct.library.materials.MaterialRegistryExtension;
@@ -53,7 +55,7 @@ class MultiplierNBTTest extends BaseMcTest {
       .set(ToolStats.ATTACK_SPEED, 2)
       .build();
 
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
     MultiplierNBT.LOADABLE.encode(buffer, multipliers);
     MultiplierNBT decoded = MultiplierNBT.LOADABLE.decode(buffer);
 
