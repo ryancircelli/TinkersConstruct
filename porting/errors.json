@@ -6,7 +6,6 @@
         "package BasicModifier": 1,
         "package ModuleBuilder": 1,
         "package TinkerDataCapability": 3,
-        "package net.minecraftforge.common": 1,
         "package slimeknights.tconstruct.common": 13,
         "package slimeknights.tconstruct.common.TinkerTags": 2,
         "package slimeknights.tconstruct.common.config": 2,
@@ -52,7 +51,7 @@
         "symbol class OreRateType": 1,
         "symbol class RecipeResult": 5,
         "symbol class SlotType": 16,
-        "symbol class TConstruct": 39,
+        "symbol class TConstruct": 40,
         "symbol class TagUtil": 2,
         "symbol class Util": 27
     }

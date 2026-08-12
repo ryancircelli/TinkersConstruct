@@ -7,8 +7,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.ForgeHooks;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.common.CommonHooks;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
@@ -75,7 +74,7 @@ public interface BowAmmoModifierHook {
     // if no predicate, means we want the event result, used for ballista
     // TODO: this is a little bit janky in retrospective, probably just handle in the caller?
     if (predicate == null) {
-      return ForgeHooks.getProjectile(living, bow, ItemStack.EMPTY);
+      return CommonHooks.getProjectile(living, bow, ItemStack.EMPTY);
     }
     // locate standard ammo
     ItemStack standardAmmo;
@@ -174,7 +173,7 @@ public interface BowAmmoModifierHook {
       standardAmmo = predicate == null ? ItemStack.EMPTY : findMatchingAmmo(ItemStack.EMPTY, living, predicate);
     } else if (predicate == null) {
       // no predicate means we just want the event result to start, used for ballista
-      standardAmmo = ForgeHooks.getProjectile(living, bow, ItemStack.EMPTY);
+      standardAmmo = CommonHooks.getProjectile(living, bow, ItemStack.EMPTY);
     } else {
       standardAmmo = living.getProjectile(bow);
     }
@@ -186,11 +185,11 @@ public interface BowAmmoModifierHook {
         if (!ammo.isEmpty()) {
           // if creative, we are done, just return the ammo with the given size
           if (creative) {
-            return ItemHandlerHelper.copyStackWithSize(ammo, projectilesDesired);
+            return ammo.copyWithCount(projectilesDesired);
           }
 
           // not creative, split out the desired amount. We may have to do more work if it is too small
-          resultStack = ItemHandlerHelper.copyStackWithSize(ammo, Math.min(projectilesDesired, ammo.getCount()));
+          resultStack = ammo.copyWithCount(Math.min(projectilesDesired, ammo.getCount()));
           hook.shrinkAmmo(tool, entry, living, ammo, resultStack.getCount());
           break;
         }
@@ -205,7 +204,7 @@ public interface BowAmmoModifierHook {
       }
       // with standard ammo, in creative we can just return that
       if (creative) {
-        return ItemHandlerHelper.copyStackWithSize(standardAmmo, projectilesDesired);
+        return standardAmmo.copyWithCount(projectilesDesired);
       }
       // make a copy of the result, up to the desired size
       resultStack = standardAmmo.split(projectilesDesired);
@@ -223,7 +222,7 @@ public interface BowAmmoModifierHook {
 
     // not enough? keep searching until we fill the stack
     ItemStack match = resultStack;
-    predicate = stack -> ItemStack.isSameItemSameTags(stack, match);
+    predicate = stack -> ItemStack.isSameItemSameComponents(stack, match);
     hasEnough:
     do {
       // if standard ammo is empty, try finding a matching stack again
@@ -231,7 +230,7 @@ public interface BowAmmoModifierHook {
         standardAmmo = findMatchingAmmo(bow, living, predicate);
         /* TODO: was this necessary?
         if (!bow.isEmpty()) {
-          standardAmmo = ForgeHooks.getProjectile(living, bow, standardAmmo);
+          standardAmmo = CommonHooks.getProjectile(living, bow, standardAmmo);
         }*/
       }
       // next, try asking modifiers if they have anything new again
