@@ -58,7 +58,7 @@ public class ModifiersCommand {
     Modifier modifier = ModifierArgument.getModifier(context, "modifier");
     List<LivingEntity> successes = HeldModifiableItemIterator.apply(context, (living, stack) -> {
       // add modifier
-      ToolStack tool = ToolStack.from(stack).copy();
+      ToolStack tool = ToolStack.mutable(stack).copy();
       // add the modifier
       tool.addModifier(modifier.getId(), level);
       // ensure no modifier problems after adding
@@ -89,7 +89,7 @@ public class ModifiersCommand {
     MutableInt maxRemove = new MutableInt(1);
     List<LivingEntity> successes = HeldModifiableItemIterator.apply(context, (living, stack) -> {
       // add modifier
-      ToolStack original = ToolStack.from(stack);
+      ToolStack original = ToolStack.mutable(stack);
 
       // first, see if the modifier exists
       int currentLevel = original.getUpgrades().getLevel(modifier.getId());

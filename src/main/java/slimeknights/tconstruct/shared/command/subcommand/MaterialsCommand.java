@@ -84,7 +84,7 @@ public class MaterialsCommand {
     MaterialVariantId material = MaterialVariantArgument.getMaterial(context, "material");
     List<LivingEntity> successes = HeldModifiableItemIterator.apply(context, (living, stack) -> {
       // add modifier
-      ToolStack original = ToolStack.from(stack);
+      ToolStack original = ToolStack.mutable(stack);
       // validate the index
       if (index >= ToolMaterialHook.stats(original.getDefinition()).size()) {
         throw INVALID_INDEX.create(index, living.getDisplayName());
