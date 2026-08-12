@@ -1,7 +1,9 @@
 package slimeknights.tconstruct.test.characterization;
 
 import io.netty.buffer.Unpooled;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -35,9 +37,9 @@ class ModifiersNetworkPacketsTest extends BaseMcTest {
     FluidEffects.Entry entry = new FluidEffects.Entry(name, effects);
 
     UpdateFluidEffectsPacket packet = new UpdateFluidEffectsPacket(List.of(entry));
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
     packet.encode(buffer);
-    UpdateFluidEffectsPacket decoded = UpdateFluidEffectsPacket.decode(buffer);
+    UpdateFluidEffectsPacket decoded = new UpdateFluidEffectsPacket(buffer);
 
     assertThat(decoded.fluids()).hasSize(1);
     FluidEffects.Entry decodedEntry = decoded.fluids().get(0);

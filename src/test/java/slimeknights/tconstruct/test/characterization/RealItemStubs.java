@@ -11,7 +11,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraftforge.registries.ForgeRegistries;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
@@ -29,9 +28,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * These headless unit tests never fire Forge's mod loading lifecycle (see {@code BaseMcTest}), so TConstruct's
+ * These headless unit tests never fire the mod loading lifecycle (see {@code BaseMcTest}), so TConstruct's
  * own items/blocks (registered via {@code DeferredRegister}, populated only by a live {@code RegisterEvent})
- * never actually exist in {@link ForgeRegistries#ITEMS}/{@link ForgeRegistries#BLOCKS} - only vanilla's do (via
+ * never actually exist in {@link BuiltInRegistries#ITEM}/{@link BuiltInRegistries#BLOCK} - only vanilla's do (via
  * {@code Bootstrap.bootStrap()}). Real recipe/tool-definition/station-layout JSON constantly references real
  * TConstruct items directly by id (not always via tag), and Mantle's loadables resolve those through the
  * registry eagerly at parse time, throwing {@code JsonSyntaxException} for anything missing.
