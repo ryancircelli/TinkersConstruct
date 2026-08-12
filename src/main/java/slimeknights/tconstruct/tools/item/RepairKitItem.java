@@ -74,7 +74,7 @@ public class RepairKitItem extends MaterialItem implements IRepairKitItem {
       // tool must be modifiable, if so block interactions beyond repair
       ItemStack toolItem = slot.getItem();
       if (!toolItem.isEmpty() && toolItem.is(TinkerTags.Items.MODIFIABLE)) {
-        ToolStack tool = ToolStack.from(toolItem);
+        ToolStack tool = ToolStack.mutable(toolItem);
         MaterialId material = getMaterial(stack).getId();
         // tool must be damaged for us to repair it, and we must have a material
         if (tool.getDamage() > 0 && material != IMaterial.UNKNOWN_ID) {
