@@ -33,7 +33,7 @@ repositories {
     // Mantle rebuilds, and this repository entry is the only line that moves when Mantle
     // starts publishing for real.
     flatDir {
-        dir "${rootDir}/../mantle-1.21/build/libs"
+        dir "${rootDir}/../libs"
     }
     // Gone with their dependencies, all pending T20 (compat/integration):
     //   maven.blamejared.com   - CraftTweaker, Immersive Engineering, JEI
