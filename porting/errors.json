@@ -1,9 +1,8 @@
 {
-    "total": 466,
-    "islandFiles": 128,
+    "total": 451,
+    "islandFiles": 126,
     "categories": {
         "package ModuleBuilder": 1,
-        "package net.minecraftforge.common": 1,
         "package slimeknights.tconstruct.common": 2,
         "package slimeknights.tconstruct.common.TinkerTags": 1,
         "package slimeknights.tconstruct.library.materials": 5,
@@ -33,11 +32,8 @@
         "package slimeknights.tconstruct.library.tools.part": 4,
         "package slimeknights.tconstruct.library.tools.stat": 11,
         "package slimeknights.tconstruct.library.utils": 9,
-        "package slimeknights.tconstruct.shared": 2,
-        "package slimeknights.tconstruct.tools": 2,
         "symbol class BreakSpeedContext": 10,
         "symbol class EquipmentContext": 7,
-        "symbol class FinalizeSpawn": 4,
         "symbol class IMaterial": 6,
         "symbol class IMaterialItem": 2,
         "symbol class IModDataView": 1,
@@ -59,11 +55,10 @@
         "symbol class ModifierNBT": 8,
         "symbol class ModuleHook": 1,
         "symbol class OreRateType": 1,
-        "symbol class RandomMaterial": 12,
-        "symbol class Serializer": 4,
+        "symbol class RandomMaterial": 11,
         "symbol class SlotType": 1,
         "symbol class StatsNBT": 2,
-        "symbol class TConstruct": 7,
+        "symbol class TConstruct": 6,
         "symbol class ToolAttackContext": 7
     }
 }

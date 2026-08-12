@@ -43,8 +43,6 @@ src/main/java/slimeknights/tconstruct/library/json/field/MergingListField.java
 src/main/java/slimeknights/tconstruct/library/json/field/OptionallyNestedLoadable.java
 src/main/java/slimeknights/tconstruct/library/json/field/package-info.java
 src/main/java/slimeknights/tconstruct/library/json/loot/AddToolDataFunction.java
-src/main/java/slimeknights/tconstruct/library/json/loot/HasLootContextSetCondition.java
-src/main/java/slimeknights/tconstruct/library/json/loot/TagPreferenceLootEntry.java
 src/main/java/slimeknights/tconstruct/library/json/loot/ToolPartLootEntry.java
 src/main/java/slimeknights/tconstruct/library/json/loot/equipment/MobEquipment.java
 src/main/java/slimeknights/tconstruct/library/json/loot/equipment/MobEquipmentManager.java

@@ -1,6 +1,8 @@
 package slimeknights.tconstruct.library.json.variable.entity;
 
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
@@ -17,7 +19,9 @@ public record AttributeEntityVariable(Attribute attribute) implements EntityVari
 
   @Override
   public float getValue(LivingEntity entity) {
-    return (float)entity.getAttributeValue(attribute);
+    // 1.21 takes a holder here; attributes are still a static registry, so the holder is a lookup away
+    // and Loadables.ATTRIBUTE is untouched.
+    return (float)entity.getAttributeValue(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute));
   }
 
   @Override
