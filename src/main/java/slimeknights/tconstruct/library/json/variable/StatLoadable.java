@@ -9,7 +9,7 @@ import net.minecraft.Util;
 import net.minecraft.core.IdMap;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.stats.Stat;
@@ -19,7 +19,6 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import slimeknights.mantle.data.loadable.Loadable;
@@ -94,8 +93,8 @@ public enum StatLoadable implements Loadable<Stat<?>> {
 
   /* Buffer */
 
-  /** Reads a value, throwing if missing instead of returning null like {@link FriendlyByteBuf#readById(IdMap)} */
-  private static <T> T decodeRegistry(FriendlyByteBuf buffer, Registry<T> registry) {
+  /** Reads a value, throwing if missing instead of returning null like {@link RegistryFriendlyByteBuf#readById(IdMap)} */
+  private static <T> T decodeRegistry(RegistryFriendlyByteBuf buffer, Registry<T> registry) {
     int id = buffer.readVarInt();
     T value = registry.byId(id);
     if (value != null) {
@@ -105,25 +104,27 @@ public enum StatLoadable implements Loadable<Stat<?>> {
   }
 
   @Override
-  public Stat<?> decode(FriendlyByteBuf buffer, TypedMap context) {
+  public Stat<?> decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
     return decodeValue(buffer, decodeRegistry(buffer, BuiltInRegistries.STAT_TYPE));
   }
 
   /** Helper to decode the value using the type generics */
-  private static <T> Stat<T> decodeValue(FriendlyByteBuf buffer, StatType<T> statType) {
+  private static <T> Stat<T> decodeValue(RegistryFriendlyByteBuf buffer, StatType<T> statType) {
     return statType.get(decodeRegistry(buffer, statType.getRegistry()));
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer, Stat<?> value) {
+  public void encode(RegistryFriendlyByteBuf buffer, Stat<?> value) {
     encodeGeneric(buffer, value);
   }
 
   /** Encodes the value to the registry using the type generics */
-  private <T> void encodeGeneric(FriendlyByteBuf buffer, Stat<T> value) {
+  private <T> void encodeGeneric(RegistryFriendlyByteBuf buffer, Stat<T> value) {
     StatType<T> type = value.getType();
-    buffer.writeId(BuiltInRegistries.STAT_TYPE, type);
-    buffer.writeId(type.getRegistry(), value.getValue());
+    // 1.21 renamed FriendlyByteBuf#writeId(IdMap, T) to #writeById(ToIntFunction, T), which is the same varint
+    // with the id lookup handed in rather than derived, so the wire format is unchanged.
+    buffer.writeById(BuiltInRegistries.STAT_TYPE::getId, type);
+    buffer.writeById(type.getRegistry()::getId, value.getValue());
   }
 
 
@@ -166,8 +167,8 @@ public enum StatLoadable implements Loadable<Stat<?>> {
       name = ((Fluid) value).getFluidType().getDescription();
     } else if (registry == BuiltInRegistries.MOB_EFFECT) {
       name = ((MobEffect) value).getDisplayName();
-    } else if (registry == BuiltInRegistries.ENCHANTMENT) {
-      name = Component.translatable(((Enchantment) value).getDescriptionId());
+    // no enchantment branch: 1.21 moved enchantments to a datapack registry, so there is no static Registry<Enchantment>
+    // for a StatType to be built over and no stat type can name one. The raw key below covers it if that ever changes.
     } else {
       // if it's not one of the above types we do not know how to translate it, so use the raw key
       name = Component.literal(getKey(stat));

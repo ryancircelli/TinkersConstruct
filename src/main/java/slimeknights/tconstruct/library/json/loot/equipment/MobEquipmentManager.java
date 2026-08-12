@@ -3,7 +3,11 @@ package slimeknights.tconstruct.library.json.loot.equipment;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -13,10 +17,11 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
+import net.neoforged.neoforge.common.conditions.ConditionalOps;
+import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.conditions.ICondition.IContext;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
-import net.neoforged.neoforge.event.entity.living.MobSpawnEvent.FinalizeSpawn;
+import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
 import net.neoforged.bus.api.EventPriority;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import slimeknights.mantle.data.loadable.Loadable;
@@ -46,6 +51,8 @@ public class MobEquipmentManager extends SimpleJsonResourceReloadListener {
   /** Map of active replacements */
   private Map<EntityType<?>,List<MobEquipment>> replacements = Map.of();
   private IContext context = IContext.EMPTY;
+  /** Ops a file's conditions are tested against, carrying both the registries and the condition context */
+  private DynamicOps<JsonElement> conditionOps = JsonOps.INSTANCE;
 
   private MobEquipmentManager() {
     super(JsonHelper.DEFAULT_GSON, FOLDER);
@@ -55,7 +62,7 @@ public class MobEquipmentManager extends SimpleJsonResourceReloadListener {
   @Internal
   public static void init() {
     NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, AddReloadListenerEvent.class, INSTANCE::addDataPackListeners);
-    NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, FinalizeSpawn.class, INSTANCE::finalizeSpawn);
+    NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, FinalizeSpawnEvent.class, INSTANCE::finalizeSpawn);
   }
 
   @Override
@@ -70,8 +77,9 @@ public class MobEquipmentManager extends SimpleJsonResourceReloadListener {
       ResourceLocation key = entry.getKey();
       try {
         JsonObject json = GsonHelper.convertToJsonObject(entry.getValue(), key.toString());
-        // skip if conditions fail
-        if (!CraftingHelper.processConditions(json, "conditions", context)) {
+        // skip if conditions fail. 1.21 dropped CraftingHelper#processConditions; conditions are read through a
+        // ConditionalOps carrying the same context, under NeoForge's own "neoforge:conditions" key.
+        if (!ICondition.conditionsMatched(conditionOps, json)) {
           continue;
         }
         // parse the object
@@ -87,7 +95,7 @@ public class MobEquipmentManager extends SimpleJsonResourceReloadListener {
             // need to use the condition context to fetch tag values as they are not yet in the mananger
             TagKey<EntityType<?>> tag = Loadables.ENTITY_TYPE_TAG.parseString(type.substring(1), "entity");
             for (Holder<EntityType<?>> holder : context.getTag(tag)) {
-              parsed.computeIfAbsent(holder.get(), ifAbsent).addAll(equipment);
+              parsed.computeIfAbsent(holder.value(), ifAbsent).addAll(equipment);
             }
           } else {
             parsed.computeIfAbsent(Loadables.ENTITY_TYPE.parseString(type, "entity"), ifAbsent).addAll(equipment);
@@ -127,10 +135,16 @@ public class MobEquipmentManager extends SimpleJsonResourceReloadListener {
   private void addDataPackListeners(AddReloadListenerEvent event) {
     event.addListener(this);
     context = event.getConditionContext();
+    conditionOps = conditionOps(event.getRegistryAccess(), context);
+  }
+
+  /** Creates the JSON ops a file's conditions are tested against, carrying both the registries and the context */
+  private static DynamicOps<JsonElement> conditionOps(RegistryAccess registries, IContext context) {
+    return new ConditionalOps<>(RegistryOps.create(JsonOps.INSTANCE, registries), context);
   }
 
   /** Handler for the finalize spawn event */
-  private void finalizeSpawn(FinalizeSpawn event) {
+  private void finalizeSpawn(FinalizeSpawnEvent event) {
     Mob mob = event.getEntity();
     List<MobEquipment> equipment = get(mob.getType());
     if (!equipment.isEmpty() && MobEquipment.apply(equipment, mob, event)) {

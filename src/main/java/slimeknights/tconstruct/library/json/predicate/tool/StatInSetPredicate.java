@@ -3,7 +3,7 @@ package slimeknights.tconstruct.library.json.predicate.tool;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.util.JsonHelper;
 import slimeknights.mantle.util.typed.TypedMap;
@@ -64,12 +64,12 @@ public record StatInSetPredicate<T>(IToolStat<T> stat, Set<T> values) implements
     }
 
     @Override
-    public StatInSetPredicate<?> decode(FriendlyByteBuf buffer, TypedMap context) {
+    public StatInSetPredicate<?> decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
       return fromNetwork(buffer, ToolStats.LOADER.decode(buffer, context));
     }
 
     /** Handles generics for the set reading */
-    private static <T> StatInSetPredicate<T> fromNetwork(FriendlyByteBuf buffer, IToolStat<T> stat) {
+    private static <T> StatInSetPredicate<T> fromNetwork(RegistryFriendlyByteBuf buffer, IToolStat<T> stat) {
       ImmutableSet.Builder<T> builder = ImmutableSet.builder();
       int max = buffer.readVarInt();
       for (int i = 0; i < max; i++) {
@@ -79,13 +79,13 @@ public record StatInSetPredicate<T>(IToolStat<T> stat, Set<T> values) implements
     }
 
     @Override
-    public void encode(FriendlyByteBuf buffer, StatInSetPredicate<?> object) {
+    public void encode(RegistryFriendlyByteBuf buffer, StatInSetPredicate<?> object) {
       ToolStats.LOADER.encode(buffer, object.stat);
       setToNetwork(object, buffer);
     }
 
     /** Handles generics for the set writing */
-    private static <T> void setToNetwork(StatInSetPredicate<T> object, FriendlyByteBuf buffer) {
+    private static <T> void setToNetwork(StatInSetPredicate<T> object, RegistryFriendlyByteBuf buffer) {
       buffer.writeVarInt(object.values.size());
       for (T value : object.values) {
         object.stat.toNetwork(buffer, value);

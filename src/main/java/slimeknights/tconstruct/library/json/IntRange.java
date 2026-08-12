@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.GsonHelper;
 import slimeknights.mantle.data.loadable.Loadable;
 import slimeknights.mantle.data.loadable.field.LoadableField;
@@ -135,7 +136,7 @@ public record IntRange(int min, int max) implements IntPredicate, Loadable<IntRa
 
   /** Reads a range from the buffer */
   @Override
-  public IntRange decode(FriendlyByteBuf buffer, TypedMap context) {
+  public IntRange decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
     return fromNetwork(buffer);
   }
 
@@ -153,7 +154,7 @@ public record IntRange(int min, int max) implements IntPredicate, Loadable<IntRa
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer, IntRange object) {
+  public void encode(RegistryFriendlyByteBuf buffer, IntRange object) {
     object.toNetwork(buffer);
   }
 

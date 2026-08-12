@@ -2,7 +2,7 @@ package slimeknights.tconstruct.library.json.field;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import slimeknights.mantle.data.loadable.Loadable;
 import slimeknights.mantle.util.typed.TypedMap;
 
@@ -27,12 +27,12 @@ public record OptionallyNestedLoadable<T>(Loadable<T> loadable, String objectKey
   }
 
   @Override
-  public T decode(FriendlyByteBuf buffer, TypedMap context) {
+  public T decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
     return loadable.decode(buffer, context);
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer, T value) {
+  public void encode(RegistryFriendlyByteBuf buffer, T value) {
     loadable.encode(buffer, value);
   }
 }

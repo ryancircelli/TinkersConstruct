@@ -1,7 +1,7 @@
 package slimeknights.tconstruct.library.json.math;
 
 import com.google.gson.JsonObject;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import slimeknights.tconstruct.library.json.LevelingValue;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 
@@ -24,7 +24,7 @@ record SimpleLevelingFormula(LevelingValue leveling, FallbackFormula formula) im
   }
 
   @Override
-  public void toNetwork(FriendlyByteBuf buffer) {
+  public void toNetwork(RegistryFriendlyByteBuf buffer) {
     // -1 means simple formula, 0+ means post fix formula
     buffer.writeShort(-1);
     LevelingValue.LOADABLE.encode(buffer, leveling);
