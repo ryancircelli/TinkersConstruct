@@ -140,6 +140,25 @@ public class ToolStack implements IToolStackView {
   }
 
   /**
+   * Installs the given tag on the given stack. Every write this class makes to a stack's NBT goes through here.
+   * <p>
+   * Assigns the field rather than calling {@link ItemStack#setTag(CompoundTag)} because Forge routes that setter's
+   * "keep the damage value in sync" step through {@code Item#getDamage(ItemStack)} and {@code Item#setDamage(ItemStack, int)},
+   * both of which our tools implement in terms of this class. Going through the setter therefore re-enters
+   * {@code ToolStack} and writes {@link #TAG_BROKEN} and {@link #TAG_DAMAGE} into the very tag being installed,
+   * changing the NBT of every stack this class produces.
+   * <p>
+   * {@code Item#verifyTagAfterLoad} is not a reason to bypass the setter, despite what the older comments on these
+   * call sites claimed: on 1.20 it runs only from {@code ItemStack(CompoundTag)}, that is when a stack is read back
+   * from disk or the network, never from the setter.
+   * @param stack  Stack to write to
+   * @param tag    Tag to install
+   */
+  private static void writeTag(ItemStack stack, CompoundTag tag) {
+    stack.tag = tag;
+  }
+
+  /**
    * Creates a tool stack from an item stack
    * @param stack    Base stack
    * @param copyNbt  If true, NBT is copied from the stack
@@ -156,9 +175,7 @@ public class ToolStack implements IToolStackView {
       if (!copyNbt) {
         // only a wrongly made tool will have an empty definition. check preferred to a tag check as tags may not be loaded when this is first called
         if (definition != ToolDefinition.EMPTY) {
-          // bypass the setter as vanilla insists on setting damage values there, along with verifying the tag
-          // both are things we will do later, doing so now causes us to recursively call this method (though not infinite)
-          stack.tag = nbt;
+          writeTag(stack, nbt);
           // no need to set the damage value, if the tool wanted it set the stack would have had a tag already
         } else {
           switch (Config.COMMON.logInvalidToolStack.get()) {
@@ -269,8 +286,7 @@ public class ToolStack implements IToolStackView {
   /** Creates an item stack from this tool stack */
   public ItemStack createStack(int size) {
     ItemStack stack = new ItemStack(item, size);
-    // set the raw tag to avoid going through verifyTagAfterLoad and rebuilding stats again
-    stack.tag = nbt;
+    writeTag(stack, nbt);
     // damage value is already enforced via the stack creation above
     return stack;
   }
@@ -299,13 +315,8 @@ public class ToolStack implements IToolStackView {
     if (stack.getItem() != item) {
       throw new IllegalArgumentException("Wrong item in stack");
     }
-    // set the raw tag to avoid going through verifyTagAfterLoad and rebuilding stats again
     // TODO: is there any reason we copy NBT here? might be worth never copying
-    if (copyNBT) {
-      stack.tag = nbt.copy();
-    } else {
-      stack.tag = nbt;
-    }
+    writeTag(stack, copyNBT ? nbt.copy() : nbt);
     // ensure the damage value is set on the stack for the sake of stacking, since bypassing the vanilla setter skips that
     if (!stack.tag.contains(TAG_DAMAGE, Tag.TAG_ANY_NUMERIC) && stack.getItem().isDamageable(stack)) {
       stack.tag.putInt(TAG_DAMAGE, 0);
