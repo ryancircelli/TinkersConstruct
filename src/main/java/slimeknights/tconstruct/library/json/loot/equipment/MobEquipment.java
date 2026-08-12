@@ -123,6 +123,7 @@ public record MobEquipment(EquipmentSlot slot, IJsonPredicate<Item> match, ItemO
             }
           }
         }
+        tool.updateStack();
       }
       mob.setItemSlot(slot, replacement);
     }

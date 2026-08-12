@@ -138,7 +138,7 @@ public class ModifierCrystalItem extends Item {
           // call remove hook
           int newLevel = entry.getLevel() - stack.getCount();
           if (newLevel <= 0) {
-            entry.getHook(ModifierHooks.RAW_DATA).removeRawData(tool, entry.getModifier(), tool.getRestrictedNBT());
+            entry.getHook(ModifierHooks.RAW_DATA).removeRawData(tool, entry.getModifier(), tool.getRawData());
           }
           tool.removeModifier(modifier, stack.getCount());
 

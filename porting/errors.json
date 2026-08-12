@@ -1,14 +1,13 @@
 {
-    "total": 429,
-    "islandFiles": 143,
+    "total": 427,
+    "islandFiles": 144,
     "categories": {
         "package ModuleBuilder": 1,
-        "package net.minecraftforge.items": 1,
         "package slimeknights.tconstruct.common": 3,
         "package slimeknights.tconstruct.common.TinkerTags": 1,
         "package slimeknights.tconstruct.common.config": 1,
         "package slimeknights.tconstruct.library.materials": 8,
-        "package slimeknights.tconstruct.library.materials.definition": 27,
+        "package slimeknights.tconstruct.library.materials.definition": 28,
         "package slimeknights.tconstruct.library.materials.stats": 2,
         "package slimeknights.tconstruct.library.modifiers": 40,
         "package slimeknights.tconstruct.library.modifiers.hook.armor": 1,
@@ -34,7 +33,7 @@
         "package slimeknights.tconstruct.library.tools.item": 3,
         "package slimeknights.tconstruct.library.tools.part": 4,
         "package slimeknights.tconstruct.library.tools.stat": 20,
-        "package slimeknights.tconstruct.library.utils": 10,
+        "package slimeknights.tconstruct.library.utils": 9,
         "symbol class BreakSpeedContext": 10,
         "symbol class EquipmentContext": 7,
         "symbol class IMaterial": 8,
@@ -57,11 +56,10 @@
         "symbol class OreRateType": 1,
         "symbol class RandomMaterial": 11,
         "symbol class RecipeResult": 4,
-        "symbol class RestrictedCompoundTag": 2,
         "symbol class SlotType": 11,
         "symbol class TConstruct": 9,
         "symbol class ToolAttackContext": 7,
-        "symbol class ToolDefinition": 9,
+        "symbol class ToolDefinition": 10,
         "symbol class ToolDefinitionData": 1
     }
 }

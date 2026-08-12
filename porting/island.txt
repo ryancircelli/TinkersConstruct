@@ -170,3 +170,4 @@ src/main/java/slimeknights/tconstruct/library/tools/nbt/package-info.java
 src/main/java/slimeknights/tconstruct/library/tools/nbt/ToolComponents.java
 src/main/java/slimeknights/tconstruct/library/tools/nbt/ToolDataComponent.java
 src/main/java/slimeknights/tconstruct/library/tools/nbt/ToolStatsComponent.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/RawDataNBT.java
