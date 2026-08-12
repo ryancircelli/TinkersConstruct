@@ -52,7 +52,7 @@ public class ToolDamageUtil {
     if (!stack.getItem().canBeDepleted()) {
       return 0;
     }
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     int durability = tool.getStats().getInt(ToolStats.DURABILITY);
     // vanilla deletes tools if max damage == getDamage, so tell vanilla our max is one higher when broken
     return tool.isBroken() ? durability + 1 : durability;

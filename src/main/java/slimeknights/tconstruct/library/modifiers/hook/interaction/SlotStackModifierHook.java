@@ -44,7 +44,7 @@ public interface SlotStackModifierHook {
   /** Helper to implement {@link net.minecraft.world.item.Item#overrideStackedOnOther(ItemStack, Slot, ClickAction, Player)} */
   static boolean overrideStackedOnOther(ItemStack held, Slot slot, ClickAction action, Player player) {
     if (action == ClickAction.SECONDARY && held.getCount() == 1 && slot.allowModification(player)) {
-      ToolStack tool = ToolStack.from(held);
+      IToolStackView tool = ToolStack.from(held);
       for (ModifierEntry entry : tool.getModifiers()) {
         if (entry.getHook(ModifierHooks.SLOT_STACK).overrideStackedOnOther(tool, entry, slot, player)) {
           return true;
@@ -57,7 +57,7 @@ public interface SlotStackModifierHook {
   /** Helper to implement {@link net.minecraft.world.item.Item#overrideOtherStackedOnMe(ItemStack, ItemStack, Slot, ClickAction, Player, SlotAccess)} */
   static boolean overrideOtherStackedOnMe(ItemStack slotStack, ItemStack held, Slot slot, ClickAction action, Player player, SlotAccess access) {
     if (action == ClickAction.SECONDARY && slotStack.getCount() == 1 && slot.allowModification(player)) {
-      ToolStack tool = ToolStack.from(slotStack);
+      IToolStackView tool = ToolStack.from(slotStack);
       for (ModifierEntry entry : tool.getModifiers()) {
         if (entry.getHook(ModifierHooks.SLOT_STACK).overrideOtherStackedOnMe(tool, entry, held, slot, player, access)) {
           return true;

@@ -88,7 +88,7 @@ public class ModifierRepairCraftingRecipe extends CustomRecipe implements IModif
     int repairPerItem = 0;
     int repairNeeded = 0;
     if (inputs != null) {
-      ToolStack tool = ToolStack.from(inputs.tool());
+      IToolStackView tool = ToolStack.from(inputs.tool());
       repairNeeded = tool.getDamage();
       float repairFloat = tool.getModifierLevel(modifier) * repairAmount;
       if (repairFloat > 0) {

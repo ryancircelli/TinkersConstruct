@@ -300,7 +300,7 @@ public abstract class ModifiableLauncherItem extends ProjectileWeaponItem implem
 
   @Override
   public ItemStack finishUsingItem(ItemStack stack, Level pLevel, LivingEntity living) {
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     int duration = getUseDuration(stack);
     for (ModifierEntry entry : tool.getModifiers()) {
       entry.getHook(ModifierHooks.TOOL_USING).beforeReleaseUsing(tool, entry, living, duration, 0, ModifierEntry.EMPTY);
@@ -330,7 +330,7 @@ public abstract class ModifiableLauncherItem extends ProjectileWeaponItem implem
         level.playSound(null, living.getX(), living.getY(), living.getZ(), SoundEvents.CROSSBOW_LOADING_MIDDLE, SoundSource.PLAYERS, 0.75F, 1.0F);
       }
     }
-    ToolStack tool = ToolStack.from(bow);
+    IToolStackView tool = ToolStack.from(bow);
     for (ModifierEntry entry : tool.getModifiers()) {
       entry.getHook(ModifierHooks.TOOL_USING).onUsingTick(tool, entry, living, duration, chargeRemaining, ModifierEntry.EMPTY);
     }
