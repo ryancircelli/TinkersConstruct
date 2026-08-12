@@ -1,12 +1,11 @@
 {
-    "total": 589,
+    "total": 586,
     "islandFiles": 241,
     "categories": {
         "other: static import only from classes and interfaces": 1,
         "package BasicModifier": 1,
         "package ModuleBuilder": 1,
         "package TinkerDataCapability": 3,
-        "package net.minecraftforge.common": 3,
         "package net.minecraftforge.common.util": 1,
         "package slimeknights.tconstruct.common": 7,
         "package slimeknights.tconstruct.common.TinkerTags": 2,
