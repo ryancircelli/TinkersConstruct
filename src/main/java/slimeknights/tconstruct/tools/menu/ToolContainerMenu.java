@@ -14,7 +14,6 @@ import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -24,6 +23,7 @@ import slimeknights.mantle.fluid.transfer.IFluidContainerTransfer.TransferDirect
 import slimeknights.mantle.fluid.transfer.IFluidContainerTransfer.TransferResult;
 import slimeknights.mantle.inventory.EmptyItemHandler;
 import slimeknights.mantle.inventory.SmartItemHandlerSlot;
+import slimeknights.mantle.util.CapabilityHelper;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.common.config.Config.ToolSyncType;
 import slimeknights.tconstruct.common.network.TinkerNetwork;
@@ -118,7 +118,10 @@ public class ToolContainerMenu extends AbstractContainerMenu {
     // if the stack looks like it could be our tool, fetch the handler from it
     IItemHandler handler;
     if (stack.hasTag() && stack.is(TinkerTags.Items.MODIFIABLE)) {
-      handler = stack.getCapability(ForgeCapabilities.ITEM_HANDLER).filter(cap -> cap instanceof IItemHandlerModifiable).orElse(EmptyItemHandler.INSTANCE);
+      handler = CapabilityHelper.itemHandler(stack);
+      if (!(handler instanceof IItemHandlerModifiable)) {
+        handler = EmptyItemHandler.INSTANCE;
+      }
       // wrong number of slots means something went wrong, use a dummy
       if (handler.getSlots() != size) {
         handler = new ItemStackHandler(size);
