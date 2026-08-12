@@ -10,7 +10,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import slimeknights.mantle.data.loadable.Loadables;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.primitive.BooleanLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.predicate.IJsonPredicate;
@@ -47,7 +46,6 @@ public class ModifierSetWorktableRecipe extends AbstractWorktableRecipe {
   public static final BiFunction<CompoundTag, String, ListTag> LIST_GETTER = (tag, name) -> tag.getList(name, Tag.TAG_STRING);
   /** Loader instance */
   public static final RecordLoadable<ModifierSetWorktableRecipe> LOADER = RecordLoadable.create(
-    ContextKey.ID.requiredField(),
     Loadables.RESOURCE_LOCATION.requiredField("data_key", r -> r.dataKey),
     INPUTS_FIELD, TOOL_FIELD,
     // TODO: move modifier predicate to base recipe
@@ -75,8 +73,8 @@ public class ModifierSetWorktableRecipe extends AbstractWorktableRecipe {
   /** Cached list of modifiers shown in JEI */
   private List<ModifierEntry> filteredModifiers = null;
 
-  public ModifierSetWorktableRecipe(ResourceLocation id, ResourceLocation dataKey, List<SizedIngredient> inputs, Ingredient toolRequirement, IJsonPredicate<ModifierId> modifierPredicate, boolean addToSet, boolean allowTraits) {
-    super(id, toolRequirement, inputs);
+  public ModifierSetWorktableRecipe(ResourceLocation dataKey, List<SizedIngredient> inputs, Ingredient toolRequirement, IJsonPredicate<ModifierId> modifierPredicate, boolean addToSet, boolean allowTraits) {
+    super(toolRequirement, inputs);
     this.dataKey = dataKey;
     this.addToSet = addToSet;
     String rootKey = Util.makeTranslationKey("recipe", dataKey) + (addToSet ? ".adding" : ".removing");

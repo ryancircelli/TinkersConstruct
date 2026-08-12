@@ -2,7 +2,6 @@ package slimeknights.tconstruct.library.recipe.modifiers.adding;
 
 import com.google.common.collect.Streams;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -19,8 +18,11 @@ import slimeknights.tconstruct.library.tools.item.IModifiableDisplay;
 import slimeknights.tconstruct.library.tools.nbt.MaterialNBT;
 import slimeknights.tconstruct.library.tools.nbt.ModDataNBT;
 import slimeknights.tconstruct.library.tools.nbt.ModifierNBT;
+import slimeknights.tconstruct.library.tools.nbt.MultiplierNBT;
+import slimeknights.tconstruct.library.tools.nbt.StatsNBT;
+import slimeknights.tconstruct.library.tools.nbt.ToolDataComponent;
 import slimeknights.tconstruct.library.tools.nbt.ToolDataNBT;
-import slimeknights.tconstruct.library.tools.nbt.ToolStack;
+import slimeknights.tconstruct.library.tools.nbt.ToolStatsComponent;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -30,7 +32,12 @@ import java.util.stream.Stream;
 
 /** Common interface for modifier recipes that can show in JEI */
 public interface IDisplayModifierRecipe extends IModifierRecipe {
-  /** Gets the ID of this recipe. If this is a generated display recipe, uses the parent recipe ID */
+  /**
+   * Gets the ID of this recipe. If this is a generated display recipe, uses the parent recipe ID.
+   * @apiNote  Always null for a recipe reading it from itself: 1.21 moved a recipe's ID onto
+   *           {@link net.minecraft.world.item.crafting.RecipeHolder}, so only a caller holding the holder can supply
+   *           one, which {@link DisplayModifierRecipe.Builder} still allows.
+   */
   @Nullable
   default ResourceLocation getRecipeId() {
     return null;
@@ -143,14 +150,12 @@ public interface IDisplayModifierRecipe extends IModifierRecipe {
   /* Gets a copy of the stack with the given modifiers */
   static ItemStack withModifiers(ItemStack stack, int maxSize, List<ModifierEntry> modifierList, Consumer<ModDataNBT> persistentDataConsumer) {
     ItemStack output = stack.copyWithCount(Math.min(stack.getMaxStackSize(), maxSize));
-    CompoundTag nbt = output.getOrCreateTag();
 
     // build modifiers list
     // go through the builder to ensure they are merged properly
-    ModifierNBT modifiers = ModifierNBT.builder().add(modifierList).build();
-    ListTag list = modifiers.serializeToNBT();
-    nbt.put(ToolStack.TAG_UPGRADES, list);
-    nbt.put(ToolStack.TAG_MODIFIERS, list);
+    ModifierNBT.Builder builder = ModifierNBT.builder();
+    modifierList.forEach(builder::add);
+    ModifierNBT modifiers = builder.build();
 
     // build persistent and volatile NBT
     CompoundTag persistentNBT = new CompoundTag();
@@ -162,8 +167,11 @@ public interface IDisplayModifierRecipe extends IModifierRecipe {
     for (ModifierEntry entry : modifiers.getModifiers()) {
       entry.getHook(ModifierHooks.VOLATILE_DATA).addVolatileData(context, entry, volatileData);
     }
-    nbt.put(ToolStack.TAG_VOLATILE_MOD_DATA, volatileNBT);
-    nbt.put(ToolStack.TAG_PERSISTENT_MOD_DATA, persistentNBT);
+
+    // 1.20 wrote four tags into the stack's NBT by hand; those four live in two components now, and neither
+    // materials nor stats are set as this is a display tool rather than a built one
+    new ToolDataComponent(MaterialNBT.EMPTY, modifiers, persistentNBT, false).set(output);
+    new ToolStatsComponent(StatsNBT.EMPTY, MultiplierNBT.EMPTY, modifiers, volatileNBT).set(output);
 
     return output;
   }

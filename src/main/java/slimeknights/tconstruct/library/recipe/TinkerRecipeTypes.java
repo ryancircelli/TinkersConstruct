@@ -21,33 +21,35 @@ import slimeknights.tconstruct.library.recipe.worktable.IModifierWorktableRecipe
 
 /**
  * Class containing all of Tinkers Construct recipe types
+ * @apiNote  1.21's {@link DeferredHolder} names both the registry's type and the entry's own, where 1.20's
+ *           {@code RegistryObject} named only the entry.
  */
 public class TinkerRecipeTypes {
   /** Deferred instance */
   private static final DeferredRegister<RecipeType<?>> TYPES = DeferredRegister.create(Registries.RECIPE_TYPE, TConstruct.MOD_ID);
 
-  public static final DeferredHolder<RecipeType<IPartBuilderRecipe>> PART_BUILDER = register("part_builder");
-  public static final DeferredHolder<RecipeType<MaterialRecipe>> MATERIAL = register("material");
-  public static final DeferredHolder<RecipeType<ITinkerStationRecipe>> TINKER_STATION = register("tinker_station");
-  public static final DeferredHolder<RecipeType<IModifierWorktableRecipe>> MODIFIER_WORKTABLE = register("modifier_worktable");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<IPartBuilderRecipe>> PART_BUILDER = register("part_builder");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<MaterialRecipe>> MATERIAL = register("material");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<ITinkerStationRecipe>> TINKER_STATION = register("tinker_station");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<IModifierWorktableRecipe>> MODIFIER_WORKTABLE = register("modifier_worktable");
 
   // casting
-  public static final DeferredHolder<RecipeType<ICastingRecipe>> CASTING_BASIN = register("casting_basin");
-  public static final DeferredHolder<RecipeType<ICastingRecipe>> CASTING_TABLE = register("casting_table");
-  public static final DeferredHolder<RecipeType<MoldingRecipe>> MOLDING_TABLE = register("molding_table");
-  public static final DeferredHolder<RecipeType<MoldingRecipe>> MOLDING_BASIN = register("molding_basin");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<ICastingRecipe>> CASTING_BASIN = register("casting_basin");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<ICastingRecipe>> CASTING_TABLE = register("casting_table");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<MoldingRecipe>> MOLDING_TABLE = register("molding_table");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<MoldingRecipe>> MOLDING_BASIN = register("molding_basin");
 
   // smeltery
-  public static final DeferredHolder<RecipeType<IMeltingRecipe>> MELTING = register("melting");
-  public static final DeferredHolder<RecipeType<EntityMeltingRecipe>> ENTITY_MELTING = register("entity_melting");
-  public static final DeferredHolder<RecipeType<MeltingFuel>> FUEL = register("fuel");
-  public static final DeferredHolder<RecipeType<AlloyRecipe>> ALLOYING = register("alloying");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<IMeltingRecipe>> MELTING = register("melting");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<EntityMeltingRecipe>> ENTITY_MELTING = register("entity_melting");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<MeltingFuel>> FUEL = register("fuel");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<AlloyRecipe>> ALLOYING = register("alloying");
 
   // modifiers
-  public static final DeferredHolder<RecipeType<SeveringRecipe>> SEVERING = register("severing");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<SeveringRecipe>> SEVERING = register("severing");
 
   /** Internal recipe type for recipes that are not pulled by any specific crafting block */
-  public static final DeferredHolder<RecipeType<Recipe<?>>> DATA = register("data");
+  public static final DeferredHolder<RecipeType<?>,RecipeType<Recipe<?>>> DATA = register("data");
 
   /** Initializes the deferred register */
   public static void init(IEventBus bus) {
@@ -60,7 +62,7 @@ public class TinkerRecipeTypes {
    * @param <T>   Recipe type
    * @return  Registered recipe type
    */
-  static <T extends Recipe<?>> DeferredHolder<RecipeType<T>> register(String name) {
+  static <T extends Recipe<?>> DeferredHolder<RecipeType<?>,RecipeType<T>> register(String name) {
     return TYPES.register(name, () -> new RecipeType<>() {
       @Override
       public String toString() {

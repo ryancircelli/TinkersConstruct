@@ -32,8 +32,6 @@ public abstract class AbstractWorktableRecipe implements IModifierWorktableRecip
   protected static final LoadableField<Ingredient,AbstractWorktableRecipe> TOOL_FIELD = IngredientLoadable.DISALLOW_EMPTY.defaultField("tools", DEFAULT_TOOLS, true, r -> r.toolRequirement);
   protected static final LoadableField<List<SizedIngredient>,AbstractWorktableRecipe> INPUTS_FIELD = SizedIngredientLoadable.FLAT.list(1).requiredField("inputs", r -> r.inputs);
 
-  @Getter
-  private final ResourceLocation id;
   protected final Ingredient toolRequirement;
   protected final List<SizedIngredient> inputs;
 
@@ -41,8 +39,8 @@ public abstract class AbstractWorktableRecipe implements IModifierWorktableRecip
   @Nullable
   protected List<ItemStack> tools;
 
-  public AbstractWorktableRecipe(ResourceLocation id, List<SizedIngredient> inputs) {
-    this(id, Ingredient.of(TinkerTags.Items.MODIFIABLE), inputs);
+  public AbstractWorktableRecipe(List<SizedIngredient> inputs) {
+    this(Ingredient.of(TinkerTags.Items.MODIFIABLE), inputs);
   }
 
   @Override
