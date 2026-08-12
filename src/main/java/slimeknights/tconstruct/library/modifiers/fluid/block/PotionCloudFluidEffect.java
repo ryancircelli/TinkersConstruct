@@ -1,10 +1,13 @@
 package slimeknights.tconstruct.library.modifiers.fluid.block;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.AreaEffectCloud;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import slimeknights.mantle.data.loadable.primitive.FloatLoadable;
@@ -14,6 +17,7 @@ import slimeknights.tconstruct.library.modifiers.fluid.FluidEffect;
 import slimeknights.tconstruct.library.modifiers.fluid.FluidEffectContext;
 import slimeknights.tconstruct.library.recipe.TagPredicate;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /** Effect to create a lingering cloud at the hit block */
@@ -28,11 +32,31 @@ public record PotionCloudFluidEffect(float scale, TagPredicate predicate) implem
     return LOADER;
   }
 
+  /**
+   * Gets the potion named by a fluid stack's tag.
+   * @apiNote {@code PotionUtils} is gone in 1.21; potions are a built-in registry (T8a/T8b's split, same as
+   * attributes and mob effects), so the lookup is a direct {@link BuiltInRegistries#POTION} query instead of the
+   * deleted helper, defaulting to {@link Potions#EMPTY} exactly as {@code PotionUtils.getPotion} did for a
+   * missing or unrecognized key.
+   */
+  private static Potion getPotion(@Nullable CompoundTag tag) {
+    if (tag != null && tag.contains("Potion", Tag.TAG_STRING)) {
+      ResourceLocation id = ResourceLocation.tryParse(tag.getString("Potion"));
+      if (id != null) {
+        Potion potion = BuiltInRegistries.POTION.get(id);
+        if (potion != null) {
+          return potion;
+        }
+      }
+    }
+    return Potions.EMPTY.value();
+  }
+
   @Override
   public float apply(FluidStack fluid, EffectLevel level, FluidEffectContext.Block context, FluidAction action) {
     CompoundTag tag = fluid.getTag();
     if (predicate.test(tag) && context.isOffsetReplaceable()) {
-      Potion potion = PotionUtils.getPotion(fluid.getTag());
+      Potion potion = getPotion(tag);
       List<MobEffectInstance> effects = potion.getEffects();
       if (!effects.isEmpty()) {
         float scale = level.value();

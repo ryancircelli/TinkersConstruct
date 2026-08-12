@@ -532,3 +532,12 @@ src/main/java/slimeknights/tconstruct/library/modifiers/fluid/TimeAction.java
 src/main/java/slimeknights/tconstruct/library/modifiers/fluid/UnloadableFluidEffect.java
 src/main/java/slimeknights/tconstruct/library/modifiers/fluid/UpdateFluidEffectsPacket.java
 src/main/java/slimeknights/tconstruct/library/modifiers/fluid/package-info.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/block/BlockInteractFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/block/BreakBlockFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/block/MeltBlockFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/block/MobEffectCloudFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/block/MoveBlocksFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/block/OffsetBlockFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/block/PlaceBlockFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/block/PotionCloudFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/block/package-info.java
