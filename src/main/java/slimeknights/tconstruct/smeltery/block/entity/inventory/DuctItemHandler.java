@@ -3,10 +3,11 @@ package slimeknights.tconstruct.smeltery.block.entity.inventory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import slimeknights.mantle.inventory.SingleItemHandler;
+import slimeknights.mantle.util.CapabilityHelper;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.common.network.InventorySlotSyncPacket;
 import slimeknights.tconstruct.common.network.TinkerNetwork;
@@ -73,9 +74,8 @@ public class DuctItemHandler extends SingleItemHandler<DuctBlockEntity> {
       }
     }
     // the item must contain fluid (no empty cans or buckets)
-    return stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
-                .filter(cap -> !cap.getFluidInTank(0).isEmpty())
-                .isPresent();
+    IFluidHandlerItem cap = CapabilityHelper.fluidHandler(stack);
+    return cap != null && !cap.getFluidInTank(0).isEmpty();
   }
 
   /**

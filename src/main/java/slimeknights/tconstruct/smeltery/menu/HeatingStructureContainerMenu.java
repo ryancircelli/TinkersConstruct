@@ -9,13 +9,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import slimeknights.mantle.fluid.FluidTransferHelper;
 import slimeknights.mantle.fluid.transfer.FluidContainerTransferManager;
 import slimeknights.mantle.fluid.transfer.IFluidContainerTransfer.TransferDirection;
 import slimeknights.mantle.fluid.transfer.IFluidContainerTransfer.TransferResult;
+import slimeknights.mantle.util.CapabilityHelper;
 import slimeknights.mantle.util.sync.ValidZeroDataSlot;
 import slimeknights.tconstruct.shared.inventory.TriggeringMultiModuleContainerMenu;
 import slimeknights.tconstruct.smeltery.TinkerSmeltery;
@@ -186,7 +186,7 @@ public class HeatingStructureContainerMenu extends TriggeringMultiModuleContaine
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-      return FluidContainerTransferManager.INSTANCE.mayHaveTransfer(stack) || stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).isPresent();
+      return FluidContainerTransferManager.INSTANCE.mayHaveTransfer(stack) || CapabilityHelper.fluidHandler(stack) != null;
     }
   }
 
