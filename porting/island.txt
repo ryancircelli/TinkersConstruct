@@ -444,3 +444,17 @@ src/main/java/slimeknights/tconstruct/library/modifiers/modules/util/ModifierCon
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/util/ModuleBuilder.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/util/ProjectilePredicate.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/util/package-info.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/AttributeModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/AttributeUniqueField.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/BlockItemProviderModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/BlockTransformModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/ConditionalStatModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/EdibleModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/InfinityModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/MaterialRepairModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/ReduceToolDamageModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/RepairModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/ShowOffhandModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/ToolActionTransformModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/ToolActionsModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/package-info.java
