@@ -1,6 +1,6 @@
 {
-    "total": 305,
-    "islandFiles": 478,
+    "total": 308,
+    "islandFiles": 484,
     "categories": {
         "other: static import only from classes and interfaces": 4,
         "package TinkerDataCapability": 4,
@@ -10,7 +10,7 @@
         "package slimeknights.tconstruct.common.network": 4,
         "package slimeknights.tconstruct.gadgets.entity": 1,
         "package slimeknights.tconstruct.library.client.armor.texture": 1,
-        "package slimeknights.tconstruct.library.client.materials": 4,
+        "package slimeknights.tconstruct.library.client.materials": 5,
         "package slimeknights.tconstruct.library.client.model": 1,
         "package slimeknights.tconstruct.library.modifiers.fluid.entity.DamageFluidEffect": 1,
         "package slimeknights.tconstruct.library.modifiers.modules.technical": 3,
@@ -20,6 +20,7 @@
         "package slimeknights.tconstruct.library.recipe.melting": 1,
         "package slimeknights.tconstruct.library.recipe.melting.IMeltingContainer": 1,
         "package slimeknights.tconstruct.library.recipe.modifiers": 1,
+        "package slimeknights.tconstruct.library.recipe.modifiers.adding.SwappableModifierRecipe": 1,
         "package slimeknights.tconstruct.library.recipe.worktable": 3,
         "package slimeknights.tconstruct.library.tools.capability": 11,
         "package slimeknights.tconstruct.library.tools.capability.TinkerDataCapability": 4,
@@ -51,6 +52,7 @@
         "symbol class SlotType": 32,
         "symbol class TConstruct": 58,
         "symbol class TagUtil": 2,
-        "symbol class Util": 34
+        "symbol class Util": 34,
+        "symbol class VariantFormatter": 1
     }
 }

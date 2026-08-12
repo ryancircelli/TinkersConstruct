@@ -505,3 +505,9 @@ src/main/java/slimeknights/tconstruct/library/modifiers/modules/combat/MobEffect
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/combat/ProjectileExplosionModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/combat/SlingForceModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/combat/package-info.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/display/DurabilityBarColorModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/display/MaterialVariantColorModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/display/ModifierVariantColorModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/display/ModifierVariantNameModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/display/ShowInteractionSourceModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/display/package-info.java
