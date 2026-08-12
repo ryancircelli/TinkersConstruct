@@ -19,7 +19,6 @@ class StatProviderTest extends BaseMcTest {
   @BeforeAll
   static void beforeAll() {
     MaterialItemFixture.init();
-    setupTierSorting();
   }
 
   /** Builds the given stats */
