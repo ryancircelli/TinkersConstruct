@@ -327,7 +327,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
   /* Right click hooks */
 
   /** If true, this interaction hook should defer to the offhand */
-  protected static boolean shouldInteract(@Nullable LivingEntity player, ToolStack toolStack, InteractionHand hand) {
+  protected static boolean shouldInteract(@Nullable LivingEntity player, IToolStackView toolStack, InteractionHand hand) {
     IModDataView volatileData = toolStack.getVolatileData();
     if (volatileData.getBoolean(NO_INTERACTION)) {
       return false;
