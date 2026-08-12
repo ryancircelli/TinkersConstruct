@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.util.typed.TypedMap;
 import slimeknights.tconstruct.TConstruct;
@@ -152,12 +152,12 @@ public class StatsNBT {
 
   /** Generic helper to write to network */
   @SuppressWarnings("unchecked")
-  private static <T> void toNetwork(FriendlyByteBuf buffer, IToolStat<T> stat, Object value) {
+  private static <T> void toNetwork(RegistryFriendlyByteBuf buffer, IToolStat<T> stat, Object value) {
     stat.toNetwork(buffer, (T) value);
   }
 
   /** Writes this to a packet buffer */
-  public void toNetwork(FriendlyByteBuf buffer) {
+  public void toNetwork(RegistryFriendlyByteBuf buffer) {
     buffer.writeVarInt(stats.size());
     for (Entry<IToolStat<?>,Object> entry : stats.entrySet()) {
       IToolStat<?> stat = entry.getKey();
@@ -167,7 +167,7 @@ public class StatsNBT {
   }
 
   /** Reads a tool definition stat object from a packet buffer */
-  public static StatsNBT fromNetwork(FriendlyByteBuf buffer) {
+  public static StatsNBT fromNetwork(RegistryFriendlyByteBuf buffer) {
     ImmutableMap.Builder<IToolStat<?>, Object> builder = ImmutableMap.builder();
     int max = buffer.readVarInt();
     for (int i = 0; i < max; i++) {
@@ -229,12 +229,12 @@ public class StatsNBT {
     }
 
     @Override
-    public StatsNBT decode(FriendlyByteBuf buffer, TypedMap context) {
+    public StatsNBT decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
       return StatsNBT.fromNetwork(buffer);
     }
 
     @Override
-    public void encode(FriendlyByteBuf buffer, StatsNBT stats) {
+    public void encode(RegistryFriendlyByteBuf buffer, StatsNBT stats) {
       stats.toNetwork(buffer);
     }
   };

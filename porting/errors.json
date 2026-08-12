@@ -1,5 +1,5 @@
 {
-    "total": 427,
+    "total": 428,
     "islandFiles": 140,
     "categories": {
         "package ModuleBuilder": 1,
@@ -51,7 +51,7 @@
         "symbol class Modifier": 6,
         "symbol class ModifierBuilder": 1,
         "symbol class ModifierCondition": 3,
-        "symbol class ModifierEntry": 37,
+        "symbol class ModifierEntry": 38,
         "symbol class ModifierId": 36,
         "symbol class ModuleHook": 2,
         "symbol class OreRateType": 1,
