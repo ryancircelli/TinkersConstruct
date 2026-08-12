@@ -7,10 +7,10 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import slimeknights.tconstruct.TConstruct;
@@ -66,10 +66,12 @@ public class ToolGameTests {
     helper.assertTrue(tool.isBroken(), "test pickaxe was not broken");
     ItemStack stack = tool.createStack();
 
-    // a Forge FakePlayer avoids GameTestHelper#makeMockServerPlayerInLevel, which needs a real network
-    // Connection with an attached channel that a headless gametest server never provides
-    ServerPlayer player = FakePlayerFactory.getMinecraft(helper.getLevel());
-    boolean minedSuccessfully = ToolHarvestLogic.mineBlock(stack, helper.getLevel(), helper.getBlockState(pos), pos, player);
+    ServerPlayer player = GameTestFixtures.createFakePlayer(helper, "broken_tool_test");
+    // mineBlock takes a world-space BlockPos (it is not a GameTestHelper method, so it does not translate
+    // test-relative coordinates itself); translate explicitly rather than relying on the broken-tool early
+    // return making the untranslated position harmless today
+    BlockPos absolutePos = helper.absolutePos(pos);
+    boolean minedSuccessfully = ToolHarvestLogic.mineBlock(stack, helper.getLevel(), helper.getBlockState(pos), absolutePos, player);
     helper.assertFalse(minedSuccessfully, "a broken tool's mine hook reported success");
     helper.assertBlockPresent(Blocks.STONE, pos);
     helper.succeed();
@@ -90,13 +92,26 @@ public class ToolGameTests {
       }
     }
 
+    // ToolHarvestLogic.runBlockBreak works in world space (it reads the block through player.serverLevel(), not
+    // through the helper), so the target position and the player standing next to it both need the test's
+    // world-space origin folded in via absolutePos. Every gametest in a batch is placed at a different offset in
+    // the shared world, so using the un-translated relative position here only "worked" when a test happened to
+    // land at/near world origin - passing on some runs and reporting 0 blocks broken on others.
+    BlockPos absoluteCenter = helper.absolutePos(center);
+
     ToolStack tool = GameTestFixtures.createSledgeHammer();
     ItemStack stack = tool.createStack();
-    ServerPlayer player = FakePlayerFactory.getMinecraft(helper.getLevel());
-    player.setPos(center.getX() + 0.5, center.getY() + 0.5, center.getZ() - 2.0);
+    ServerPlayer player = GameTestFixtures.createFakePlayer(helper, "aoe_hammer_test");
+    player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+    // stand north of the wall looking south at it (south face is the one being hit, see sideHit below)
+    player.setPos(absoluteCenter.getX() + 0.5, absoluteCenter.getY() + 0.5, absoluteCenter.getZ() - 2.0);
+    player.setYRot(0.0F);   // yaw 0 faces south (+Z), toward the wall
+    player.setXRot(0.0F);   // level pitch
 
-    // hit the south face of the center block, as if the player is standing south of the wall looking north
-    int harvested = ToolHarvestLogic.runBlockBreak(stack, ToolStack.mutable(stack), stone, center, Direction.SOUTH, player, null);
+    // hit the south face of the center block; this constructs the BlockHitResult directly from the given
+    // position and face (see Util.createTraceResult), it does not raytrace from the player's look vector, so
+    // the explicit rotation above is belt-and-suspenders rather than load bearing for the hit face itself
+    int harvested = ToolHarvestLogic.runBlockBreak(stack, ToolStack.mutable(stack), stone, absoluteCenter, Direction.SOUTH, player, null);
     helper.assertTrue(harvested == 9, "AoE hammer did not break exactly the 9 blocks of a 3x3 pattern (broke " + harvested + ")");
     helper.succeed();
   }
