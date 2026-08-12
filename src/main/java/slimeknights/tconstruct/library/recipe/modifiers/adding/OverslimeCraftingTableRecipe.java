@@ -17,6 +17,7 @@ import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.modifiers.modules.capacity.OverslimeModule;
+import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.tools.TinkerModifiers;
 
@@ -90,7 +91,7 @@ public class OverslimeCraftingTableRecipe extends CustomRecipe {
       return false;
     }
     // found both tool and ingredient, ensure we need overslime
-    ToolStack tool = ToolStack.from(match.tool);
+    IToolStackView tool = ToolStack.from(match.tool);
     // no adding overslime via this recipe, only refilling it
     // mostly simplifies some of the craft remainder logic
     return tool.getModifierLevel(TinkerModifiers.overslime.getId()) > 0 || OverslimeModule.INSTANCE.getAmount(tool) < OverslimeModule.getCapacity(tool);
@@ -135,7 +136,7 @@ public class OverslimeCraftingTableRecipe extends CustomRecipe {
     int repairNeeded = 0;
     int repairPerItem = restoreAmount;
     if (inputs != null) {
-      ToolStack tool = ToolStack.from(inputs.tool);
+      IToolStackView tool = ToolStack.from(inputs.tool);
       repairNeeded = OverslimeModule.getCapacity(tool) - OverslimeModule.INSTANCE.getAmount(tool);
       repairPerItem *= OverslimeModule.getOverworkedBonus(tool);
     }
