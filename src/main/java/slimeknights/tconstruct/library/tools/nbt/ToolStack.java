@@ -185,6 +185,17 @@ public class ToolStack implements IToolStackView {
   }
 
   /**
+   * Creates a mutable tool stack from the given item stack, not copying NBT.
+   * The returned instance shares NBT with the stack, so every change made through it is immediately visible on {@code stack}.
+   * Use {@link #from(ItemStack)} if you only need to read the tool, or {@link #copyFrom(ItemStack)} if you need to edit a tool without changing the stack.
+   * @param stack  Stack
+   * @return  Mutable tool stack sharing NBT with the passed stack
+   */
+  public static ToolStack mutable(ItemStack stack) {
+    return from(stack, false);
+  }
+
+  /**
    * Creates a tool stack from the given item stack, copying the NBT
    * @param stack  Stack
    * @return  Tool stack
