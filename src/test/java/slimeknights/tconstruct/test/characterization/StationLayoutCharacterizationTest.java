@@ -3,10 +3,10 @@ package slimeknights.tconstruct.test.characterization;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.netty.buffer.Unpooled;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.VanillaIngredientSerializer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -36,11 +36,8 @@ class StationLayoutCharacterizationTest extends BaseMcTest {
 
   @BeforeAll
   static void registerSerializers() {
-    try {
-      CraftingHelper.register(ResourceLocation.fromNamespaceAndPath("minecraft", "item"), VanillaIngredientSerializer.INSTANCE);
-    } catch (Exception ignored) {
-      // already registered - fine
-    }
+    // no ingredient serializer to seed: Ingredient.CODEC reads a vanilla item ingredient directly in 1.21, and
+    // CraftingHelper kept its name while losing every method that registry needed
     RealItemStubs.ensureRegistered(FOLDER);
   }
 
@@ -74,14 +71,14 @@ class StationLayoutCharacterizationTest extends BaseMcTest {
     // always writes/reads a concrete LayoutSlot (getToolSlot() defaults null to LayoutSlot.EMPTY before writing) -
     // so decodedJson will never equal firstJson for such layouts. Compare against a second network round trip
     // instead (stability from the network form onward) rather than the pre-network JSON form directly.
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
     first.write(buffer);
     int written = buffer.readableBytes();
     StationSlotLayout decoded = StationSlotLayout.read(buffer);
     assertThat(written - buffer.readableBytes()).as("decode should consume exactly the bytes written by encode").isEqualTo(written);
     JsonElement decodedJson = StationSlotLayoutLoader.GSON.toJsonTree(decoded);
 
-    FriendlyByteBuf buffer2 = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer2 = new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
     decoded.write(buffer2);
     StationSlotLayout decodedTwice = StationSlotLayout.read(buffer2);
     JsonElement decodedTwiceJson = StationSlotLayoutLoader.GSON.toJsonTree(decodedTwice);
