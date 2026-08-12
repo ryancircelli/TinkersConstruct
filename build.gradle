@@ -160,6 +160,21 @@ sourceSets {
  * If HEAD~ has no copy of the ledger (the commit that introduces it, or a shallow
  * clone with no parent) there is no baseline and the shrink check is skipped; the
  * other checks still run.
+ *
+ * The one exception to (c) is a file that did not exist at HEAD~ and is listed on
+ * porting/island.txt. Rule (c) exists to stop a file that compiles today from being
+ * hidden tomorrow; a file created by the commit that lists it has no such yesterday
+ * to be pushed back from. It also cannot be avoided: the island is compiled only for
+ * measurement, so a new class written against island classes cannot join
+ * sourceSets.main until the island does, and the island ledger is required to be a
+ * subset of this one (see errorBudget). Without the exception a slice porting a
+ * package into the component era could not add a single class to it, which would
+ * decide code shape by ledger mechanics.
+ *
+ * The exception is deliberately narrow. It permits exactly "born on the island,
+ * leaves with it at T13" and nothing else: an existing file cannot use it (git says
+ * so), and a new file that is not on the island cannot either, so a new class that
+ * really does compile still has to prove it by joining the source set.
  */
 tasks.register('checkPortingFrontier') {
     group = 'verification'
@@ -168,7 +183,9 @@ tasks.register('checkPortingFrontier') {
     def projectDirectory = projectDir
     def ledgers = frontiers.collect { [name: it.name, roots: it.roots, path: rootDir.toPath().relativize(it.ledger.toPath()).toString(), file: it.ledger] }
     def read = readFrontier
+    def island = readFrontier(islandLedger) as Set
     inputs.files(frontiers*.ledger).withPropertyName('ledgers')
+    inputs.file(islandLedger).withPropertyName('island')
 
     doLast {
         // Reads the committed copy of a ledger at HEAD~; null when there is no baseline.
@@ -181,6 +198,16 @@ tasks.register('checkPortingFrontier') {
             proc.inputStream.transferTo(out)
             proc.errorStream.transferTo(OutputStream.nullOutputStream())
             return proc.waitFor() == 0 ? out.toString('UTF-8') : null
+        }
+
+        // True when HEAD~ has no copy of the file at all, meaning this commit created it.
+        def isNewSinceBaseline = { String path ->
+            def proc = new ProcessBuilder('git', 'cat-file', '-e', "HEAD~:${path}".toString())
+                    .directory(projectDirectory)
+                    .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                    .redirectError(ProcessBuilder.Redirect.DISCARD)
+                    .start()
+            return proc.waitFor() != 0
         }
 
         def failures = []
@@ -209,8 +236,14 @@ tasks.register('checkPortingFrontier') {
             }
             def baseline = baselineText.readLines()*.trim().findAll { !it.isEmpty() && !it.startsWith('#') } as Set
             def added = entries.findAll { !baseline.contains(it) }
+            def born = added.findAll { island.contains(it) && isNewSinceBaseline(it) }
+            added -= born
             if (!added.isEmpty()) {
-                failures << "${ledger.path} grew by ${added.size()} entr(y/ies) since HEAD~. The porting frontier only shrinks:\n  ${added.join('\n  ')}"
+                failures << ("${ledger.path} grew by ${added.size()} entr(y/ies) since HEAD~. The porting frontier only shrinks, " +
+                        "except for a file created by this commit and listed on ${rootDir.toPath().relativize(islandLedger.toPath())}:\n  ${added.join('\n  ')}")
+            }
+            if (!born.isEmpty()) {
+                logger.lifecycle("porting frontier [${ledger.name}]: ${born.size()} new island file(s) added to ${ledger.path}:\n  ${born.join('\n  ')}")
             }
             def ported = baseline.size() - entries.size()
             logger.lifecycle("porting frontier [${ledger.name}]: ${entries.size()} unported file(s), ${ported >= 0 ? ported : 0} ported since HEAD~")
