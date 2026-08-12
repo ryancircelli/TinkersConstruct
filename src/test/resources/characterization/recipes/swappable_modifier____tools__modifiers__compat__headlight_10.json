@@ -3,7 +3,7 @@
   "allow_crystal": false,
   "conditions": [
     {
-      "type": "forge:mod_loaded",
+      "type": "neoforge:mod_loaded",
       "modid": "headlight"
     }
   ],

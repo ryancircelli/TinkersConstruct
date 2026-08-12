@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.library.recipe.casting.material;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -8,7 +9,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
 import slimeknights.mantle.data.loadable.common.IngredientLoadable;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.primitive.IntLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.predicate.IJsonPredicate;
@@ -52,8 +52,7 @@ import java.util.stream.Stream;
  */
 public class PartSwapCastingRecipe extends AbstractMaterialCastingRecipe implements IMultiRecipe<IDisplayableCastingRecipe> {
   public static final RecordLoadable<PartSwapCastingRecipe> LOADER = RecordLoadable.create(
-    LoadableRecipeSerializer.TYPED_SERIALIZER.requiredField(),
-    ContextKey.ID.requiredField(), LoadableRecipeSerializer.RECIPE_GROUP,
+    LoadableRecipeSerializer.TYPED_SERIALIZER.requiredField(), LoadableRecipeSerializer.RECIPE_GROUP,
     IngredientLoadable.ALLOW_EMPTY.requiredField("tools", AbstractCastingRecipe::getCast),
     ITEM_COST_FIELD,
     IntLoadable.FROM_ZERO.requiredField("index", r -> r.index),
@@ -65,15 +64,15 @@ public class PartSwapCastingRecipe extends AbstractMaterialCastingRecipe impleme
   @Nullable
   private MaterialFluidRecipe cachedPartSwapping = null;
 
-  protected PartSwapCastingRecipe(TypeAwareRecipeSerializer<?> serializer, ResourceLocation id, String group, Ingredient cast, int itemCost, int index, IJsonPredicate<MaterialVariantId> materials) {
-    super(serializer, id, group, cast, itemCost, true, false, materials);
+  protected PartSwapCastingRecipe(TypeAwareRecipeSerializer<?> serializer, String group, Ingredient cast, int itemCost, int index, IJsonPredicate<MaterialVariantId> materials) {
+    super(serializer, group, cast, itemCost, true, false, materials);
     this.index = index;
   }
 
   /** @deprecated use {@link #PartSwapCastingRecipe(TypeAwareRecipeSerializer, ResourceLocation, String, Ingredient, int, int, IJsonPredicate)} */
   @Deprecated(forRemoval = true)
-  protected PartSwapCastingRecipe(TypeAwareRecipeSerializer<?> serializer, ResourceLocation id, String group, Ingredient cast, int itemCost, int index) {
-    this(serializer, id, group, cast, itemCost, index, MaterialPredicate.ANY);
+  protected PartSwapCastingRecipe(TypeAwareRecipeSerializer<?> serializer, String group, Ingredient cast, int itemCost, int index) {
+    this(serializer, group, cast, itemCost, index, MaterialPredicate.ANY);
   }
 
   /** Maps negative indices to the end of the parts list */
@@ -150,12 +149,12 @@ public class PartSwapCastingRecipe extends AbstractMaterialCastingRecipe impleme
   }
 
   @Override
-  public ItemStack getResultItem(RegistryAccess registryAccess) {
+  public ItemStack getResultItem(HolderLookup.Provider registryAccess) {
     return getCast().getItems()[0].copy();
   }
 
   @Override
-  public ItemStack assemble(ICastingContainer inv, RegistryAccess access) {
+  public ItemStack assemble(ICastingContainer inv, HolderLookup.Provider access) {
     MaterialFluidRecipe fluidRecipe = getFluidRecipe(inv);
     MaterialVariant material = fluidRecipe.getOutput();
     ItemStack cast = inv.getStack();
@@ -239,7 +238,7 @@ public class PartSwapCastingRecipe extends AbstractMaterialCastingRecipe impleme
                   results.add(withMaterial(tool, output).copy());
                   // mark input as display so tooltip does not show useless stats
                   ItemStack input = withMaterial(tool, MaterialVariant.of(ToolBuildHandler.getRenderMaterial(0)));
-                  input.getOrCreateTag().putBoolean(TooltipUtil.KEY_DISPLAY, true);
+                  TooltipUtil.setDisplay(input);
                   inputs.add(input);
                 }
               }
@@ -248,7 +247,7 @@ public class PartSwapCastingRecipe extends AbstractMaterialCastingRecipe impleme
                 return Stream.empty();
               }
               List<FluidStack> fluids = resizeFluids(recipe.getFluids());
-              return Stream.of(new DisplayCastingRecipe(getId(), getType(), List.copyOf(inputs), fluids, List.copyOf(results),
+              return Stream.of(new DisplayCastingRecipe(null, getType(), List.copyOf(inputs), fluids, List.copyOf(results),
                 ICastingRecipe.calcCoolingTime(recipe.getTemperature(), itemCost * getFluidAmount(fluids)), isConsumed()));
             }),
           // all composite fluids become special composite swapping recipes
@@ -281,7 +280,7 @@ public class PartSwapCastingRecipe extends AbstractMaterialCastingRecipe impleme
               }
               // build the recipe
               List<FluidStack> fluids = resizeFluids(recipe.getFluids());
-              return Stream.of(new DisplayCastingRecipe(getId(), getType(), List.copyOf(inputs), fluids, List.copyOf(outputs),
+              return Stream.of(new DisplayCastingRecipe(null, getType(), List.copyOf(inputs), fluids, List.copyOf(outputs),
                 ICastingRecipe.calcCoolingTime(recipe.getTemperature(), itemCost * getFluidAmount(fluids)), isConsumed()));
             })
         )

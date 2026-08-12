@@ -2,7 +2,7 @@
   "type": "tconstruct:tinker_station_part_swapping",
   "max_stack_size": 16,
   "tools": {
-    "type": "forge:difference",
+    "type": "neoforge:difference",
     "base": {
       "tag": "tconstruct:modifiable/multipart"
     },

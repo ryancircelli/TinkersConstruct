@@ -1,11 +1,9 @@
 package slimeknights.tconstruct.library.recipe.tinkerstation.repairing;
 
 import lombok.Getter;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.materials.definition.LazyMaterial;
@@ -22,7 +20,7 @@ import slimeknights.tconstruct.tools.TinkerModifiers;
 /** @deprecated use {@link slimeknights.tconstruct.library.modifiers.modules.behavior.MaterialRepairModule} */
 @Deprecated(forRemoval = true)
 public class ModifierMaterialRepairRecipe extends TinkerStationRepairRecipe implements IModifierMaterialRepairRecipe {
-  public static final RecordLoadable<ModifierMaterialRepairRecipe> LOADER = RecordLoadable.create(ContextKey.ID.requiredField(), MODIFIER_FIELD, REPAIR_MATERIAL_FIELD, STAT_TYPE_FIELD, ModifierMaterialRepairRecipe::new);
+  public static final RecordLoadable<ModifierMaterialRepairRecipe> LOADER = RecordLoadable.create(MODIFIER_FIELD, REPAIR_MATERIAL_FIELD, STAT_TYPE_FIELD, ModifierMaterialRepairRecipe::new);
 
   /** Tool that can be repaired with this recipe */
   @Getter
@@ -32,8 +30,8 @@ public class ModifierMaterialRepairRecipe extends TinkerStationRepairRecipe impl
   /** Stat type used for repairing, null means it will be fetched as the first available stat type */
   @Getter
   private final MaterialStatsId statType;
-  public ModifierMaterialRepairRecipe(ResourceLocation id, ModifierId modifier, MaterialId repairMaterialID, MaterialStatsId statType) {
-    super(id);
+  public ModifierMaterialRepairRecipe(ModifierId modifier, MaterialId repairMaterialID, MaterialStatsId statType) {
+    super();
     this.modifier = modifier;
     this.repairMaterial = LazyMaterial.of(repairMaterialID);
     this.statType = statType;

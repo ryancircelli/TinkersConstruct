@@ -3,11 +3,10 @@ package slimeknights.tconstruct.test.characterization;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.common.crafting.CompoundIngredient;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
-import net.neoforged.neoforge.common.crafting.DifferenceIngredient;
-import net.neoforged.neoforge.common.crafting.IntersectionIngredient;
-import net.minecraftforge.common.crafting.VanillaIngredientSerializer;
+import net.minecraft.core.Registry;
+import net.neoforged.neoforge.common.crafting.ICustomIngredient;
+import net.neoforged.neoforge.common.crafting.IngredientType;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -16,7 +15,6 @@ import slimeknights.mantle.recipe.ingredient.FluidContainerIngredient;
 import slimeknights.mantle.util.JsonHelper;
 import slimeknights.mantle.util.typed.TypedMap;
 import slimeknights.tconstruct.TConstruct;
-import slimeknights.tconstruct.library.recipe.ingredient.BlockTagIngredient;
 import slimeknights.tconstruct.library.recipe.ingredient.MaterialIngredient;
 import slimeknights.tconstruct.library.recipe.ingredient.MaterialValueIngredient;
 import slimeknights.tconstruct.library.recipe.ingredient.NoContainerIngredient;
@@ -48,30 +46,32 @@ import static org.assertj.core.api.Assertions.fail;
 class RecipeCharacterizationTest extends BaseMcTest {
   private static final String FOLDER = "characterization/recipes";
 
+  /**
+   * Registers the custom ingredient types the corpus names.
+   * @apiNote  1.21 dispatches a custom ingredient through a registry rather than the static map Forge kept, so this
+   *           writes into {@link NeoForgeRegistries#INGREDIENT_TYPES} rather than calling {@code CraftingHelper.register}.
+   *           NeoForge's own types (difference, compound, intersection) are registered by NeoForgeMod's deferred
+   *           register on the mod bus, which never fires in a headless test, so they are registered here the same way
+   *           - see the note in RecipeLoaderRegistry about why a real serializer instance is out of reach.
+   */
   @BeforeAll
-  static void registerIngredientSerializers() {
-    register(ResourceLocation.fromNamespaceAndPath("minecraft", "item"), VanillaIngredientSerializer.INSTANCE);
-    register(MaterialIngredient.Serializer.ID, MaterialIngredient.Serializer.INSTANCE);
-    register(MaterialValueIngredient.Serializer.ID, MaterialValueIngredient.Serializer.INSTANCE);
-    register(ToolHookIngredient.Serializer.ID, ToolHookIngredient.Serializer.INSTANCE);
-    register(NoContainerIngredient.ID, NoContainerIngredient.Serializer.INSTANCE);
-    register(BlockTagIngredient.Serializer.ID, BlockTagIngredient.Serializer.INSTANCE);
-    // forge's own built-in ingredient types are normally registered by ForgeMod's mod construction, which never
-    // runs in these headless unit tests (see BaseMcTest) - register them the same way ForgeMod does
-    register(ResourceLocation.fromNamespaceAndPath("forge", "difference"), DifferenceIngredient.Serializer.INSTANCE);
-    register(ResourceLocation.fromNamespaceAndPath("forge", "compound"), CompoundIngredient.Serializer.INSTANCE);
-    register(ResourceLocation.fromNamespaceAndPath("forge", "intersection"), IntersectionIngredient.Serializer.INSTANCE);
-    register(FluidContainerIngredient.ID, FluidContainerIngredient.SERIALIZER);
-    register(slimeknights.mantle.Mantle.getResource("potion_display"), slimeknights.mantle.recipe.ingredient.PotionDisplayIngredient.SERIALIZER);
+  static void registerIngredientTypes() {
+    register(TConstruct.getResource("material"), MaterialIngredient.LOADABLE);
+    register(TConstruct.getResource("material_value"), MaterialValueIngredient.LOADABLE);
+    register(TConstruct.getResource("tool_hook"), ToolHookIngredient.LOADABLE);
+    register(TConstruct.getResource("no_container"), NoContainerIngredient.LOADABLE);
+    register(slimeknights.mantle.Mantle.getResource("fluid_container"), FluidContainerIngredient.LOADABLE);
+    register(slimeknights.mantle.Mantle.getResource("potion_display"), slimeknights.mantle.recipe.ingredient.PotionDisplayIngredient.LOADABLE);
     ModuleTypeRegistrations.ensureRegistered();
     RealItemStubs.ensureRegistered(FOLDER);
   }
 
-  private static void register(ResourceLocation id, net.minecraftforge.common.crafting.IIngredientSerializer<?> serializer) {
+  private static <T extends ICustomIngredient> void register(ResourceLocation id, RecordLoadable<T> loadable) {
     try {
-      CraftingHelper.register(id, serializer);
+      IngredientType<T> type = new IngredientType<>(loadable.mapCodec(), loadable);
+      Registry.register(NeoForgeRegistries.INGREDIENT_TYPES, id, type);
     } catch (Exception e) {
-      // already registered, fine
+      // already registered or the registry is frozen, fine
     }
   }
 

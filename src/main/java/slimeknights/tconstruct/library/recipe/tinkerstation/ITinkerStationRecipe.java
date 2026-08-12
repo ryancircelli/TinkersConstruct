@@ -1,7 +1,7 @@
 package slimeknights.tconstruct.library.recipe.tinkerstation;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
@@ -34,7 +34,7 @@ public interface ITinkerStationRecipe extends ICommonRecipe<ITinkerStationContai
    * Gets the recipe result, or an object containing an error message if the recipe matches but cannot be applied.
    * @return Validated result
    */
-  RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, RegistryAccess access);
+  RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, HolderLookup.Provider access);
 
   /** Gets the number to shrink the tool slot by, perfectly valid for this to be higher than the contained number of tools */
   default int shrinkToolSlotBy() {
@@ -48,7 +48,7 @@ public interface ITinkerStationRecipe extends ICommonRecipe<ITinkerStationContai
 
   /**
    * Updates the input stacks upon crafting this recipe
-   * @param result  Result from {@link #assemble(ITinkerStationContainer, RegistryAccess)}. Generally should not be modified.
+   * @param result  Result from {@link #assemble(ITinkerStationContainer, HolderLookup.Provider)}. Generally should not be modified.
    * @param inv     Inventory instance to modify inputs
    * @param isServer  If true, this is on the serverside. Use to handle randomness, {@link IMutableTinkerStationContainer#giveItem(ItemStack)} should handle being called serverside only
    */
@@ -62,17 +62,17 @@ public interface ITinkerStationRecipe extends ICommonRecipe<ITinkerStationContai
 
   /* Deprecated */
 
-  /** @deprecated use {@link #getValidatedResult(ITinkerStationContainer, RegistryAccess)}*/
+  /** @deprecated use {@link #getValidatedResult(ITinkerStationContainer, HolderLookup.Provider)}*/
   @Deprecated
   @Override
-  default ItemStack getResultItem(RegistryAccess pRegistryAccess) {
+  default ItemStack getResultItem(HolderLookup.Provider access) {
     return ItemStack.EMPTY;
   }
 
-  /** @deprecated use {@link #getValidatedResult(ITinkerStationContainer, RegistryAccess)}*/
+  /** @deprecated use {@link #getValidatedResult(ITinkerStationContainer, HolderLookup.Provider)}*/
   @Deprecated
   @Override
-  default ItemStack assemble(ITinkerStationContainer inv, RegistryAccess access) {
+  default ItemStack assemble(ITinkerStationContainer inv, HolderLookup.Provider access) {
     return getResultItem(access).copy();
   }
 

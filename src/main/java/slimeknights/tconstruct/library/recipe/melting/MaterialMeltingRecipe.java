@@ -2,14 +2,12 @@ package slimeknights.tconstruct.library.recipe.melting;
 
 import lombok.Getter;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.primitive.IntLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.recipe.IMultiRecipe;
@@ -29,32 +27,22 @@ import java.util.stream.Collectors;
  */
 public class MaterialMeltingRecipe implements IMeltingRecipe, IMultiRecipe<MeltingRecipe> {
   public static final RecordLoadable<MaterialMeltingRecipe> LOADER = RecordLoadable.create(
-    ContextKey.ID.requiredField(),
     MaterialVariantId.LOADABLE.requiredField("input", r -> r.input.getVariant()),
     IntLoadable.FROM_ONE.requiredField("temperature", r -> r.temperature),
     FluidOutput.Loadable.REQUIRED.requiredField("result", r -> r.result),
     FluidOutput.Loadable.REQUIRED.list(0).defaultField("byproducts", List.of(), false, r -> r.byproducts),
     MaterialMeltingRecipe::new);
 
-  @Getter
-  private final ResourceLocation id;
   private final MaterialVariant input;
   private final int temperature;
   private final FluidOutput result;
   private final List<FluidOutput> byproducts;
 
-  public MaterialMeltingRecipe(ResourceLocation id, MaterialVariantId input, int temperature, FluidOutput result, List<FluidOutput> byproducts) {
-    this.id = id;
+  public MaterialMeltingRecipe(MaterialVariantId input, int temperature, FluidOutput result, List<FluidOutput> byproducts) {
     this.input = MaterialVariant.of(input);
     this.temperature = temperature;
     this.result = result;
     this.byproducts = byproducts;
-  }
-
-  /** @deprecated use {@link #MaterialMeltingRecipe(ResourceLocation,MaterialVariantId,int,FluidOutput,List)} */
-  @Deprecated(forRemoval = true)
-  public MaterialMeltingRecipe(ResourceLocation id, MaterialVariantId input, int temperature, FluidOutput result) {
-    this(id, input, temperature, result, List.of());
   }
 
   @Override
@@ -83,7 +71,7 @@ public class MaterialMeltingRecipe implements IMeltingRecipe, IMultiRecipe<Melti
   @Override
   public FluidStack getOutput(IMeltingContainer inv) {
     int cost = MaterialCastingLookup.getItemCost(inv.getStack().getItem());
-    return new FluidStack(result.get(), result.getAmount() * cost);
+    return result.get().copyWithAmount(result.getAmount() * cost);
   }
 
   @Override
@@ -91,7 +79,7 @@ public class MaterialMeltingRecipe implements IMeltingRecipe, IMultiRecipe<Melti
     if (!byproducts.isEmpty()) {
       int cost = MaterialCastingLookup.getItemCost(inv.getStack().getItem());
       for (FluidOutput byproduct : byproducts) {
-        handler.fill(new FluidStack(byproduct.get(), byproduct.getAmount() * cost), FluidAction.EXECUTE);
+        handler.fill(byproduct.get().copyWithAmount(byproduct.getAmount() * cost), FluidAction.EXECUTE);
       }
     }
   }
@@ -122,13 +110,13 @@ public class MaterialMeltingRecipe implements IMeltingRecipe, IMultiRecipe<Melti
             int cost = entry.getIntValue();
             // if the part cost is 1, can skip messing with the output size
             if (cost != 1) {
-              output = FluidOutput.fromStack(new FluidStack(output.get(), output.getAmount() * cost));
+              output = FluidOutput.fromStack(output.get().copyWithAmount(output.getAmount() * cost));
               // skip streaming the byproducts if empty
               if (!byproducts.isEmpty()) {
-                byproducts = byproducts.stream().map(fluid -> FluidOutput.fromStack(new FluidStack(fluid.get(), fluid.getAmount() * cost))).toList();
+                byproducts = byproducts.stream().map(fluid -> FluidOutput.fromStack(fluid.get().copyWithAmount(fluid.getAmount() * cost))).toList();
               }
             }
-            return new MeltingRecipe(id, "", MaterialIngredient.of(entry.getKey(), inputId), output, temperature,
+            return new MeltingRecipe("", MaterialIngredient.of(entry.getKey(), inputId), output, temperature,
                                      IMeltingRecipe.calcTimeForAmount(temperature, output.getAmount()), byproducts, false);
           }).collect(Collectors.toList());
       }

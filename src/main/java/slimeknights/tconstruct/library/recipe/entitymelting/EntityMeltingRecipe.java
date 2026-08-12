@@ -2,14 +2,12 @@ package slimeknights.tconstruct.library.recipe.entitymelting;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.primitive.IntLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.recipe.ICustomOutputRecipe;
@@ -27,14 +25,11 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class EntityMeltingRecipe implements ICustomOutputRecipe<IEmptyContainer> {
   public static final RecordLoadable<EntityMeltingRecipe> LOADER = RecordLoadable.create(
-    ContextKey.ID.requiredField(),
     EntityIngredient.LOADABLE.requiredField("entity", r -> r.ingredient),
     FluidOutput.Loadable.REQUIRED.requiredField("result", r -> r.output),
     IntLoadable.FROM_ONE.defaultField("damage", 2, true, r -> r.damage),
     EntityMeltingRecipe::new);
 
-  @Getter
-  private final ResourceLocation id;
   @Getter
   private final EntityIngredient ingredient;
   private final FluidOutput output;

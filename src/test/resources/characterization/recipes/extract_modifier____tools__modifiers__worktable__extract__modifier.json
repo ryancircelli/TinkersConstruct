@@ -18,7 +18,7 @@
   },
   "name": "modifiers",
   "tools": {
-    "type": "forge:difference",
+    "type": "neoforge:difference",
     "base": {
       "tag": "tconstruct:modifiable"
     },
