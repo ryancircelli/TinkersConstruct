@@ -458,3 +458,14 @@ src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/ShowOff
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/ToolActionTransformModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/ToolActionsModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/behavior/package-info.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/AdjustDamageModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/ArmorWalkRadiusModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/BlockDamageSourceModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/CoverGroundWalkerModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/EffectImmunityModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/MaxArmorAttributeModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/MobDisguiseModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/ProtectionModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/ReplaceBlockWalkerModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/ToolActionWalkerTransformModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/package-info.java
