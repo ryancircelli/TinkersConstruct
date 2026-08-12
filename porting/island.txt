@@ -320,3 +320,4 @@ src/main/java/slimeknights/tconstruct/library/tools/stat/package-info.java
 src/main/java/slimeknights/tconstruct/library/utils/GenericTagUtil.java
 src/main/java/slimeknights/tconstruct/library/utils/HarvestTiers.java
 src/main/java/slimeknights/tconstruct/library/utils/IdParser.java
+src/main/java/slimeknights/tconstruct/library/utils/ResourceId.java

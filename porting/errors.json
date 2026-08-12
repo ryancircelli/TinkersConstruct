@@ -1,6 +1,6 @@
 {
-    "total": 440,
-    "islandFiles": 293,
+    "total": 428,
+    "islandFiles": 294,
     "categories": {
         "other: static import only from classes and interfaces": 2,
         "package BasicModifier": 1,
@@ -50,7 +50,6 @@
         "symbol class CombatHelper": 1,
         "symbol class Context": 4,
         "symbol class DomainDisplayName": 1,
-        "symbol class Dummy": 4,
         "symbol class DummyArmorMaterial": 1,
         "symbol class IModifiable": 1,
         "symbol class IThreadsafePacket": 8,
@@ -65,7 +64,6 @@
         "symbol class OreRateType": 1,
         "symbol class RecipeResult": 5,
         "symbol class ResourceColorManager": 1,
-        "symbol class ResourceId": 8,
         "symbol class SlotType": 16,
         "symbol class TConstruct": 32,
         "symbol class TagSource": 1,
