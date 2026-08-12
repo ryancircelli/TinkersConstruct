@@ -1,5 +1,5 @@
 {
-    "total": 586,
+    "total": 583,
     "islandFiles": 241,
     "categories": {
         "other: static import only from classes and interfaces": 1,
@@ -46,14 +46,12 @@
         "symbol class ArmorModuleBuilder": 6,
         "symbol class BreakSpeedContext": 10,
         "symbol class CombatHelper": 1,
-        "symbol class Context": 1,
         "symbol class Dummy": 1,
         "symbol class DummyArmorMaterial": 1,
         "symbol class IMaterial": 8,
         "symbol class IMaterialItem": 2,
         "symbol class IMaterialStats": 3,
         "symbol class IModifiable": 1,
-        "symbol class IThreadsafePacket": 2,
         "symbol class IToolPart": 17,
         "symbol class IdParser": 2,
         "symbol class InteractionSource": 7,
