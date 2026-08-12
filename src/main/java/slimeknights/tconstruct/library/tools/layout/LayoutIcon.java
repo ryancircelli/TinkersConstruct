@@ -9,16 +9,17 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.serialization.JsonOps;
 import io.netty.handler.codec.DecoderException;
-import lombok.RequiredArgsConstructor;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
+import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.util.JsonHelper;
 import slimeknights.tconstruct.library.recipe.partbuilder.Pattern;
+import slimeknights.tconstruct.library.utils.LazyDecode;
 
 import javax.annotation.Nullable;
 
@@ -36,7 +37,7 @@ public abstract class LayoutIcon {
     }
 
     @Override
-    public void write(FriendlyByteBuf buffer) {
+    public void write(RegistryFriendlyByteBuf buffer) {
       buffer.writeEnum(Type.EMPTY);
     }
 
@@ -48,7 +49,7 @@ public abstract class LayoutIcon {
 
   /** Creates a stack icon */
   public static LayoutIcon ofItem(ItemStack stack) {
-    return new ItemStackIcon(stack);
+    return new ItemStackIcon(LazyDecode.of(ItemStack.OPTIONAL_STREAM_CODEC, stack));
   }
 
   /** Creates an icon from a pattern */
@@ -60,15 +61,18 @@ public abstract class LayoutIcon {
   @Nullable
   public abstract <T> T getValue(Class<T> clazz);
 
-  /** Reads the button icon from the buffer */
-  public static LayoutIcon read(FriendlyByteBuf buffer) {
+  /**
+   * Reads the button icon from the buffer.
+   * <p>
+   * The item stack case does not decode its stack here, see {@link LazyDecode}: building an item stack runs the
+   * item's load hook, and this packet is decoded during login, before the modifier and material registries the hook
+   * consults have been synced.
+   */
+  public static LayoutIcon read(RegistryFriendlyByteBuf buffer) {
     Type type = buffer.readEnum(Type.class);
     switch (type) {
       case EMPTY: return EMPTY;
-      case ITEM: {
-        ItemStack stack = buffer.readItem();
-        return new ItemStackIcon(stack);
-      }
+      case ITEM: return new ItemStackIcon(LazyDecode.read(buffer, ItemStack.OPTIONAL_STREAM_CODEC));
       case PATTERN: {
         Pattern pattern = new Pattern(buffer.readResourceLocation());
         return new PatternIcon(pattern);
@@ -78,47 +82,56 @@ public abstract class LayoutIcon {
   }
 
   /** Writes this to the packet buffer */
-  public abstract void write(FriendlyByteBuf buffer);
+  public abstract void write(RegistryFriendlyByteBuf buffer);
 
   /** Writes this object to json */
   public abstract JsonObject toJson();
 
   /** Icon drawing an item stack */
-  @RequiredArgsConstructor @VisibleForTesting
+  @VisibleForTesting
   protected static class ItemStackIcon extends LayoutIcon {
-    private final ItemStack stack;
+    private final LazyDecode<ItemStack> stack;
+
+    protected ItemStackIcon(LazyDecode<ItemStack> stack) {
+      this.stack = stack;
+    }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> T getValue(Class<T> clazz) {
       if (clazz == ItemStack.class) {
-        return (T) stack;
+        return (T) stack.get();
       }
       return null;
     }
 
     @Override
-    public void write(FriendlyByteBuf buffer) {
+    public void write(RegistryFriendlyByteBuf buffer) {
       buffer.writeEnum(Type.ITEM);
-      buffer.writeItem(stack);
+      stack.write(buffer);
     }
 
     @Override
     public JsonObject toJson() {
       JsonObject json = new JsonObject();
+      ItemStack stack = this.stack.get();
       json.addProperty("item", BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
-      CompoundTag tag = stack.getTag();
-      if (tag != null) {
-        json.addProperty("nbt", tag.toString());
+      DataComponentPatch patch = stack.getComponentsPatch();
+      if (!patch.isEmpty()) {
+        json.add("components", DataComponentPatch.CODEC.encodeStart(JsonOps.INSTANCE, patch).getOrThrow(JsonSyntaxException::new));
       }
       return json;
     }
   }
 
   /** Icon drawing a static patttern sprite */
-  @RequiredArgsConstructor @VisibleForTesting
+  @VisibleForTesting
   protected static class PatternIcon extends LayoutIcon {
     private final Pattern pattern;
+
+    protected PatternIcon(Pattern pattern) {
+      this.pattern = pattern;
+    }
 
     @SuppressWarnings("unchecked")
     @Override
@@ -130,7 +143,7 @@ public abstract class LayoutIcon {
     }
 
     @Override
-    public void write(FriendlyByteBuf buffer) {
+    public void write(RegistryFriendlyByteBuf buffer) {
       buffer.writeEnum(Type.PATTERN);
       buffer.writeResourceLocation(pattern);
     }
@@ -160,8 +173,14 @@ public abstract class LayoutIcon {
         return new PatternIcon(pattern);
       }
       if (object.has("item")) {
-        ItemStack stack = CraftingHelper.getItemStack(object, true);
-        return new ItemStackIcon(stack);
+        ItemStack stack = new ItemStack(Loadables.ITEM.getIfPresent(object, "item"));
+        // "nbt" in 1.20; a patch rather than a whole stack, as the count and the item are already decided above.
+        // Plain JSON ops means a component type that needs the registries cannot appear here, which is no loss:
+        // the only components an icon has ever carried are the ones that make a tool render as a display tool.
+        if (object.has("components")) {
+          stack.applyComponents(DataComponentPatch.CODEC.parse(JsonOps.INSTANCE, object.get("components")).getOrThrow(JsonSyntaxException::new));
+        }
+        return ofItem(stack);
       }
       // not sure why this would be needed, but might as well
       if (object.entrySet().isEmpty()) {

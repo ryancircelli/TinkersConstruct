@@ -2,14 +2,6 @@ package slimeknights.tconstruct.test.characterization;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
-import net.neoforged.neoforge.common.conditions.AndCondition;
-import net.neoforged.neoforge.common.conditions.FalseCondition;
-import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
-import net.neoforged.neoforge.common.conditions.NotCondition;
-import net.neoforged.neoforge.common.conditions.OrCondition;
-import net.neoforged.neoforge.common.conditions.TrueCondition;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import slimeknights.tconstruct.library.materials.definition.MaterialManager;
@@ -35,27 +27,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MaterialDefinitionCharacterizationTest extends BaseMcTest {
   private static final String FOLDER = "characterization/materials/definition";
 
-  @BeforeAll
-  static void registerConditions() {
-    register(TrueCondition.Serializer.INSTANCE);
-    register(FalseCondition.Serializer.INSTANCE);
-    // forge's own built-in compound conditions are normally registered by ForgeMod's mod construction, which
-    // never runs in these headless unit tests (see BaseMcTest) - register them the same way ForgeMod does
-    register(AndCondition.Serializer.INSTANCE);
-    register(OrCondition.Serializer.INSTANCE);
-    register(NotCondition.Serializer.INSTANCE);
-    register(ModLoadedCondition.Serializer.INSTANCE);
-    register(slimeknights.tconstruct.common.json.ConfigEnabledCondition.SERIALIZER);
-    register(slimeknights.mantle.recipe.condition.TagFilledCondition.SERIALIZER);
-  }
-
-  private static void register(net.minecraftforge.common.crafting.conditions.IConditionSerializer<?> serializer) {
-    try {
-      CraftingHelper.register(serializer);
-    } catch (Exception ignored) {
-      // already registered - fine
-    }
-  }
+  // Nothing to register. A condition is a MapCodec in the neoforge:condition_codecs registry in 1.21 (T4 3.2), and
+  // ICondition.CODEC dispatches on the same "type" key through it, so every vanilla and NeoForge condition these
+  // fixtures name is present as soon as NeoForge is on the classpath. Tinkers' and Mantle's own conditions are
+  // registered by their owning slices.
 
   @TestFactory
   Stream<DynamicTest> definitionRoundTrips() {

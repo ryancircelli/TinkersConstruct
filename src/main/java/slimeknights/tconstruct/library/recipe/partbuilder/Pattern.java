@@ -26,9 +26,6 @@ public class Pattern extends ResourceId {
     super(location);
   }
 
-  private Pattern(String namespace, String path, @Nullable Dummy pDummy) {
-    super(namespace, path, pDummy);
-  }
 
   /**
    * Gets the translation key for this pattern
@@ -58,12 +55,12 @@ public class Pattern extends ResourceId {
   /** {@return Pattern ID, or null if invalid} */
   @Nullable
   public static Pattern tryParse(String string) {
-    return tryParse(string, (namespace, path) -> new Pattern(namespace, path, null));
+    return tryParse(string, Pattern::new);
   }
 
   /** {@return Pattern ID, or null if invalid} */
   @Nullable
   public static Pattern tryBuild(String namespace, String path) {
-    return tryBuild(namespace, path, (n, p) -> new Pattern(namespace, path, null));
+    return tryBuild(namespace, path, Pattern::new);
   }
 }

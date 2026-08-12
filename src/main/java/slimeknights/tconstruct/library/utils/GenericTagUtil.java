@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import net.minecraft.core.Registry;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -42,8 +42,16 @@ public class GenericTagUtil {
                       .collect(Collectors.toMap(Entry::getKey, entry->entry.getValue().build()));
   }
 
-  /** Decodes a map of tags from the packet */
-  public static <T> Map<TagKey<T>,List<T>> decodeTags(FriendlyByteBuf buf, ResourceKey<? extends Registry<T>> registry, Function<ResourceLocation,T> valueGetter) {
+  /**
+   * Decodes a map of tags from the packet.
+   * <p>
+   * A tag entry the value getter does not know is dropped rather than being an error. It is not a network problem: the
+   * server writes tag contents and the values they name as two independent lists, so a value that was skipped by a
+   * condition or resolved through a redirect is legitimately in one and not the other. Adding null to the list, which
+   * is what this did in 1.20, turns that into a decoder exception and a disconnect.
+   * @param valueGetter  Looks a value up by ID, returning null if it has none
+   */
+  public static <T> Map<TagKey<T>,List<T>> decodeTags(RegistryFriendlyByteBuf buf, ResourceKey<? extends Registry<T>> registry, Function<ResourceLocation,T> valueGetter) {
     ImmutableMap.Builder<TagKey<T>,List<T>> builder = ImmutableMap.builder();
     int mapSize = buf.readVarInt();
     for (int i = 0; i < mapSize; i++) {
@@ -51,7 +59,10 @@ public class GenericTagUtil {
       int tagSize = buf.readVarInt();
       ImmutableList.Builder<T> tagBuilder = ImmutableList.builder();
       for (int j = 0; j < tagSize; j++) {
-        tagBuilder.add(valueGetter.apply(buf.readResourceLocation()));
+        T value = valueGetter.apply(buf.readResourceLocation());
+        if (value != null) {
+          tagBuilder.add(value);
+        }
       }
       builder.put(TagKey.create(registry, tagId), tagBuilder.build());
     }
@@ -59,7 +70,7 @@ public class GenericTagUtil {
   }
 
   /** Writes a map of tags to a packet */
-  public static <T> void encodeTags(FriendlyByteBuf buf, Function<T,ResourceLocation> keyGetter, Map<TagKey<T>,? extends Collection<T>> tags) {
+  public static <T> void encodeTags(RegistryFriendlyByteBuf buf, Function<T,ResourceLocation> keyGetter, Map<TagKey<T>,? extends Collection<T>> tags) {
     buf.writeVarInt(tags.size());
     for (Entry<TagKey<T>,? extends Collection<T>> entry : tags.entrySet()) {
       buf.writeResourceLocation(entry.getKey().location());

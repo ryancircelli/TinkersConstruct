@@ -9,9 +9,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.VanillaIngredientSerializer;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.test.BaseMcTest;
@@ -27,14 +24,8 @@ import static org.mockito.Mockito.mock;
 class StationSlotLayoutLoaderTest extends BaseMcTest {
   private static final JsonFileLoader fileLoader = new JsonFileLoader(StationSlotLayoutLoader.GSON, StationSlotLayoutLoader.FOLDER);
 
-  @BeforeAll
-  static void setup() {
-    try {
-      CraftingHelper.register(ResourceLocation.fromNamespaceAndPath("minecraft", "item"), VanillaIngredientSerializer.INSTANCE);
-    } catch (Exception e) {
-      // just need to ensure its registered
-    }
-  }
+  // no setup: a vanilla item ingredient is read by Ingredient.CODEC directly in 1.21, there is no serializer registry
+  // left to seed - CraftingHelper kept its name and lost every method this used.
 
   @Test
   void minimal_noTool() {

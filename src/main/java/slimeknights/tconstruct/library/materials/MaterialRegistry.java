@@ -5,8 +5,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.minecraftforge.network.PacketDistributor.PacketTarget;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import slimeknights.mantle.command.argument.TagSource;
 import slimeknights.mantle.network.packet.ISimplePacket;
@@ -257,37 +255,34 @@ public final class MaterialRegistry {
 
     // on a dedicated server, the client is running a separate game instance, this is where we send packets, plus fully loaded should already be true
     // this event is not fired when connecting to a server
-    if (player.connection.connection.isMemoryConnection()) {
+    // ServerCommonPacketListenerImpl#connection is protected in 1.21, NeoForge's ICommonPacketListener exposes it
+    if (player.connection.getConnection().isMemoryConnection()) {
       // if the packet is being sent to ourself, skip sending, prevents recreating all material instances in the registry a second time on dedicated servers
       // note it will still send the packet if another client connects in LAN
       fullyLoaded = true;
       NeoForge.EVENT_BUS.post(new MaterialsLoadedEvent());
     } else {
       TinkerNetwork network = TinkerNetwork.getInstance();
-      PacketTarget target = PacketDistributor.PLAYER.with(() -> player);
       for (ISimplePacket packet : packets) {
-        network.send(target, packet);
+        network.sendTo(packet, player);
       }
     }
   }
 
-  /** Called when the player logs in to send packets */
+  /**
+   * Called when the player logs in to send packets.
+   * <p>
+   * The three packets are independent by construction: each decodes into IDs and primitives and resolves none of them,
+   * so no order between them, or between them and the tool definition and station layout packets, can produce a decode
+   * that is too early. See {@link slimeknights.tconstruct.library.utils.LazyDecode}.
+   */
   private void onDatapackSync(OnDatapackSyncEvent event) {
     ISimplePacket[] packets = {
       materialManager.getUpdatePacket(),
       materialStatsManager.getUpdatePacket(),
       materialTraitsManager.getUpdatePacket()
     };
-
-    // send to single player
-    ServerPlayer targetedPlayer = event.getPlayer();
-    if (targetedPlayer != null) {
-      sendPackets(targetedPlayer, packets);
-    } else {
-      // send to all players
-      for (ServerPlayer player : event.getPlayerList().getPlayers()) {
-        sendPackets(player, packets);
-      }
-    }
+    // getRelevantPlayers is the joining player, or everyone on a reload
+    event.getRelevantPlayers().forEach(player -> sendPackets(player, packets));
   }
 }

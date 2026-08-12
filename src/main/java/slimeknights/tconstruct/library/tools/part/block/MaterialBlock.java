@@ -3,7 +3,7 @@ package slimeknights.tconstruct.library.tools.part.block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType.BlockEntitySupplie
 import net.minecraft.world.level.block.state.BlockState;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
+import slimeknights.tconstruct.library.tools.nbt.ToolComponents;
 import slimeknights.tconstruct.library.tools.part.IMaterialItem;
 
 import javax.annotation.Nullable;
@@ -33,16 +34,16 @@ public class MaterialBlock extends Block implements EntityBlock {
 
   @Override
   public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-    if (stack.hasTag()) {
+    if (stack.has(ToolComponents.MATERIAL)) {
       MaterialVariantId material = IMaterialItem.getMaterialFromStack(stack);
-      if (material != IMaterial.UNKNOWN_ID && level.getBlockEntity(pos) instanceof MaterialBlockEntity be) {
+      if (!IMaterial.UNKNOWN_ID.equals(material) && level.getBlockEntity(pos) instanceof MaterialBlockEntity be) {
         be.setMaterial(material);
       }
     }
   }
 
   @Override
-  public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+  public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
     ItemStack stack = new ItemStack(state.getBlock());
     if (level.getBlockEntity(pos) instanceof MaterialBlockEntity be) {
       stack = IMaterialItem.withMaterial(stack, be.getMaterial());

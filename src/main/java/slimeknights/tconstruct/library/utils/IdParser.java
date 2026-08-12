@@ -5,7 +5,7 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.netty.handler.codec.EncoderException;
 import net.minecraft.ResourceLocationException;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import slimeknights.mantle.data.loadable.primitive.StringLoadable;
 import slimeknights.mantle.util.typed.TypedMap;
@@ -47,12 +47,12 @@ public record IdParser<T extends ResourceLocation>(Function<String, T> construct
   }
 
   @Override
-  public T decode(FriendlyByteBuf buf, TypedMap context) {
+  public T decode(RegistryFriendlyByteBuf buf, TypedMap context) {
     return constructor.apply(buf.readUtf(Short.MAX_VALUE));
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer, T object) throws EncoderException {
+  public void encode(RegistryFriendlyByteBuf buffer, T object) throws EncoderException {
     buffer.writeResourceLocation(object);
   }
 

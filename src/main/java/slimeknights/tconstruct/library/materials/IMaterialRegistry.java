@@ -2,8 +2,8 @@ package slimeknights.tconstruct.library.materials;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
-import slimeknights.mantle.data.loadable.Loadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
+import slimeknights.mantle.data.registry.IdAwareComponentRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialId;
 import slimeknights.tconstruct.library.materials.stats.IMaterialStats;
@@ -90,8 +90,14 @@ public interface IMaterialRegistry {
    */
   Collection<IMaterialStats> getAllStats(MaterialId materialId);
 
-  /** Gets the loader for material stat types */
-  Loadable<MaterialStatType<?>> getStatTypeLoader();
+  /**
+   * Gets the registry of material stat types, which doubles as their loadable.
+   * <p>
+   * Narrowed from {@code Loadable} in 1.21 so a caller can look a type up by ID without decoding one off a buffer,
+   * which is what {@link slimeknights.tconstruct.library.materials.stats.UpdateMaterialStatsPacket} needs to skip a
+   * stat type it does not know. Every existing caller used it as a loadable and still can.
+   */
+  IdAwareComponentRegistry<MaterialStatType<?>> getStatTypeLoader();
 
   /** Gets a lit of all material stat IDs */
   default Collection<ResourceLocation> getAllStatTypeIds() {

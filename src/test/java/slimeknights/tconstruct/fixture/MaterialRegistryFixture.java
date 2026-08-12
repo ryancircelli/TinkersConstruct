@@ -2,7 +2,7 @@ package slimeknights.tconstruct.fixture;
 
 import lombok.AllArgsConstructor;
 import net.minecraft.tags.TagKey;
-import slimeknights.mantle.data.loadable.Loadable;
+import slimeknights.mantle.data.registry.IdAwareComponentRegistry;
 import slimeknights.tconstruct.library.materials.IMaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialId;
@@ -75,7 +75,7 @@ public class MaterialRegistryFixture implements IMaterialRegistry {
   }
 
   @Override
-  public Loadable<MaterialStatType<?>> getStatTypeLoader() {
+  public IdAwareComponentRegistry<MaterialStatType<?>> getStatTypeLoader() {
     throw new UnsupportedOperationException("No registration possible in test mock");
   }
 
