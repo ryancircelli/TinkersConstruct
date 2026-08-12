@@ -1,10 +1,10 @@
 {
-    "total": 586,
-    "islandFiles": 702,
+    "total": 540,
+    "islandFiles": 716,
     "categories": {
         "other: static import only from classes and interfaces": 9,
         "package TinkerDataCapability": 8,
-        "package slimeknights.tconstruct.common": 44,
+        "package slimeknights.tconstruct.common": 46,
         "package slimeknights.tconstruct.common.TinkerTags": 2,
         "package slimeknights.tconstruct.common.config": 4,
         "package slimeknights.tconstruct.common.network": 6,
@@ -20,7 +20,7 @@
         "package slimeknights.tconstruct.library.tools.capability": 20,
         "package slimeknights.tconstruct.library.tools.capability.TinkerDataCapability": 11,
         "package slimeknights.tconstruct.library.tools.capability.fluid": 1,
-        "package slimeknights.tconstruct.library.tools.helper": 50,
+        "package slimeknights.tconstruct.library.tools.helper": 51,
         "package slimeknights.tconstruct.library.tools.item": 26,
         "package slimeknights.tconstruct.library.tools.item.armor": 1,
         "package slimeknights.tconstruct.shared": 3,
@@ -43,22 +43,16 @@
         "symbol class BlockItemProviderModifierHook": 2,
         "symbol class ComputableDataKey": 6,
         "symbol class CraftingTableRepairKitRecipe": 1,
-        "symbol class CustomExplosion": 2,
-        "symbol class DomainDisplayName": 1,
         "symbol class DuelSidedListener": 6,
         "symbol class DummyArmorMaterial": 1,
         "symbol class Holder": 2,
         "symbol class IModifiable": 15,
         "symbol class ModifierBuilder": 7,
-        "symbol class MutableUseOnContext": 5,
         "symbol class OvergrowthModule": 1,
         "symbol class SlotCount": 32,
         "symbol class SlotType": 49,
-        "symbol class TConstruct": 85,
-        "symbol class TagUtil": 2,
-        "symbol class TeleportHelper": 1,
+        "symbol class TConstruct": 86,
         "symbol class TinkerDataKey": 22,
-        "symbol class TinkerStationRepairRecipe": 1,
-        "symbol class Util": 39
+        "symbol class TinkerStationRepairRecipe": 1
     }
 }

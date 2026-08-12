@@ -1,13 +1,12 @@
 package slimeknights.tconstruct.library.utils;
 
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.entity.living.LivingEvent.LivingTickEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import slimeknights.tconstruct.common.Sounds;
 
 import javax.annotation.Nullable;
@@ -16,11 +15,11 @@ import java.util.IdentityHashMap;
 /** Logic for entities bouncing */
 public class SlimeBounceHandler {
   private SlimeBounceHandler() {}
-  private static final IdentityHashMap<Entity, BounceInfo> BOUNCING_ENTITIES = new IdentityHashMap<>();
+  private static final IdentityHashMap<LivingEntity,BounceInfo> BOUNCING_ENTITIES = new IdentityHashMap<>();
 
   /** Registers event handlers */
   public static void init() {
-    NeoForge.EVENT_BUS.addListener(SlimeBounceHandler::onLivingTick);
+    NeoForge.EVENT_BUS.addListener(SlimeBounceHandler::onEntityTick);
     NeoForge.EVENT_BUS.addListener(SlimeBounceHandler::serverStopping);
   }
 
@@ -38,7 +37,7 @@ public class SlimeBounceHandler {
    * @param bounce  Bounce amount
    */
   public static void addBounceHandler(LivingEntity entity, @Nullable Vec3 bounce) {
-    // no fake players PlayerTick event
+    // fake players are never ticked, so an entry for one would just sit in the map forever
     if (entity instanceof FakePlayer) {
       return;
     }
@@ -57,9 +56,19 @@ public class SlimeBounceHandler {
     }
   }
 
-  /** Called on living tick to preserve momentum and bounce */
-  private static void onLivingTick(LivingTickEvent event) {
-    LivingEntity entity = event.getEntity();
+  /**
+   * Called on entity tick to preserve momentum and bounce
+   * @implNote  {@code LivingEvent.LivingTickEvent} is gone in 1.21, replaced by the split
+   *            {@link EntityTickEvent.Pre}/{@link EntityTickEvent.Post} pair covering every entity rather than only
+   *            living ones. {@code Pre} is the direct equivalent of the old event's firing point, and it is the one
+   *            this needs: the bounce works by writing delta movement before the entity's own tick consumes it, so
+   *            running after the tick would delay every bounce by a tick. The widened entity type costs an instanceof,
+   *            which is cheaper than the map lookup it guards.
+   */
+  private static void onEntityTick(EntityTickEvent.Pre event) {
+    if (!(event.getEntity() instanceof LivingEntity entity)) {
+      return;
+    }
     BounceInfo info = BOUNCING_ENTITIES.get(entity);
 
     // if we have info for this entity, time to work

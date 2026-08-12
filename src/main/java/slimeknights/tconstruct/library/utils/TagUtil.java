@@ -20,13 +20,14 @@ public final class TagUtil {
    * @param key     Position key
    * @param offset  Amount to offset position by
    * @return  Block position, or null if invalid or missing
+   * @implNote  1.21 stores a block position as an int array rather than a compound of X/Y/Z, and the reader moved from
+   *            {@code readBlockPos(CompoundTag)} to {@link NbtUtils#readBlockPos(CompoundTag, String)}, which takes the
+   *            key itself and returns an empty optional for anything that is not exactly three ints. The presence and
+   *            type check that used to live here is therefore now the vanilla reader's job.
    */
   @Nullable
   public static BlockPos readOptionalPos(CompoundTag parent, String key, BlockPos offset) {
-    if (parent.contains(key, Tag.TAG_COMPOUND)) {
-      return NbtUtils.readBlockPos(parent.getCompound(key)).offset(offset);
-    }
-    return null;
+    return NbtUtils.readBlockPos(parent, key).map(pos -> pos.offset(offset)).orElse(null);
   }
 
   /**

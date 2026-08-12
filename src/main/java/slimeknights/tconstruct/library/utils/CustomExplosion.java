@@ -1,15 +1,17 @@
 package slimeknights.tconstruct.library.utils;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.protocol.game.ClientboundExplodePacket;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.enchantment.ProtectionEnchantment;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.ExplosionDamageCalculator;
 import net.minecraft.world.level.Level;
@@ -19,7 +21,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.ForgeEventFactory;
+import net.neoforged.neoforge.event.EventHooks;
 import slimeknights.tconstruct.library.tools.helper.ToolAttackUtil;
 
 import javax.annotation.Nullable;
@@ -35,8 +37,15 @@ public class CustomExplosion extends Explosion {
   /** Size of the hollowed out cube determining the number of rays to cast */
   private static final int RAY_COUNT = 16;
   private static final int MAX_RAY = RAY_COUNT - 1;
-  /** Default predicate for which entities to match */
-  public static final Predicate<Entity> DEFAULT_ENTITY_PREDICATE = entity -> entity != null && entity.isAlive() && !entity.ignoreExplosion() && !entity.isSpectator();
+  /**
+   * Default predicate for which entities to match
+   * @implNote  1.20's {@code Entity#ignoreExplosion()} takes the explosion in 1.21, as an entity may ignore some
+   *            explosions and not others. A static predicate has no explosion to hand it, so that check moved out of
+   *            here and into {@link #damageAndPushEntities()} where it is combined with whichever predicate the caller
+   *            supplied. The observable filter is therefore unchanged; only a custom predicate replacing this one no
+   *            longer silently drops the immunity check, which is an improvement.
+   */
+  public static final Predicate<Entity> DEFAULT_ENTITY_PREDICATE = entity -> entity != null && entity.isAlive() && !entity.isSpectator();
 
   /** Maximum damage to deal; setting to 7*2*radius will match the vanilla explosion. */
   protected final float damage;
@@ -46,9 +55,19 @@ public class CustomExplosion extends Explosion {
   protected final Predicate<Entity> entityPredicate;
   /** If true, explosion damage bypasses the invulnerability time */
   protected final boolean bypassInvulnerableTime;
+  /**
+   * Source of damage dealt by this explosion
+   * @implNote  1.21 made {@code Explosion#damageSource} private and dropped its getter, so we keep our own copy. The
+   *            null resolution repeats what the super constructor does with the same argument, as {@code this} cannot
+   *            be referenced in a super call; the two are equal, and building one extra {@link DamageSource} value
+   *            object per explosion is not worth working around.
+   */
+  protected final DamageSource damageSource;
 
   public CustomExplosion(Level level, Vec3 location, float radius, @Nullable Entity sourceEntity, @Nullable Predicate<Entity> entityPredicate, float damage, @Nullable DamageSource damageSource, float knockback, @Nullable ExplosionDamageCalculator damageCalculator, boolean placeFire, BlockInteraction blockInteraction, boolean bypassInvulnerableTime) {
-    super(level, sourceEntity, damageSource, damageCalculator, location.x, location.y, location.z, radius, placeFire, blockInteraction);
+    // 1.21 dropped the constructor overload without particles and sound; passing vanilla's defaults keeps the appearance and audio of a TNT blast
+    super(level, sourceEntity, damageSource, damageCalculator, location.x, location.y, location.z, radius, placeFire, blockInteraction, ParticleTypes.EXPLOSION, ParticleTypes.EXPLOSION_EMITTER, SoundEvents.GENERIC_EXPLODE);
+    this.damageSource = damageSource == null ? level.damageSources().explosion(this) : damageSource;
     this.entityPredicate = Objects.requireNonNullElse(entityPredicate, DEFAULT_ENTITY_PREDICATE);
     this.damage = damage;
     this.knockback = knockback;
@@ -59,9 +78,14 @@ public class CustomExplosion extends Explosion {
     this(level, location, radius, sourceEntity, entityPredicate ,damage, damageSource, knockback, damageCalculator, placeFire, blockInteraction, false);
   }
 
+  /** Gets the source of damage dealt by this explosion */
+  public DamageSource getDamageSource() {
+    return damageSource;
+  }
+
   @Override
   public void explode() {
-    this.level.gameEvent(this.source, GameEvent.EXPLODE, getPosition());
+    this.level.gameEvent(this.source, GameEvent.EXPLODE, center());
     calculateHitBlocks();
     damageAndPushEntities();
   }
@@ -132,7 +156,7 @@ public class CustomExplosion extends Explosion {
     }
 
     float diameter = this.radius * 2;
-    // small behavior change: we filter the list of entities on fetch, meaning the forge event gets the filtered list
+    // small behavior change: we filter the list of entities on fetch, meaning the event gets the filtered list
     List<Entity> list = this.level.getEntities(
       this.source,
       new AABB(Math.floor(this.x - diameter - 1),
@@ -141,12 +165,12 @@ public class CustomExplosion extends Explosion {
                Math.floor(this.x + diameter + 1),
                Math.floor(this.y + diameter + 1),
                Math.floor(this.z + diameter + 1)),
-      entityPredicate);
-    ForgeEventFactory.onExplosionDetonate(this.level, this, list, diameter);
+      entityPredicate.and(entity -> !entity.ignoreExplosion(this)));
+    EventHooks.onExplosionDetonate(this.level, this, list, diameter);
 
     // start pushing entities
     // this logic is for the most part identical to vanilla, except taking better advantage of vec3
-    Vec3 center = getPosition();
+    Vec3 center = center();
     for (Entity entity : list) {
       Vec3 dir = entity.position().subtract(center);
       double length = dir.length();
@@ -161,22 +185,24 @@ public class CustomExplosion extends Explosion {
         if (length > 1.0E-4D) {
           double strength = (1 - distance) * getSeenPercent(center, entity);
           // vanilla change: instead of multiplying the damage by 7, we make that a parameter, which can be 0 for no damage
-          if (damage > 0) {
+          // the calculator veto is new in 1.21; the amount stays ours, as choosing it is this class' whole reason to exist
+          if (damage > 0 && damageCalculator.shouldDamageEntity(this, entity)) {
             int toDeal = (int) ((strength * strength + strength) / 2 * damage + 1);
             if (bypassInvulnerableTime) {
-              ToolAttackUtil.hurtNoInvulnerableTime(entity, getDamageSource(), toDeal);
+              ToolAttackUtil.hurtNoInvulnerableTime(entity, damageSource, toDeal);
             } else {
-              entity.hurt(getDamageSource(), toDeal);
+              entity.hurt(damageSource, toDeal);
             }
           }
 
-          // apply enchantment to reduce knockback
+          // reduce knockback for entities resisting it
           if (knockback != 0) {
             double adjustedStrength = strength * knockback;
+            // 1.21 replaced the blast protection enchantment's hardcoded dampener with an attribute any source can contribute to
             if (entity instanceof LivingEntity living) {
-              adjustedStrength = ProtectionEnchantment.getExplosionKnockbackAfterDampener(living, adjustedStrength);
+              adjustedStrength *= 1 - living.getAttributeValue(Attributes.EXPLOSION_KNOCKBACK_RESISTANCE);
             }
-            Vec3 velocity = dir.scale(adjustedStrength / length);
+            Vec3 velocity = EventHooks.getExplosionKnockback(this.level, this, entity, dir.scale(adjustedStrength / length));
             entity.setDeltaMovement(entity.getDeltaMovement().add(velocity));
             if (entity instanceof Player player) {
               if (!player.isCreative() || !player.getAbilities().flying) {
@@ -184,16 +210,19 @@ public class CustomExplosion extends Explosion {
               }
             }
           }
+
+          // new in 1.21: lets an entity react to being caught in a blast, e.g. to break itself
+          entity.onExplosionHit(this.source);
         }
       }
     }
   }
 
-  /** Runs the logic on the server, syncing to the client. Based on {@link ServerLevel#explode(Entity, DamageSource, ExplosionDamageCalculator, double, double, double, float, boolean, ExplosionInteraction)}*/
+  /** Runs the logic on the server, syncing to the client. Based on {@link ServerLevel#explode}, whose overload taking a {@link ExplosionDamageCalculator} and an {@link ExplosionInteraction} also takes the particles and sound in 1.21. */
   public void handleServer() {
     // based on ServerLevel#explode
     if (!level.isClientSide) {
-      if (!ForgeEventFactory.onExplosionStart(level, this)) {
+      if (!EventHooks.onExplosionStart(level, this)) {
         explode();
         finalizeExplosion(false);
         syncToClient();
@@ -203,7 +232,7 @@ public class CustomExplosion extends Explosion {
 
   /** Runs the logic on both sides */
   public void doDualSide(Level level, boolean spawnParticles) {
-    if (!ForgeEventFactory.onExplosionStart(level, this)) {
+    if (!EventHooks.onExplosionStart(level, this)) {
       explode();
       finalizeExplosion(spawnParticles);
     }
@@ -214,10 +243,11 @@ public class CustomExplosion extends Explosion {
     if (!level.isClientSide && level instanceof ServerLevel server) {
       // skip position sync if there are no blocks to be removed
       List<BlockPos> toBlow = interactsWithBlocks() ? getToBlow() : List.of();
-      Vec3 position = getPosition();
+      Vec3 position = center();
       for (ServerPlayer player : server.players()) {
         if (player.distanceToSqr(position) < 4096.0D) {
-          player.connection.send(new ClientboundExplodePacket(x, y, z, radius, toBlow, hitPlayers.get(player)));
+          // 1.21 sends the block interaction, particles and sound over the wire rather than hardcoding them clientside
+          player.connection.send(new ClientboundExplodePacket(x, y, z, radius, toBlow, hitPlayers.get(player), getBlockInteraction(), getSmallExplosionParticles(), getLargeExplosionParticles(), getExplosionSound()));
         }
       }
     }
