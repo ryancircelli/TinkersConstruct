@@ -34,5 +34,8 @@ src/test/java/slimeknights/tconstruct/test/characterization/FormulaSerialization
 src/test/java/slimeknights/tconstruct/test/characterization/ModifierCharacterizationTest.java
 src/test/java/slimeknights/tconstruct/test/characterization/ModifiersNetworkPacketsTest.java
 src/test/java/slimeknights/tconstruct/test/characterization/ModuleTypeRegistrations.java
+src/test/java/slimeknights/tconstruct/test/characterization/NoDataRecipeCharacterizationTest.java
 src/test/java/slimeknights/tconstruct/test/characterization/RealItemStubs.java
+src/test/java/slimeknights/tconstruct/test/characterization/RecipeCharacterizationTest.java
+src/test/java/slimeknights/tconstruct/test/characterization/RecipeLoaderRegistry.java
 src/test/java/slimeknights/tconstruct/test/characterization/RoundTripAssertions.java

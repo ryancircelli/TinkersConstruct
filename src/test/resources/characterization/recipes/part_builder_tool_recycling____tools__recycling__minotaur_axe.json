@@ -2,7 +2,7 @@
   "type": "tconstruct:part_builder_tool_recycling",
   "conditions": [
     {
-      "type": "forge:mod_loaded",
+      "type": "neoforge:mod_loaded",
       "modid": "twilightforest"
     }
   ],

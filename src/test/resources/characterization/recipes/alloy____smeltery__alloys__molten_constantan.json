@@ -6,7 +6,7 @@
       "tag": "forge:ingots/nickel"
     },
     {
-      "type": "forge:or",
+      "type": "neoforge:or",
       "values": [
         {
           "type": "tconstruct:config",

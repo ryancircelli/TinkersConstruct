@@ -2,7 +2,7 @@
   "type": "tconstruct:material_melting",
   "conditions": [
     {
-      "type": "forge:or",
+      "type": "neoforge:or",
       "values": [
         {
           "type": "mantle:tag_filled",
