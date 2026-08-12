@@ -153,3 +153,17 @@ src/main/java/slimeknights/tconstruct/library/json/variable/tool/ToolFormula.jav
 src/main/java/slimeknights/tconstruct/library/json/variable/tool/ToolStatVariable.java
 src/main/java/slimeknights/tconstruct/library/json/variable/tool/ToolVariable.java
 src/main/java/slimeknights/tconstruct/library/json/variable/tool/package-info.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/DummyToolStack.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/IModDataView.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/IToolContext.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/IToolStackView.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/LazyToolStack.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/MaterialIdNBT.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/MaterialNBT.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/ModDataNBT.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/ModifierNBT.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/MultiplierNBT.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/StatsNBT.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/ToolDataNBT.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/ToolStack.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/package-info.java
