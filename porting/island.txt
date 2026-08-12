@@ -513,3 +513,11 @@ src/main/java/slimeknights/tconstruct/library/modifiers/modules/display/ShowInte
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/display/package-info.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/mining/ConditionalMiningSpeedModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/mining/package-info.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/technical/ArmorLevelModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/technical/ArmorStatModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/technical/CureOnRemovalModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/technical/MarkHarvestingModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/technical/MaxArmorLevelModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/technical/MaxArmorStatModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/technical/SlotInChargeModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/technical/package-info.java
