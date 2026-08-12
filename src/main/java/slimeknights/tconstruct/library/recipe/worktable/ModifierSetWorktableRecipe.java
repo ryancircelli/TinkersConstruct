@@ -121,14 +121,14 @@ public class ModifierSetWorktableRecipe extends AbstractWorktableRecipe {
   public RecipeResult<LazyToolStack> getResult(ITinkerableContainer inv, ModifierEntry modifier) {
     ToolStack tool = inv.getTinkerable().copy();
     ModDataNBT persistentData = tool.getPersistentData();
-    // get or create the tag
+    // get the list, empty if we have none yet
     ListTag tagList = persistentData.get(dataKey, LIST_GETTER);
     String value = modifier.getId().toString();
     // try to find the selected modifier
     boolean found = isInSet(tagList, modifier.getId(), !addToSet);
-    // if removing and removed the last entry, remove the list
-    if (!addToSet && tagList.isEmpty()) {
-      persistentData.remove(dataKey);
+    // removal happened in the list we were handed rather than on the tool, so store it back
+    if (!addToSet) {
+      putModifierSet(persistentData, dataKey, tagList);
     }
     // add to list if not in list
     if (!found && addToSet) {
@@ -155,6 +155,22 @@ public class ModifierSetWorktableRecipe extends AbstractWorktableRecipe {
       return false;
     }
     return isInSet(modData.get(key, LIST_GETTER), modifier, false);
+  }
+
+  /**
+   * Stores a set edited by {@link #isInSet(ListTag, ModifierId, boolean)} back in persistent data.
+   * Reads hand out a copy of the list, so an edit is only on the tool once it is stored back.
+   * @param modData  Data to store into
+   * @param key      Namespaced key
+   * @param list     Edited set
+   */
+  public static void putModifierSet(ModDataNBT modData, ResourceLocation key, ListTag list) {
+    // an empty set is stored as no set at all, keeps the NBT tidy
+    if (list.isEmpty()) {
+      modData.remove(key);
+    } else {
+      modData.put(key, list);
+    }
   }
 
   /** Checks if the given modifier is in the set. Removes the modifier if requested. */

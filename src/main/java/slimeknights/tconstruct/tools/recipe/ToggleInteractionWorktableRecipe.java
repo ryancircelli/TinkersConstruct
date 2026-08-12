@@ -85,14 +85,10 @@ public class ToggleInteractionWorktableRecipe extends AbstractWorktableRecipe {
     // try removing from both lists
     ModifierId id = modifier.getId();
     boolean removed = ModifierSetWorktableRecipe.isInSet(leftList, id, true) | ModifierSetWorktableRecipe.isInSet(rightList, id, true);
-    // if we removed from a list, clear out empty lists
+    // removal happened in the lists we were handed rather than on the tool, so store them back
     if (removed) {
-      if (leftList.isEmpty()) {
-        persistentData.remove(InteractionSource.LEFT_CLICK.getKey());
-      }
-      if (rightList.isEmpty()) {
-        persistentData.remove(InteractionSource.RIGHT_CLICK.getKey());
-      }
+      ModifierSetWorktableRecipe.putModifierSet(persistentData, InteractionSource.LEFT_CLICK.getKey(), leftList);
+      ModifierSetWorktableRecipe.putModifierSet(persistentData, InteractionSource.RIGHT_CLICK.getKey(), rightList);
     } else {
       // did not remove? means we want to add to a list
       // if it can interact on right, means we want it in the left list

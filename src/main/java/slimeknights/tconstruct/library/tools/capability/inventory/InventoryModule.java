@@ -155,13 +155,17 @@ public class InventoryModule implements ModifierModule, InventoryModifierHook, V
   @Override
   public void setStack(IToolStackView tool, ModifierEntry modifier, int slot, ItemStack stack) {
     if (slot < getSlots(tool, modifier)) {
-      ListTag list;
       ModDataNBT modData = tool.getPersistentData();
-      // if the tag exists, fetch it
       ResourceLocation key = getKey(modifier.getModifier());
+      boolean hasList = modData.contains(key, Tag.TAG_LIST);
+      // no list and nothing to store? nothing to do
+      if (!hasList && stack.isEmpty()) {
+        return;
+      }
+      // the read hands back a copy of the list, so every edit below has to be stored again to reach the tool
+      ListTag list = modData.get(key, GET_COMPOUND_LIST);
       int insertIndex = 0;
-      if (modData.contains(key, Tag.TAG_LIST)) {
-        list = modData.get(key, GET_COMPOUND_LIST);
+      if (hasList) {
         // first, try to find an existing stack in the slot
         for (int i = 0; i < list.size(); i++) {
           CompoundTag compound = list.getCompound(i);
@@ -173,18 +177,13 @@ public class InventoryModule implements ModifierModule, InventoryModifierHook, V
               compound.getAllKeys().clear();
               writeStack(stack, slot, compound);
             }
+            modData.put(key, list);
             return;
           // try to keep the stacks in order by inserting after the last slot smaller than the target
           } else if (listSlot < slot) {
             insertIndex = i + 1;
           }
         }
-      } else if (stack.isEmpty()) {
-        // nothing to do if empty
-        return;
-      } else {
-        list = new ListTag();
-        modData.put(key, list);
       }
 
       // list did not contain the slot, so add it
@@ -196,6 +195,7 @@ public class InventoryModule implements ModifierModule, InventoryModifierHook, V
         } else {
           list.add(insertIndex, compound);
         }
+        modData.put(key, list);
       }
     }
   }
@@ -208,7 +208,7 @@ public class InventoryModule implements ModifierModule, InventoryModifierHook, V
   public Component validate(IToolStackView tool, ModifierEntry modifier) {
     // don't validate if the module is not running
     if (condition.tool().matches(tool) && validationLevel.test(modifier.getLevel())) {
-      IModDataView persistentData = tool.getPersistentData();
+      ModDataNBT persistentData = tool.getPersistentData();
       ResourceLocation key = getKey(modifier.getModifier());
       int maxSlots = getSlots(tool, modifier);
       if (persistentData.contains(key, Tag.TAG_LIST)) {
@@ -223,17 +223,27 @@ public class InventoryModule implements ModifierModule, InventoryModifierHook, V
           for (int i = 0; i < listNBT.size(); i++) {
             freeSlots.set(listNBT.getCompound(i).getInt(TAG_SLOT), false);
           }
+          // moving a stack edits the list we were handed rather than the tool, so it has to be stored again
+          boolean moved = false;
           for (int i = 0; i < listNBT.size(); i++) {
             CompoundTag compoundNBT = listNBT.getCompound(i);
             if (compoundNBT.getInt(TAG_SLOT) >= maxSlots) {
               int free = freeSlots.stream().findFirst().orElse(-1);
               if (free == -1) {
+                // out of room, but the stacks moved so far still belong on the tool
+                if (moved) {
+                  persistentData.put(key, listNBT);
+                }
                 return HAS_ITEMS;
               } else {
                 freeSlots.set(free, false);
                 compoundNBT.putInt(TAG_SLOT, free);
+                moved = true;
               }
             }
+          }
+          if (moved) {
+            persistentData.put(key, listNBT);
           }
         }
       }
