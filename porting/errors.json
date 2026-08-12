@@ -1,6 +1,6 @@
 {
-    "total": 428,
-    "islandFiles": 140,
+    "total": 429,
+    "islandFiles": 143,
     "categories": {
         "package ModuleBuilder": 1,
         "package net.minecraftforge.items": 1,
@@ -59,7 +59,7 @@
         "symbol class RecipeResult": 4,
         "symbol class RestrictedCompoundTag": 2,
         "symbol class SlotType": 11,
-        "symbol class TConstruct": 8,
+        "symbol class TConstruct": 9,
         "symbol class ToolAttackContext": 7,
         "symbol class ToolDefinition": 9,
         "symbol class ToolDefinitionData": 1
