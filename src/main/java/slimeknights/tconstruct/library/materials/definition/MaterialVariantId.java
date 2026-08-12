@@ -18,17 +18,31 @@ import slimeknights.tconstruct.library.utils.IdParser;
 
 import javax.annotation.Nullable;
 
+import static java.util.Objects.requireNonNullElse;
+
 /** Represents a material that possibly has a variant. Variants are simply a different texture with the same material properties */
 public sealed interface MaterialVariantId permits MaterialId, MaterialVariantIdImpl {
-  Loadable<MaterialVariantId> LOADABLE = StringLoadable.DEFAULT.comapFlatMap((text, error) -> {
+  /** Strict loadable, for datapacks and recipes: a malformed ID is a datapack error and should be reported as one */
+  StringLoadable<MaterialVariantId> LOADABLE = StringLoadable.DEFAULT.comapFlatMap((text, error) -> {
     MaterialVariantId location = tryParse(text);
     if (location == null) {
       throw error.create("Expected a material variant ID, was '" + text + "'");
     }
     return location;
   }, MaterialVariantId::toString);
+  /**
+   * Lenient loadable, for anything stored on an item stack: a malformed ID reads as {@link IMaterial#UNKNOWN_ID}.
+   * <p>
+   * This is the same call {@code MaterialNBT.LOADABLE} makes and for the same reason. A data component whose codec
+   * throws fails the whole {@code DataComponentPatch}, and a stack whose patch fails to decode is dropped by the
+   * container loading it, so a strict reader here would turn "this world names a material that no longer parses" into
+   * "the tool part is gone".
+   */
+  StringLoadable<MaterialVariantId> LENIENT_LOADABLE = StringLoadable.DEFAULT.flatXmap(
+    text -> requireNonNullElse(tryParse(text), IMaterial.UNKNOWN_ID),
+    MaterialVariantId::toString);
   ContextKey<MaterialVariantId> CONTEXT_KEY = new ContextKey<>("material_variant");
-  EntityDataSerializer<MaterialVariantId> DATA_ACCESSOR = EntityDataSerializer.simple((buffer, material) -> material.toNetwork(buffer), MaterialVariantId::fromNetwork);
+  EntityDataSerializer<MaterialVariantId> DATA_ACCESSOR = EntityDataSerializer.forValueType(LOADABLE);
 
   /** Variant ID that will match normal {@link MaterialId} with no variant, to allow checking for non-variant materials specifically. */
   String DEFAULT_VARIANT = "default";
@@ -208,12 +222,20 @@ public sealed interface MaterialVariantId permits MaterialId, MaterialVariantIdI
 
   /* Networking */
 
-  /** Writes an ID to the packet buffer */
+  /**
+   * Writes an ID to the packet buffer
+   * @deprecated use {@link #LOADABLE}, which writes the same bytes and is also the JSON and NBT spelling
+   */
+  @Deprecated(forRemoval = true)
   default void toNetwork(FriendlyByteBuf buf) {
     buf.writeUtf(toString());
   }
 
-  /** Reads an ID from the packet buffer */
+  /**
+   * Reads an ID from the packet buffer
+   * @deprecated use {@link #LOADABLE}, or {@link #LENIENT_LOADABLE} if the bytes came off a stored item stack
+   */
+  @Deprecated(forRemoval = true)
   static MaterialVariantId fromNetwork(FriendlyByteBuf buf) {
     return parse(buf.readUtf(Short.MAX_VALUE));
   }

@@ -7,6 +7,7 @@ import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialId;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
+import slimeknights.tconstruct.library.tools.nbt.ToolComponents;
 
 import java.util.function.Consumer;
 
@@ -14,15 +15,24 @@ import java.util.function.Consumer;
  * Items implementing this interface contain a material
  */
 public interface IMaterialItem extends ItemLike {
-  /** Tag used in NBT for the material ID */
+  /**
+   * Tag used for the material ID in a {@link slimeknights.tconstruct.library.tools.part.block.MaterialBlockEntity}'s
+   * NBT. It was also the item's tag key until 1.21; an item's material is {@code tconstruct:material} now.
+   */
   String MATERIAL_TAG = "Material";
 
   /**
    * Returns the material ID of the part this itemstack holds.
+   * <p>
+   * A default rather than an abstract method since 1.21: the storage is a data component, so every implementation was
+   * the same lookup, and {@link #setMaterialForced(ItemStack, MaterialVariantId)} has always assumed it. The pair
+   * stays overridable together for an addon that wants to store the material elsewhere.
    *
    * @return Material ID or {@link IMaterial#UNKNOWN_ID} if invalid
    */
-  MaterialVariantId getMaterial(ItemStack stack);
+  default MaterialVariantId getMaterial(ItemStack stack) {
+    return stack.getOrDefault(ToolComponents.MATERIAL, IMaterial.UNKNOWN_ID);
+  }
 
   /** Sets the material on the existing stack. */
   default ItemStack setMaterial(ItemStack stack, MaterialVariantId material) {
@@ -34,8 +44,13 @@ public interface IMaterialItem extends ItemLike {
 
   /** Sets the material on the existing stack, bypassing the valid material check. */
   default ItemStack setMaterialForced(ItemStack stack, MaterialVariantId material) {
-    // FIXME: it is odd that we assume the NBT format in this method but not in getMaterial, should be consistent in the implementation location
-    stack.getOrCreateTag().putString(MATERIAL_TAG, material.toString());
+    // unknown is the absent value, so it is stored by removing the component rather than by writing it;
+    // that keeps a materialless part stacking with a freshly created one
+    if (IMaterial.UNKNOWN_ID.equals(material)) {
+      stack.remove(ToolComponents.MATERIAL);
+    } else {
+      stack.set(ToolComponents.MATERIAL, material);
+    }
     return stack;
   }
 
@@ -115,5 +130,26 @@ public interface IMaterialItem extends ItemLike {
       return materialItem.setMaterial(stack.copy(), material);
     }
     return stack;
+  }
+
+  /**
+   * Resolves the material redirect on a stack that was just loaded, if there is one to resolve.
+   * <p>
+   * Successor to {@code MaterialItem.verifyTag}. Its hook, {@code Item#verifyComponentsAfterLoad}, runs on every item
+   * stack construction rather than only on the ones read back from disk or the network - including the ones a network
+   * decode builds before the material registry has been synced - so it opens with the two cheap exits: no component,
+   * or no registry yet. See {@code ToolStack#verifyComponents}, which makes the same two calls for the same reason.
+   * @param stack  Stack to resolve
+   */
+  static void resolveRedirect(ItemStack stack) {
+    MaterialVariantId material = stack.get(ToolComponents.MATERIAL);
+    if (material == null || !MaterialRegistry.isFullyLoaded()) {
+      return;
+    }
+    MaterialId original = material.getId();
+    MaterialId resolved = MaterialRegistry.getInstance().resolve(original);
+    if (!original.equals(resolved)) {
+      stack.set(ToolComponents.MATERIAL, MaterialVariantId.create(resolved, material.getVariant()));
+    }
   }
 }

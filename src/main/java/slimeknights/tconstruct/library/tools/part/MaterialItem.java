@@ -2,18 +2,15 @@ package slimeknights.tconstruct.library.tools.part;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.client.materials.MaterialTooltipCache;
-import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
-import slimeknights.tconstruct.library.materials.definition.MaterialId;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
 import slimeknights.tconstruct.library.tools.helper.TooltipUtil;
 import slimeknights.tconstruct.library.utils.DomainDisplayName;
@@ -23,33 +20,14 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * Represents an item that has a Material associated with it. The NBT of the itemstack identifies which material the
- * itemstack of this item has.
+ * Represents an item that has a Material associated with it. The {@code tconstruct:material} data component on the
+ * stack identifies which material the itemstack of this item has.
  */
 public class MaterialItem extends Item implements IMaterialItem {
   private static final String ADDED_BY = TConstruct.makeTranslationKey("tooltip", "part.added_by");
 
   public MaterialItem(Properties properties) {
     super(properties);
-  }
-
-  /** Gets the material ID for the given NBT compound */
-  public static MaterialVariantId getMaterialId(@Nullable CompoundTag nbt) {
-    if (nbt != null) {
-      String str = nbt.getString(MATERIAL_TAG);
-      if (!str.isEmpty()) {
-        MaterialVariantId id = MaterialVariantId.tryParse(str);
-        if (id != null) {
-          return id;
-        }
-      }
-    }
-    return IMaterial.UNKNOWN_ID;
-  }
-
-  @Override
-  public MaterialVariantId getMaterial(ItemStack stack) {
-    return getMaterialId(stack.getTag());
   }
 
   @Nullable
@@ -112,7 +90,7 @@ public class MaterialItem extends Item implements IMaterialItem {
   }
 
   @Override
-  public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flag) {
+  public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
     appendHoverText(this, stack, tooltip, flag);
   }
 
@@ -150,20 +128,8 @@ public class MaterialItem extends Item implements IMaterialItem {
     }
   }
 
-  public static void verifyTag(CompoundTag nbt) {
-    // if the material exists and was changed, update it
-    MaterialVariantId id = getMaterialId(nbt);
-    if (!id.equals(IMaterial.UNKNOWN_ID)) {
-      MaterialId original = id.getId();
-      MaterialId resolved = MaterialRegistry.getInstance().resolve(original);
-      if (original != resolved) {
-        nbt.putString(MATERIAL_TAG, MaterialVariantId.create(resolved, id.getVariant()).toString());
-      }
-    }
-  }
-
   @Override
-  public void verifyTagAfterLoad(CompoundTag nbt) {
-    verifyTag(nbt);
+  public void verifyComponentsAfterLoad(ItemStack stack) {
+    IMaterialItem.resolveRedirect(stack);
   }
 }
