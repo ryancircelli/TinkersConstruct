@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.crafting.CraftingHelper;
+import net.neoforged.neoforge.common.crafting.CraftingHelper;
 import net.minecraftforge.common.crafting.VanillaIngredientSerializer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
@@ -37,7 +37,7 @@ class StationLayoutCharacterizationTest extends BaseMcTest {
   @BeforeAll
   static void registerSerializers() {
     try {
-      CraftingHelper.register(new ResourceLocation("minecraft", "item"), VanillaIngredientSerializer.INSTANCE);
+      CraftingHelper.register(ResourceLocation.fromNamespaceAndPath("minecraft", "item"), VanillaIngredientSerializer.INSTANCE);
     } catch (Exception ignored) {
       // already registered - fine
     }
@@ -57,7 +57,7 @@ class StationLayoutCharacterizationTest extends BaseMcTest {
     // resource location after parsing) and GSON's reflective deserialization bypasses field initializers, so it
     // comes back null rather than defaulting; set it explicitly via reflection (the setter is package-private),
     // exactly like the real loader does.
-    ResourceLocation name = new ResourceLocation("tconstruct", fileName.replace(".json", ""));
+    ResourceLocation name = ResourceLocation.fromNamespaceAndPath("tconstruct", fileName.replace(".json", ""));
 
     // JSON round trip: parse -> serialize -> re-parse -> serialize, assert idempotent
     StationSlotLayout first = StationSlotLayoutLoader.GSON.fromJson(raw, StationSlotLayout.class);

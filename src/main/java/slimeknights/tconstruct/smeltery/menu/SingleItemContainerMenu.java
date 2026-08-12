@@ -3,7 +3,7 @@ package slimeknights.tconstruct.smeltery.menu;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 import slimeknights.mantle.inventory.SmartItemHandlerSlot;
 import slimeknights.mantle.util.CapabilityHelper;
 import slimeknights.tconstruct.shared.inventory.TriggeringBaseContainerMenu;

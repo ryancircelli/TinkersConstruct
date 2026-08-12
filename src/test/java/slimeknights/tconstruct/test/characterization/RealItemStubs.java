@@ -74,7 +74,7 @@ public final class RealItemStubs {
     for (String id : ids) {
       ResourceLocation rl;
       try {
-        rl = new ResourceLocation(id);
+        rl = ResourceLocation.parse(id);
       } catch (Exception e) {
         continue;
       }
@@ -93,13 +93,13 @@ public final class RealItemStubs {
   }
 
   private static void stubItem(ResourceLocation rl) {
-    if (!ForgeRegistries.ITEMS.containsKey(rl)) {
+    if (!BuiltInRegistries.ITEM.containsKey(rl)) {
       try {
         // Real fixtures reference item ids in many different typed roles (plain item, IModifiable tool,
         // IMaterialItem/IToolPart part item), and Mantle's field-typed loadables do an instanceof check at
         // parse time. A single stub class implementing all three marker interfaces satisfies every role at
         // once without needing to classify each id ahead of time.
-        ForgeRegistries.ITEMS.register(rl, new StubToolPartItem());
+        BuiltInRegistries.ITEM.register(rl, new StubToolPartItem());
       } catch (Exception ignored) {
         // not a valid item id (e.g. shape of a fluid/block/tag id) - fine, best effort
       }
@@ -131,9 +131,9 @@ public final class RealItemStubs {
   }
 
   private static void stubAttribute(ResourceLocation rl) {
-    if (!ForgeRegistries.ATTRIBUTES.containsKey(rl)) {
+    if (!BuiltInRegistries.ATTRIBUTE.containsKey(rl)) {
       try {
-        ForgeRegistries.ATTRIBUTES.register(rl, new RangedAttribute(rl.toString(), 0, -1000, 1000));
+        BuiltInRegistries.ATTRIBUTE.register(rl, new RangedAttribute(rl.toString(), 0, -1000, 1000));
       } catch (Exception ignored) {
         // fine, best effort
       }
@@ -141,9 +141,9 @@ public final class RealItemStubs {
   }
 
   private static void stubMobEffect(ResourceLocation rl) {
-    if (!ForgeRegistries.MOB_EFFECTS.containsKey(rl)) {
+    if (!BuiltInRegistries.MOB_EFFECT.containsKey(rl)) {
       try {
-        ForgeRegistries.MOB_EFFECTS.register(rl, new MobEffect(MobEffectCategory.NEUTRAL, 0xFFFFFF) {});
+        BuiltInRegistries.MOB_EFFECT.register(rl, new MobEffect(MobEffectCategory.NEUTRAL, 0xFFFFFF) {});
       } catch (Exception ignored) {
         // fine, best effort
       }
@@ -151,9 +151,9 @@ public final class RealItemStubs {
   }
 
   private static void stubParticleType(ResourceLocation rl) {
-    if (!ForgeRegistries.PARTICLE_TYPES.containsKey(rl)) {
+    if (!BuiltInRegistries.PARTICLE_TYPE.containsKey(rl)) {
       try {
-        ForgeRegistries.PARTICLE_TYPES.register(rl, new SimpleParticleType(false));
+        BuiltInRegistries.PARTICLE_TYPE.register(rl, new SimpleParticleType(false));
       } catch (Exception ignored) {
         // fine, best effort
       }
@@ -161,9 +161,9 @@ public final class RealItemStubs {
   }
 
   private static void stubBlock(ResourceLocation rl) {
-    if (!ForgeRegistries.BLOCKS.containsKey(rl)) {
+    if (!BuiltInRegistries.BLOCK.containsKey(rl)) {
       try {
-        ForgeRegistries.BLOCKS.register(rl, new Block(BlockBehaviour.Properties.of()));
+        BuiltInRegistries.BLOCK.register(rl, new Block(BlockBehaviour.Properties.of()));
       } catch (Exception ignored) {
         // fine, best effort
       }

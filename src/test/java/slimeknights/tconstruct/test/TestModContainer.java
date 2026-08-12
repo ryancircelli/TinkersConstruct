@@ -1,7 +1,7 @@
 package slimeknights.tconstruct.test;
 
-import net.minecraftforge.fml.ModContainer;
-import net.minecraftforge.forgespi.language.IModInfo;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.neoforgespi.language.IModInfo;
 
 public class TestModContainer extends ModContainer {
   public TestModContainer(IModInfo info) {

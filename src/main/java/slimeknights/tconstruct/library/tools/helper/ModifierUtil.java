@@ -19,7 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ToolAction;
+import net.neoforged.neoforge.common.ItemAbility;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
@@ -179,7 +179,7 @@ public final class ModifierUtil {
   }
 
   /** Checks if a tool can perform the given action */
-  public static boolean canPerformAction(IToolStackView tool, ToolAction action) {
+  public static boolean canPerformAction(IToolStackView tool, ItemAbility action) {
     if (!tool.isBroken()) {
       // can the tool do this action inherently?
       if (tool.getHook(ToolHooks.TOOL_ACTION).canPerformAction(tool, action)) {

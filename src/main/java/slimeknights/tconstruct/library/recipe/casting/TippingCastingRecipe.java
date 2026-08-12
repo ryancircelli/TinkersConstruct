@@ -10,8 +10,8 @@ import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.minecraft.core.registries.BuiltInRegistries;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.data.loadable.common.IngredientLoadable;
 import slimeknights.mantle.data.loadable.field.ContextKey;
@@ -79,7 +79,7 @@ public class TippingCastingRecipe extends PotionCastingRecipe {
       List<ItemStack> tools = Arrays.stream(bottle.getItems())
         .map(stack -> IDisplayModifierRecipe.withModifiers(IModifiableDisplay.getDisplayStack(stack), List.of(new ModifierEntry(modifier, 1))))
         .toList();
-      displayRecipes = ForgeRegistries.POTIONS.getValues().stream()
+      displayRecipes = BuiltInRegistries.POTION.getValues().stream()
         .filter(potion -> potion != Potions.EMPTY)
         .map(potion -> {
           // add the potion to the tool list

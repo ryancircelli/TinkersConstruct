@@ -11,8 +11,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.tools.helper.ToolDamageUtil;
 import slimeknights.tconstruct.library.tools.helper.ToolHarvestLogic;
@@ -29,7 +29,7 @@ public class ToolGameTests {
   /** Swapping a tool part preserves persistent modifier data (as opposed to volatile data, which is recalculated) */
   @GameTest(template = GameTestFixtures.TEMPLATE)
   public static void partSwapPreservesPersistentModData(GameTestHelper helper) {
-    ResourceLocation key = new ResourceLocation("tconstruct_test", "marker");
+    ResourceLocation key = ResourceLocation.fromNamespaceAndPath("tconstruct_test", "marker");
     ToolStack tool = GameTestFixtures.createPickaxe();
     tool.getPersistentData().putInt(key, 42);
 

@@ -1,7 +1,7 @@
 package slimeknights.tconstruct.fluids.fluids;
 
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import slimeknights.mantle.fluid.TextureFluidType;
 import slimeknights.mantle.fluid.texture.ClientInvertedFluidType;
 import slimeknights.tconstruct.common.TinkerTags;

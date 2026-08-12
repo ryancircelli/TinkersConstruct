@@ -60,6 +60,6 @@ public interface ArmorTextureSupplier extends IHaveLoader {
    * Gets a texture using the named format
    */
   static ResourceLocation getTexturePath(ResourceLocation name) {
-    return new ResourceLocation(name.getNamespace(), FOLDER + '/' + name.getPath() + ".png");
+    return ResourceLocation.fromNamespaceAndPath(name.getNamespace(), FOLDER + '/' + name.getPath() + ".png");
   }
 }

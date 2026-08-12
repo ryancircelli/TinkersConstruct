@@ -9,7 +9,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.crafting.CraftingHelper;
+import net.neoforged.neoforge.common.crafting.CraftingHelper;
 import net.minecraftforge.common.crafting.VanillaIngredientSerializer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ class StationSlotLayoutLoaderTest extends BaseMcTest {
   @BeforeAll
   static void setup() {
     try {
-      CraftingHelper.register(new ResourceLocation("minecraft", "item"), VanillaIngredientSerializer.INSTANCE);
+      CraftingHelper.register(ResourceLocation.fromNamespaceAndPath("minecraft", "item"), VanillaIngredientSerializer.INSTANCE);
     } catch (Exception e) {
       // just need to ensure its registered
     }
