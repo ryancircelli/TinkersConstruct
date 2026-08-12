@@ -437,10 +437,12 @@ public class ModifierManager extends SimpleJsonResourceReloadListener {
     for (Entry<TagKey<Modifier>,List<ModifierId>> entry : tags.entrySet()) {
       // an ID in a tag that the packet did not carry is dropped rather than being an error, matching the material
       // tags: the server writes tag contents and modifiers as two independent lists, so a modifier skipped by a
-      // condition or resolved through a redirect is legitimately in one and not the other
+      // condition or resolved through a redirect is legitimately in one and not the other.
+      // the empty modifier is kept when a tag names it, which is what the tag loader on the other side allows; the
+      // 1.20 decoder had no way to say that and threw a DecoderException, which is to say it disconnected.
       resolved.put(entry.getKey(), entry.getValue().stream()
+                                        .filter(id -> contains(id) || EMPTY.equals(id))
                                         .map(this::get)
-                                        .filter(modifier -> modifier != defaultValue)
                                         .toList());
     }
     return resolved;
