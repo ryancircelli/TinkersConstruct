@@ -277,7 +277,7 @@ tasks.register('checkPortingFrontier') {
             added -= born
             if (!added.isEmpty()) {
                 failures << ("${ledger.path} grew by ${added.size()} entr(y/ies) since HEAD~. The porting frontier only shrinks, " +
-                        "except for a file created by this commit and listed on ${rootDir.toPath().relativize(islandLedger.toPath())}:\n  ${added.join('\n  ')}")
+                        "except for a file created by this commit and listed on ${ledger.islandPath}:\n  ${added.join('\n  ')}")
             }
             if (!born.isEmpty()) {
                 logger.lifecycle("porting frontier [${ledger.name}]: ${born.size()} new island file(s) added to ${ledger.path}:\n  ${born.join('\n  ')}")
