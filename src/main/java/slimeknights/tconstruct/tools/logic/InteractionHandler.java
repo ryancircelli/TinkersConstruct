@@ -87,7 +87,7 @@ public class InteractionHandler {
     }
     if (!player.getCooldowns().isOnCooldown(stack.getItem())) {
       // actual interaction hook
-      ToolStack tool = ToolStack.from(stack);
+      IToolStackView tool = ToolStack.from(stack);
       Entity target = event.getTarget();
       for (ModifierEntry entry : tool.getModifierList()) {
         // exit on first successful result
@@ -111,7 +111,7 @@ public class InteractionHandler {
         // from this point on, we are taking over interaction logic, to ensure chestplate hooks run in the right order
         event.setCanceled(true);
 
-        ToolStack tool = ToolStack.from(chestplate);
+        IToolStackView tool = ToolStack.from(chestplate);
         Entity target = event.getTarget();
         InteractionHand hand = event.getHand();
 
@@ -178,7 +178,7 @@ public class InteractionHandler {
         // no turning back, from this point we are fully in charge of interaction logic (since we need to ensure order of the hooks)
 
         // begin interaction
-        ToolStack tool = ToolStack.from(chestplate);
+        IToolStackView tool = ToolStack.from(chestplate);
         InteractionHand hand = event.getHand();
         BlockHitResult trace = event.getHitVec();
         UseOnContext context = new UseOnContext(player, hand, trace);
@@ -243,7 +243,7 @@ public class InteractionHandler {
     }
 
     // first, run the modifier hook
-    ToolStack tool = ToolStack.from(chestplate);
+    IToolStackView tool = ToolStack.from(chestplate);
     for (ModifierEntry entry : tool.getModifierList()) {
       InteractionResult result = entry.getHook(ModifierHooks.GENERAL_INTERACT).onToolUse(tool, entry, player, hand, InteractionSource.ARMOR);
       if (result.consumesAction()) {
@@ -288,7 +288,7 @@ public class InteractionHandler {
     if (!player.isSpectator()) {
       ItemStack helmet = player.getItemBySlot(slotType);
       if (helmet.is(TinkerTags.Items.ARMOR)) {
-        ToolStack tool = ToolStack.from(helmet);
+        IToolStackView tool = ToolStack.from(helmet);
         for (ModifierEntry entry : tool.getModifierList()) {
           if (entry.getHook(ModifierHooks.ARMOR_INTERACT).startInteract(tool, entry, player, slotType, modifierKey)) {
             // store data so we know when interaction started
@@ -423,7 +423,7 @@ public class InteractionHandler {
     UseOnContext context = new UseOnContext(player, hand, new BlockHitResult(Util.toHitVec(pos, direction), direction, pos, false));
 
     // run modifier hooks
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     List<ModifierEntry> modifiers = tool.getModifierList();
     for (ModifierEntry entry : modifiers) {
       InteractionResult result = entry.getHook(ModifierHooks.BLOCK_INTERACT).beforeBlockUse(tool, entry, context, InteractionSource.LEFT_CLICK);
