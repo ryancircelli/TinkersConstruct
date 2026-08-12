@@ -10,7 +10,8 @@ import net.minecraft.world.level.Level;
 import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.field.LoadableField;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
-import slimeknights.mantle.recipe.ingredient.SizedIngredient;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
+import slimeknights.mantle.data.loadable.common.SizedIngredientLoadable;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.json.IntRange;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
@@ -33,7 +34,7 @@ import java.util.List;
  * Standard recipe to add a modifier
  */
 public class ModifierRecipe extends AbstractModifierRecipe {
-  protected static final LoadableField<List<SizedIngredient>,ModifierRecipe> INPUTS_FIELD = SizedIngredient.LOADABLE.list(1).requiredField("inputs", r -> r.inputs);
+  protected static final LoadableField<List<SizedIngredient>,ModifierRecipe> INPUTS_FIELD = SizedIngredientLoadable.FLAT.list(1).requiredField("inputs", r -> r.inputs);
   public static final RecordLoadable<ModifierRecipe> LOADER = RecordLoadable.create(ContextKey.ID.requiredField(), INPUTS_FIELD, TOOLS_FIELD, MAX_TOOL_SIZE_FIELD, RESULT_FIELD, LEVEL_FIELD, SLOTS_FIELD, ALLOW_CRYSTAL_FIELD, CHECK_TRAIT_LEVEL_FIELD, ModifierRecipe::new);
 
   /**
@@ -180,7 +181,7 @@ public class ModifierRecipe extends AbstractModifierRecipe {
       // care about size, if too small just skip the recipe
       int index = findMatch(ingredient, inv, used);
       if (index != -1) {
-        inv.shrinkInput(index, ingredient.getAmountNeeded());
+        inv.shrinkInput(index, ingredient.count());
       } else {
         TConstruct.LOG.warn("Missing ingredient in modifier recipe input consume");
       }
@@ -213,7 +214,7 @@ public class ModifierRecipe extends AbstractModifierRecipe {
   @Override
   public List<ItemStack> getDisplayItems(int slot) {
     if (slot >= 0 && slot < inputs.size()) {
-      return inputs.get(slot).getMatchingStacks();
+      return List.of(inputs.get(slot).getItems());
     }
     return Collections.emptyList();
   }

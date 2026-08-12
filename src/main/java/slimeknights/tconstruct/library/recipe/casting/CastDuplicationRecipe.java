@@ -2,7 +2,6 @@ package slimeknights.tconstruct.library.recipe.casting;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import slimeknights.mantle.data.loadable.common.IngredientLoadable;

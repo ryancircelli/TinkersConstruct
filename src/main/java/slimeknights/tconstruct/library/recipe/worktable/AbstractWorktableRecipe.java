@@ -8,7 +8,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import slimeknights.mantle.data.loadable.common.IngredientLoadable;
 import slimeknights.mantle.data.loadable.field.LoadableField;
-import slimeknights.mantle.recipe.ingredient.SizedIngredient;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
+import slimeknights.mantle.data.loadable.common.SizedIngredientLoadable;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.recipe.ITinkerableContainer;
@@ -29,7 +30,7 @@ import java.util.List;
 public abstract class AbstractWorktableRecipe implements IModifierWorktableRecipe {
   public static final Ingredient DEFAULT_TOOLS = Ingredient.of(TinkerTags.Items.MODIFIABLE);
   protected static final LoadableField<Ingredient,AbstractWorktableRecipe> TOOL_FIELD = IngredientLoadable.DISALLOW_EMPTY.defaultField("tools", DEFAULT_TOOLS, true, r -> r.toolRequirement);
-  protected static final LoadableField<List<SizedIngredient>,AbstractWorktableRecipe> INPUTS_FIELD = SizedIngredient.LOADABLE.list(1).requiredField("inputs", r -> r.inputs);
+  protected static final LoadableField<List<SizedIngredient>,AbstractWorktableRecipe> INPUTS_FIELD = SizedIngredientLoadable.FLAT.list(1).requiredField("inputs", r -> r.inputs);
 
   @Getter
   private final ResourceLocation id;
@@ -82,7 +83,7 @@ public abstract class AbstractWorktableRecipe implements IModifierWorktableRecip
     if (slot < 0 || slot >= inputs.size()) {
       return Collections.emptyList();
     }
-    return inputs.get(slot).getMatchingStacks();
+    return List.of(inputs.get(slot).getItems());
   }
 
   @Override

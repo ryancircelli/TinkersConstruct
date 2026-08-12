@@ -1,17 +1,15 @@
 package slimeknights.tconstruct.library.recipe.tinkerstation.building;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import slimeknights.mantle.data.loadable.array.ArrayLoadable;
 import slimeknights.mantle.data.loadable.array.IntArrayLoadable;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.primitive.IntLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
-import slimeknights.mantle.recipe.ingredient.SizedIngredient;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import slimeknights.tconstruct.library.json.TinkerLoadables;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
@@ -34,7 +32,7 @@ import java.util.List;
 /** Recipe for swapping a single material on a tool given a specific tool part. Notably allows swapping a part into a tool on an index other than the first. */
 public class PartSwappingOverrideRecipe extends MaterialSwappingRecipe {
   public static final RecordLoadable<PartSwappingOverrideRecipe> LOADER = RecordLoadable.create(
-    ContextKey.ID.requiredField(), TOOLS_FIELD, STACK_SIZE_FIELD,
+    TOOLS_FIELD, STACK_SIZE_FIELD,
     TinkerLoadables.TOOL_PART_ITEM.requiredField("part", r -> r.part),
     new IntArrayLoadable(IntLoadable.FROM_ZERO, ArrayLoadable.COMPACT, 10).requiredField("index", r -> r.indices),
     EXTRA_REQUIREMENTS_FIELD,
@@ -45,8 +43,8 @@ public class PartSwappingOverrideRecipe extends MaterialSwappingRecipe {
   /** Options of indexes to set the material */
   private final int[] indices;
 
-  protected PartSwappingOverrideRecipe(ResourceLocation id, Ingredient tools, int maxStackSize, IToolPart part, int[] indices, List<SizedIngredient> extraRequirements) {
-    super(id, tools, maxStackSize, extraRequirements);
+  protected PartSwappingOverrideRecipe(Ingredient tools, int maxStackSize, IToolPart part, int[] indices, List<SizedIngredient> extraRequirements) {
+    super(tools, maxStackSize, extraRequirements);
     this.part = part;
     this.indices = indices;
   }
@@ -78,7 +76,7 @@ public class PartSwappingOverrideRecipe extends MaterialSwappingRecipe {
   }
 
   @Override
-  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, RegistryAccess access) {
+  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, HolderLookup.Provider access) {
     // copy the tool NBT to ensure the original tool is intact
     List<MaterialStatsId> materials = ToolMaterialHook.stats(inv.getTinkerable().getDefinition());
 

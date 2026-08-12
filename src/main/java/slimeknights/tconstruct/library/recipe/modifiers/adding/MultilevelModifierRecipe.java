@@ -9,7 +9,8 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.recipe.IMultiRecipe;
-import slimeknights.mantle.recipe.ingredient.SizedIngredient;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
+import slimeknights.mantle.data.loadable.common.SizedIngredientLoadable;
 import slimeknights.tconstruct.library.json.IntRange;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
@@ -32,7 +33,7 @@ import java.util.stream.Stream;
 public class MultilevelModifierRecipe extends ModifierRecipe implements IMultiRecipe<IDisplayModifierRecipe> {
   public static final RecordLoadable<MultilevelModifierRecipe> LOADER = RecordLoadable.create(
     ContextKey.ID.requiredField(),
-    SizedIngredient.LOADABLE.list(0).defaultField("inputs", List.of(), r -> r.inputs),
+    SizedIngredientLoadable.FLAT.list(0).defaultField("inputs", List.of(), r -> r.inputs),
     TOOLS_FIELD, MAX_TOOL_SIZE_FIELD, RESULT_FIELD, ALLOW_CRYSTAL_FIELD,
     LevelEntry.LOADABLE.list(1).requiredField("levels", r -> r.levels),
     CHECK_TRAIT_LEVEL_FIELD,
