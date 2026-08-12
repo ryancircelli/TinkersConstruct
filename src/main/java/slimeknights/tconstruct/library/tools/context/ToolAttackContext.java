@@ -77,22 +77,6 @@ public class ToolAttackContext {
   /** Sound to play for this attack */
   private final SoundEvent sound;
 
-  /** @deprecated use {@link Builder */
-  @Deprecated(forRemoval = true)
-  public ToolAttackContext(LivingEntity attacker, @Nullable Player playerAttacker, InteractionHand hand, EquipmentSlot slotType, Entity target, @Nullable LivingEntity livingTarget, boolean isCritical, float cooldown, boolean isExtraAttack) {
-    this(attacker, playerAttacker, hand, slotType, null, target, livingTarget,
-      (float) attacker.getAttributeValue(Attributes.ATTACK_DAMAGE),
-      (float) attacker.getAttributeValue(Attributes.ATTACK_KNOCKBACK) + (livingTarget != null ? 0.4f : 0) + (cooldown > 0.9f && attacker.isSprinting() ? 0.5f : 0),
-      cooldown, isCritical ? 1.5f : 1.0f, isExtraAttack,
-      cooldown > 0.9f ? attacker.isSprinting() ? SoundEvents.PLAYER_ATTACK_KNOCKBACK : SoundEvents.PLAYER_ATTACK_STRONG : SoundEvents.PLAYER_ATTACK_WEAK);
-  }
-
-  /** @deprecated use {@link Builder */
-  @Deprecated(forRemoval = true)
-  public ToolAttackContext(LivingEntity attacker, @Nullable Player playerAttacker, InteractionHand hand, Entity target, @Nullable LivingEntity livingTarget, boolean isCritical, float cooldown, boolean isExtraAttack) {
-    this(attacker, playerAttacker, hand, Util.getSlotType(hand), target, livingTarget, isCritical, cooldown, isExtraAttack);
-  }
-
   /** Returns true if this attack is fully charged */
   public boolean isFullyCharged() {
     return cooldown > 0.9f;

@@ -1,12 +1,11 @@
 {
-    "total": 583,
+    "total": 579,
     "islandFiles": 241,
     "categories": {
         "other: static import only from classes and interfaces": 1,
         "package BasicModifier": 1,
         "package ModuleBuilder": 1,
-        "package TinkerDataCapability": 3,
-        "package net.minecraftforge.common.util": 1,
+        "package TinkerDataCapability": 2,
         "package slimeknights.tconstruct.common": 7,
         "package slimeknights.tconstruct.common.TinkerTags": 2,
         "package slimeknights.tconstruct.common.config": 1,
@@ -56,7 +55,6 @@
         "symbol class IdParser": 2,
         "symbol class InteractionSource": 7,
         "symbol class LazyModifier": 2,
-        "symbol class LazyOptional": 2,
         "symbol class MaterialId": 28,
         "symbol class MaterialStatType": 3,
         "symbol class MaterialStatsId": 24,
