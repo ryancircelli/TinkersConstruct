@@ -2,24 +2,15 @@ package slimeknights.tconstruct.library.tools.capability;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.neoforged.neoforge.common.NeoForge;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
-import net.neoforged.bus.api.EventPriority;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import slimeknights.mantle.registration.object.IdAwareObject;
 import slimeknights.tconstruct.TConstruct;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -27,69 +18,56 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Capability to make it easy for Tinkers to store common data on the player, primarily used for armor
- * Data stored in this capability is not saved to NBT, most often its filled by the relevant equipment events
+ * Common scratch space for Tinkers' data on a living entity, primarily used by armor. The data is rebuilt from the
+ * equipment change events, never saved and never sent, which is what decides its 1.21 shape.
+ * <p>
+ * <b>It is a data attachment, not a capability.</b> A capability answers "can this object do X" for anyone who asks;
+ * this is Tinkers' own scratch space that happens to live on an entity, and 1.21's
+ * {@link net.neoforged.neoforge.capabilities.EntityCapability} would additionally require naming every
+ * {@link net.minecraft.world.entity.EntityType} it applies to, which for "every living entity, including modded ones"
+ * is not expressible. An attachment is created on demand for whatever holder asks, which is exactly the old
+ * {@code AttachCapabilitiesEvent} test {@code instanceof LivingEntity} without the event: {@link #getData} takes a
+ * {@link LivingEntity}, so the restriction is in the signature instead.
+ * <p>
+ * The attachment is deliberately <b>not</b> serializable and not synced, matching 1.20 where the capability wrote no
+ * NBT and had no packet. That also means NeoForge does not copy it when a player respawns or changes dimension - it is
+ * skipped outright, see {@code AttachmentInternals#copyAttachments} - which is the behaviour 1.20 had too, since only
+ * {@link PersistentDataCapability} hand-copied itself on {@code PlayerEvent.Clone}. The equipment change events refill
+ * it on the new entity.
+ * <p>
+ * The one piece of 1.20 machinery with no counterpart is the provider's {@code Runnable}, which preserved the map
+ * across a capability invalidate/revive cycle. Attachments are plain fields on the holder and are never invalidated,
+ * so the hazard it worked around does not exist.
  */
 public class TinkerDataCapability {
   private TinkerDataCapability() {}
 
-  /** Capability ID */
-  private static final ResourceLocation ID = TConstruct.getResource("modifier_data");
-  /** Capability type */
-  public static final Capability<Holder> CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
+  private static final DeferredRegister<AttachmentType<?>> ATTACHMENTS = DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, TConstruct.MOD_ID);
 
-  /** Registers this capability */
-  public static void register() {
-    FMLJavaModLoadingContext.get().getModEventBus().addListener(EventPriority.NORMAL, false, RegisterCapabilitiesEvent.class, TinkerDataCapability::register);
-    NeoForge.EVENT_BUS.addGenericListener(Entity.class, TinkerDataCapability::attachCapability);
+  /** Attachment holding the data. Same ID the capability used, as it is the same data under the same name. */
+  public static final Supplier<AttachmentType<Holder>> TINKER_DATA = ATTACHMENTS.register(
+    "modifier_data", () -> AttachmentType.builder(Holder::new).build());
+
+  /** Registers the attachment with the mod event bus */
+  public static void register(IEventBus bus) {
+    ATTACHMENTS.register(bus);
   }
 
-  /** Registers the capability with the event bus */
-  private static void register(RegisterCapabilitiesEvent event) {
-    event.register(Holder.class);
+  /**
+   * Gets the data for an entity, creating it if missing.
+   * @apiNote  Unlike 1.20 this never returns null: an attachment is created on first access, so the callers that
+   *           null checked the {@code LazyOptional} no longer have anything to check.
+   */
+  public static Holder getData(LivingEntity entity) {
+    return entity.getData(TINKER_DATA);
   }
 
-  /** Event listener to attach the capability */
-  private static void attachCapability(AttachCapabilitiesEvent<Entity> event) {
-    if (event.getObject() instanceof LivingEntity) {
-      Provider provider = new Provider();
-      event.addCapability(ID, provider);
-      event.addListener(provider);
-    }
-  }
-
-  /** Gets the data capability from an entity, or null if missing */
-  @SuppressWarnings("DataFlowIssue")
+  /** Gets the data for an entity, or null if the entity has never had any. Use when only reading. */
   @Nullable
-  public static TinkerDataCapability.Holder getData(LivingEntity entity) {
-    return entity.getCapability(CAPABILITY).orElse(null);
+  public static Holder getExistingData(LivingEntity entity) {
+    return entity.getExistingDataOrNull(TINKER_DATA);
   }
 
-
-  /* Required methods */
-
-  /** Capability provider instance */
-  private static class Provider implements ICapabilityProvider, Runnable {
-    private LazyOptional<Holder> data;
-    private Provider() {
-      this.data = LazyOptional.of(Holder::new);
-    }
-
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-      return CAPABILITY.orEmpty(cap, data);
-    }
-
-    @Override
-    public void run() {
-      // called when capabilities invalidate, just invalidate but preserve the old data
-      // (as if they revive the equipment change event does not fire again, see dimension change)
-      Holder oldData = data.orElse(new Holder());
-      data.invalidate();
-      data = LazyOptional.of(() -> oldData);
-    }
-  }
 
   /** Class for generic keys */
   @SuppressWarnings("unused")

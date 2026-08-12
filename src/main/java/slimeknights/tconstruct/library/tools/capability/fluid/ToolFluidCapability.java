@@ -4,9 +4,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import slimeknights.tconstruct.TConstruct;
@@ -17,15 +14,20 @@ import slimeknights.tconstruct.library.tools.capability.ToolCapabilityProvider.I
 import slimeknights.tconstruct.library.tools.nbt.IModDataView;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ModDataNBT;
+import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.function.Supplier;
 
 /**
- * Logic to make a tool a fluid handler
+ * Logic to make a tool a fluid handler.
+ * <p>
+ * The tool is the bound, mutable one the capability query created (see {@link slimeknights.tconstruct.library.tools.capability.ToolCapabilityProvider}),
+ * and {@link #fill} and both {@link #drain} overloads commit it. In 1.20 the modifier hooks wrote through a tool that
+ * shared the stack's tag, so a transfer landed by itself; since T5 it does not, and a fill that is not committed reads
+ * as a bucket emptying into nothing.
  */
 @RequiredArgsConstructor
 public class ToolFluidCapability extends FluidModifierHookIterator<ModifierEntry> implements IFluidHandlerItem {
@@ -62,13 +64,13 @@ public class ToolFluidCapability extends FluidModifierHookIterator<ModifierEntry
 
   @Getter
   private final ItemStack container;
-  private final Supplier<? extends IToolStackView> tool;
+  private final ToolStack tool;
 
   /* Basic inventory */
 
   @Override
   public int getTanks() {
-    return tool.get().getVolatileData().getInt(TOTAL_TANKS);
+    return tool.getVolatileData().getInt(TOTAL_TANKS);
   }
 
   @Override
@@ -85,7 +87,6 @@ public class ToolFluidCapability extends FluidModifierHookIterator<ModifierEntry
   @Nonnull
   @Override
   public FluidStack getFluidInTank(int tank) {
-    IToolStackView tool = this.tool.get();
     FluidModifierHook hook = findHook(tool, tank);
     if (hook != null) {
       return hook.getFluidInTank(tool, indexEntry, tank - startIndex);
@@ -95,7 +96,6 @@ public class ToolFluidCapability extends FluidModifierHookIterator<ModifierEntry
 
   @Override
   public int getTankCapacity(int tank) {
-    IToolStackView tool = this.tool.get();
     FluidModifierHook hook = findHook(tool, tank);
     if (hook != null) {
       return hook.getTankCapacity(tool, indexEntry, tank - startIndex);
@@ -105,7 +105,6 @@ public class ToolFluidCapability extends FluidModifierHookIterator<ModifierEntry
 
   @Override
   public boolean isFluidValid(int tank, FluidStack stack) {
-    IToolStackView tool = this.tool.get();
     FluidModifierHook hook = findHook(tool, tank);
     if (hook != null) {
       return hook.isFluidValid(tool, indexEntry, tank - startIndex, stack);
@@ -115,7 +114,11 @@ public class ToolFluidCapability extends FluidModifierHookIterator<ModifierEntry
 
   @Override
   public int fill(FluidStack resource, FluidAction action) {
-    return fill(tool.get(), resource, action);
+    int filled = fill(tool, resource, action);
+    if (filled > 0 && action.execute()) {
+      tool.updateStack();
+    }
+    return filled;
   }
 
   /** Scales the result for the given stack size */
@@ -134,9 +137,9 @@ public class ToolFluidCapability extends FluidModifierHookIterator<ModifierEntry
     }
     int size = container.getCount();
     if (size > 1) {
-      resource = new FluidStack(resource, resource.getAmount() / size);
+      resource = resource.copyWithAmount(resource.getAmount() / size);
     }
-    return scaleResult(drain(tool.get(), resource, action), size);
+    return commit(scaleResult(drain(tool, resource, action), size), action);
   }
 
   @Nonnull
@@ -146,7 +149,15 @@ public class ToolFluidCapability extends FluidModifierHookIterator<ModifierEntry
       return FluidStack.EMPTY;
     }
     int size = container.getCount();
-    return scaleResult(drain(tool.get(), maxDrain / size, action), size);
+    return commit(scaleResult(drain(tool, maxDrain / size, action), size), action);
+  }
+
+  /** Writes the tool back to its stack if a drain actually took fluid */
+  private FluidStack commit(FluidStack drained, FluidAction action) {
+    if (!drained.isEmpty() && action.execute()) {
+      tool.updateStack();
+    }
+    return drained;
   }
 
   /** Adds the tanks from the fluid modifier to the tool */
@@ -316,19 +327,7 @@ public class ToolFluidCapability extends FluidModifierHookIterator<ModifierEntry
     }
   }
 
-  /** Provider instance for a fluid cap */
-  public static class Provider implements IToolCapabilityProvider {
-    private final LazyOptional<IFluidHandlerItem> fluidCap;
-    public Provider(ItemStack stack, Supplier<? extends IToolStackView> toolStack) {
-      this.fluidCap = LazyOptional.of(() -> new ToolFluidCapability(stack, toolStack));
-    }
-
-    @Override
-    public <T> LazyOptional<T> getCapability(IToolStackView tool, Capability<T> cap) {
-      if (cap == ForgeCapabilities.FLUID_HANDLER_ITEM && tool.getVolatileData().getInt(TOTAL_TANKS) > 0) {
-        return fluidCap.cast();
-      }
-      return LazyOptional.empty();
-    }
-  }
+  /** Provider instance for the fluid cap, offered only by a tool that has tanks */
+  public static final IToolCapabilityProvider<IFluidHandlerItem> PROVIDER =
+    (stack, tool) -> tool.getVolatileData().getInt(TOTAL_TANKS) > 0 ? new ToolFluidCapability(stack, tool) : null;
 }
