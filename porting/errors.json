@@ -1,10 +1,10 @@
 {
-    "total": 381,
-    "islandFiles": 528,
+    "total": 386,
+    "islandFiles": 539,
     "categories": {
         "other: static import only from classes and interfaces": 7,
         "package TinkerDataCapability": 8,
-        "package slimeknights.tconstruct.common": 29,
+        "package slimeknights.tconstruct.common": 30,
         "package slimeknights.tconstruct.common.TinkerTags": 2,
         "package slimeknights.tconstruct.common.config": 2,
         "package slimeknights.tconstruct.common.network": 5,
@@ -24,7 +24,7 @@
         "package slimeknights.tconstruct.library.tools.capability": 20,
         "package slimeknights.tconstruct.library.tools.capability.TinkerDataCapability": 11,
         "package slimeknights.tconstruct.library.tools.capability.fluid": 1,
-        "package slimeknights.tconstruct.library.tools.helper": 33,
+        "package slimeknights.tconstruct.library.tools.helper": 34,
         "package slimeknights.tconstruct.library.tools.item": 12,
         "package slimeknights.tconstruct.library.tools.item.armor": 1,
         "package slimeknights.tconstruct.shared": 3,
@@ -39,7 +39,7 @@
         "symbol class ArmorModuleBuilder": 6,
         "symbol class BlockItemProviderModifierHook": 2,
         "symbol class ComputableDataKey": 6,
-        "symbol class CustomExplosion": 1,
+        "symbol class CustomExplosion": 2,
         "symbol class DomainDisplayName": 1,
         "symbol class DummyArmorMaterial": 1,
         "symbol class Holder": 2,
@@ -50,12 +50,12 @@
         "symbol class OvergrowthModule": 1,
         "symbol class RecipeResult": 5,
         "symbol class SlotType": 32,
-        "symbol class TConstruct": 64,
+        "symbol class TConstruct": 65,
         "symbol class TagPredicate": 4,
         "symbol class TagUtil": 2,
         "symbol class TeleportHelper": 1,
         "symbol class TinkerDataKey": 22,
-        "symbol class Util": 36,
+        "symbol class Util": 37,
         "symbol class VariantFormatter": 1
     }
 }

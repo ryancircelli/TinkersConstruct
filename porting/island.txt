@@ -555,3 +555,14 @@ src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/RandomTelep
 src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/RemoveEffectFluidEffect.java
 src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/RestoreHungerFluidEffect.java
 src/main/java/slimeknights/tconstruct/library/modifiers/fluid/entity/package-info.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/general/AlternativesFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/general/AreaMobEffectFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/general/ConditionalFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/general/DropItemFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/general/ExplosionFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/general/FluidEffectListBuilder.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/general/LoadConditionFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/general/ScalingFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/general/SequenceFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/general/SetBlockFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/general/package-info.java
