@@ -45,6 +45,7 @@ import slimeknights.tconstruct.library.tools.helper.ToolDamageUtil;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.utils.Util;
+import slimeknights.tconstruct.tools.TinkerToolActions;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -56,10 +57,6 @@ public enum PlaceFireModule implements ModifierModule, EntityInteractionModifier
 
   private static final List<ModuleHook<?>> DEFAULT_HOOKS = HookProvider.<PlaceFireModule>defaultHooks(ModifierHooks.ENTITY_INTERACT, ModifierHooks.BLOCK_INTERACT, ModifierHooks.TOOL_ACTION, ModifierHooks.REMOVE_BLOCK);
   public static final RecordLoadable<PlaceFireModule> LOADER = new SingletonLoader<>(INSTANCE);
-  /** Generic action for the sake of people who want compat but do not want to request a specific action */
-  private static final ToolAction LIGHT_FIRE = ToolAction.get("light_fire");
-  /** Compat with mods adding custom campfires */
-  private static final ToolAction LIGHT_CAMPFIRE = ToolAction.get("light_campfire");
 
   @Override
   public RecordLoadable<PlaceFireModule> getLoader() {
@@ -73,7 +70,7 @@ public enum PlaceFireModule implements ModifierModule, EntityInteractionModifier
 
   @Override
   public boolean canPerformAction(IToolStackView tool, ModifierEntry modifier, ToolAction toolAction) {
-    return toolAction == LIGHT_CAMPFIRE || toolAction == LIGHT_FIRE;
+    return toolAction == TinkerToolActions.LIGHT_CAMPFIRE || toolAction == TinkerToolActions.LIGHT_FIRE;
   }
 
   @Override
