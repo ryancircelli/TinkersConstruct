@@ -433,3 +433,14 @@ src/main/java/slimeknights/tconstruct/library/utils/LazyDecode.java
 src/main/java/slimeknights/tconstruct/library/utils/ResourceId.java
 src/main/java/slimeknights/tconstruct/library/utils/RomanNumeralHelper.java
 src/main/java/slimeknights/tconstruct/library/utils/Schedule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/ConditionalModifierModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/ModifierModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/package-info.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/util/BooleanPredicate.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/util/ConditionalStatTooltip.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/util/IntLevelModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/util/LevelingIntModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/util/ModifierCondition.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/util/ModuleBuilder.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/util/ProjectilePredicate.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/util/package-info.java
