@@ -65,7 +65,7 @@ public class TinkerStationRepairRecipe implements ITinkerStationRecipe {
   }
 
   /** Gets the amount to repair per item */
-  protected float getRepairPerItem(ToolStack tool, ITinkerStationContainer inv, int slot, MaterialId repairMaterial) {
+  protected float getRepairPerItem(IToolStackView tool, ITinkerStationContainer inv, int slot, MaterialId repairMaterial) {
     // repair stat may be null in the modifier repair recipe
     float amount = getRepairAmount(tool, repairMaterial);
     if (amount > 0) {
@@ -189,7 +189,7 @@ public class TinkerStationRepairRecipe implements ITinkerStationRecipe {
    * @param amountConsumer  Action to perform on repair, input is the amount consumed
    * @return  Repair from this slot
    */
-  protected int repairFromSlot(ToolStack tool, ITinkerStationContainer inv, int repairNeeded, int slot, IntConsumer amountConsumer) {
+  protected int repairFromSlot(IToolStackView tool, ITinkerStationContainer inv, int repairNeeded, int slot, IntConsumer amountConsumer) {
     ItemStack stack = inv.getInput(slot);
     if (!stack.isEmpty()) {
       // we have a recipe with matching stack, find out how much we can repair
