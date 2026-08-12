@@ -2,13 +2,12 @@ package slimeknights.tconstruct.library.tools.helper;
 
 import com.google.common.collect.Multimap;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Unit;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -17,9 +16,11 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemStack.TooltipPart;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.client.event.GatherSkippedAttributeTooltipsEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import slimeknights.mantle.client.SafeClientAccess;
 import slimeknights.mantle.client.TooltipKey;
 import slimeknights.tconstruct.TConstruct;
@@ -42,6 +43,8 @@ import slimeknights.tconstruct.library.tools.item.IModifiableDisplay;
 import slimeknights.tconstruct.library.tools.item.ITinkerStationDisplay;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.MaterialNBT;
+import slimeknights.tconstruct.library.tools.nbt.ToolComponents;
+import slimeknights.tconstruct.library.tools.nbt.ToolDataComponent;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
 import slimeknights.tconstruct.library.tools.stat.ToolStats;
@@ -51,7 +54,6 @@ import slimeknights.tconstruct.tools.TinkerToolActions;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.function.BiPredicate;
 
 /** Helper functions for adding tooltips to tools */
@@ -61,22 +63,12 @@ public class TooltipUtil {
   /** Format for a name ID pair */
   public static final String KEY_ID_FORMAT = TConstruct.makeTranslationKey("item", "tool.id_format");
 
-  /** Tool tag to set that makes a tool a display tool */
-  public static final String KEY_DISPLAY = "tic_display";
-  /** Tag to set name without name being italic */
-  private static final String KEY_NAME = "tic_name";
-
   /** Function to show all attributes in the tooltip */
-  public static final BiPredicate<Attribute, Operation> SHOW_ALL_ATTRIBUTES = (att, op) -> true;
+  public static final BiPredicate<Holder<Attribute>,Operation> SHOW_ALL_ATTRIBUTES = (att, op) -> true;
   /** Function to show all attributes in the tooltip */
-  public static final BiPredicate<Attribute, Operation> SHOW_MELEE_ATTRIBUTES = (att, op) -> op != Operation.ADDITION || (att != Attributes.ATTACK_DAMAGE && att != Attributes.ATTACK_SPEED && att != Attributes.ARMOR && att != Attributes.ARMOR_TOUGHNESS && att != Attributes.KNOCKBACK_RESISTANCE);
+  public static final BiPredicate<Holder<Attribute>,Operation> SHOW_MELEE_ATTRIBUTES = (att, op) -> op != Operation.ADD_VALUE || !(att.is(Attributes.ATTACK_DAMAGE) || att.is(Attributes.ATTACK_SPEED) || att.is(Attributes.ARMOR) || att.is(Attributes.ARMOR_TOUGHNESS) || att.is(Attributes.KNOCKBACK_RESISTANCE));
   /** Function to show all attributes in the tooltip */
-  public static final BiPredicate<Attribute, Operation> SHOW_ARMOR_ATTRIBUTES = (att, op) -> op != Operation.ADDITION || (att != Attributes.ARMOR && att != Attributes.ARMOR_TOUGHNESS && att != Attributes.KNOCKBACK_RESISTANCE);
-
-  /** Flags used when not holding control or shift */
-  private static final int DEFAULT_HIDE_FLAGS = TooltipPart.ENCHANTMENTS.getMask();
-  /** Flags used when holding control or shift */
-  private static final int MODIFIER_HIDE_FLAGS = TooltipPart.ENCHANTMENTS.getMask() | TooltipPart.MODIFIERS.getMask();
+  public static final BiPredicate<Holder<Attribute>,Operation> SHOW_ARMOR_ATTRIBUTES = (att, op) -> op != Operation.ADD_VALUE || !(att.is(Attributes.ARMOR) || att.is(Attributes.ARMOR_TOUGHNESS) || att.is(Attributes.KNOCKBACK_RESISTANCE));
 
   private TooltipUtil() {}
 
@@ -92,35 +84,49 @@ public class TooltipUtil {
   private static final Component RANDOM_MATERIALS = TConstruct.makeTranslation("tooltip", "random_materials").withStyle(ChatFormatting.GRAY);
 
   /**
+   * Registers the tooltip listeners this class owns. Must be called during mod construction, beside
+   * {@link ModifierLootingHandler#init()}.
+   */
+  public static void init() {
+    NeoForge.EVENT_BUS.addListener(TooltipUtil::onGatherSkippedAttributes);
+  }
+
+  /**
    * If true, this stack was created for display, so some of the tooltip is suppressed
    * @param stack  Stack to check
    * @return  True if marked display
    */
   public static boolean isDisplay(ItemStack stack) {
-    CompoundTag nbt = stack.getTag();
-    return nbt != null && nbt.getBoolean(KEY_DISPLAY);
+    return stack.has(ToolComponents.DISPLAY);
   }
 
-  /** Sets the tool name in a way that will not be italic */
-  public static void setDisplayName(ItemStack tool, String name) {
-    if (name.isEmpty()) {
-      CompoundTag tag = tool.getTag();
-      if (tag != null) {
-        tag.remove(KEY_NAME);
-      }
+  /** Marks the given stack as a display stack, see {@link ToolComponents#DISPLAY} */
+  public static void setDisplay(ItemStack stack) {
+    stack.set(ToolComponents.DISPLAY, Unit.INSTANCE);
+  }
+
+  /**
+   * Sets the tool name in a way that will not be italic, passing null to clear it.
+   * @apiNote  This is {@code minecraft:item_name} now, and takes the {@link Component} that component holds rather than
+   * the string the 1.20 {@code tic_name} tag did. 1.20 needed its own key because the only vanilla name was
+   * {@code CUSTOM_NAME}, which the tooltip italicises; 1.21 added {@code ITEM_NAME} for exactly this, and
+   * {@link ItemStack#getHoverName()} falls back to it while the italic branch still checks only {@code CUSTOM_NAME}.
+   * A component rather than a string because that is what the value is: the one round trip in the codebase reads a
+   * name off one stack and writes it to another, which is lossless this way and lossy through {@code Component#getString}.
+   * Null rather than the empty string for "no name", as the empty string conflated absent with named-empty.
+   */
+  public static void setDisplayName(ItemStack tool, @Nullable Component name) {
+    if (name == null) {
+      tool.remove(DataComponents.ITEM_NAME);
     } else {
-      tool.getOrCreateTag().putString(KEY_NAME, name);
-      tool.resetHoverName();
+      tool.set(DataComponents.ITEM_NAME, name);
     }
   }
 
-  /** Gets the display name from the given tool */
-  public static String getDisplayName(ItemStack tool) {
-    CompoundTag tag = tool.getTag();
-    if (tag != null) {
-      return tag.getString(KEY_NAME);
-    }
-    return "";
+  /** Gets the name set by {@link #setDisplayName(ItemStack, Component)}, or null if this tool has no name override */
+  @Nullable
+  public static Component getDisplayName(ItemStack tool) {
+    return tool.get(DataComponents.ITEM_NAME);
   }
 
   /**
@@ -161,7 +167,7 @@ public class TooltipUtil {
     ToolDefinition definition = item.getToolDefinition();
     if (isDisplay(stack)) {
       IToolStackView tool = ToolStack.from(stack);
-      addModifierNames(stack, tool, player, tooltip, tooltipFlag);
+      addModifierNames(tool, player, tooltip, tooltipFlag);
       // No definition?
     } else if (!definition.isDataLoaded()) {
       tooltip.add(NO_DATA);
@@ -169,11 +175,8 @@ public class TooltipUtil {
       // if not initialized, show no data tooltip on non-standard items
     } else if (!ToolStack.isInitialized(stack)) {
       tooltip.add(UNINITIALIZED);
-      if (definition.hasMaterials()) {
-        CompoundTag nbt = stack.getTag();
-        if (nbt == null || !nbt.contains(ToolStack.TAG_MATERIALS, Tag.TAG_LIST)) {
-          tooltip.add(RANDOM_MATERIALS);
-        }
+      if (definition.hasMaterials() && ToolDataComponent.get(stack).materials().isEmpty()) {
+        tooltip.add(RANDOM_MATERIALS);
       }
     } else {
       switch (tooltipKey) {
@@ -188,7 +191,7 @@ public class TooltipUtil {
           // intentional fallthrough
         default:
           IToolStackView tool = ToolStack.from(stack);
-          getDefaultInfo(stack, tool, player, tooltip, tooltipFlag);
+          getDefaultInfo(tool, player, tooltip, tooltipFlag);
           break;
       }
     }
@@ -196,14 +199,17 @@ public class TooltipUtil {
 
   /**
    * Adds modifier names to the tooltip
-   * @param stack      Stack instance. If empty, skips adding enchantment names
    * @param tool       Tool instance
    * @param player     Player holding the tool
    * @param tooltips   Tooltip list
    * @param flag       Tooltip flag
+   * @apiNote  Took the {@link ItemStack} before 1.21 so it could render the stack's vanilla enchantments here, in the
+   * modifier list, with {@code DEFAULT_HIDE_FLAGS} suppressing vanilla's own enchantment section. Nothing suppresses
+   * that section in 1.21 (see {@link #onGatherSkippedAttributes}), so rendering them here would duplicate every line; vanilla
+   * runs instead, which the 1.20 code already wondered aloud whether it should. Nothing is lost - vanilla prints the
+   * same names from the same component, just below our block rather than inside it.
    */
-  @SuppressWarnings("deprecation")
-  public static void addModifierNames(ItemStack stack, IToolStackView tool, @Nullable Player player, List<Component> tooltips, TooltipFlag flag) {
+  public static void addModifierNames(IToolStackView tool, @Nullable Player player, List<Component> tooltips, TooltipFlag flag) {
     RegistryAccess access = player == null ? null : player.level().registryAccess();
     for (ModifierEntry entry : tool.getModifierList()) {
       if (entry.getModifier().shouldDisplay(false)) {
@@ -212,18 +218,6 @@ public class TooltipUtil {
           tooltips.add(Component.translatable(KEY_ID_FORMAT, name, Component.literal(entry.getModifier().getId().toString())).withStyle(ChatFormatting.DARK_GRAY));
         } else {
           tooltips.add(name);
-        }
-      }
-    }
-    if (!stack.isEmpty()) {
-      CompoundTag tag = stack.getTag();
-      if (tag != null && tag.contains("Enchantments", Tag.TAG_LIST)) {
-        ListTag enchantments = tag.getList("Enchantments", Tag.TAG_COMPOUND);
-        for (int i = 0; i < enchantments.size(); ++i) {
-          CompoundTag enchantmentTag = enchantments.getCompound(i);
-          // TODO: is this the best place for this, or should we let vanilla run?
-          BuiltInRegistries.ENCHANTMENT.getOptional(ResourceLocation.tryParse(enchantmentTag.getString("id")))
-                                       .ifPresent(enchantment -> tooltips.add(enchantment.getFullname(enchantmentTag.getInt("lvl"))));
         }
       }
     }
@@ -236,13 +230,16 @@ public class TooltipUtil {
    * @param tooltips  Tooltip list
    * @param flag      Tooltip flag
    */
-  public static void getDefaultInfo(ItemStack stack, IToolStackView tool, @Nullable Player player, List<Component> tooltips, TooltipFlag flag) {
+  public static void getDefaultInfo(IToolStackView tool, @Nullable Player player, List<Component> tooltips, TooltipFlag flag) {
     // shows as broken when broken, hold shift for proper durability
-    if (tool.getItem().canBeDepleted() && !tool.isUnbreakable() && tool.hasTag(TinkerTags.Items.DURABILITY)) {
+    // Item#canBeDepleted is gone; the item's default components are where a damageable item declares its durability.
+    // Not the stack's, as this only has the tool view, and not ItemStack#isDamageableItem, which folds in the
+    // unbreakable check the next clause already makes.
+    if (tool.getItem().components().has(DataComponents.MAX_DAMAGE) && !tool.isUnbreakable() && tool.hasTag(TinkerTags.Items.DURABILITY)) {
       tooltips.add(TooltipBuilder.formatDurability(tool.getCurrentDurability(), tool.getStats().getInt(ToolStats.DURABILITY), true));
     }
     // modifier tooltip
-    addModifierNames(stack, tool, player, tooltips, flag);
+    addModifierNames(tool, player, tooltips, flag);
     tooltips.add(Component.empty());
     tooltips.add(TOOLTIP_HOLD_SHIFT);
     if (tool.getDefinition().hasMaterials()) {
@@ -418,24 +415,24 @@ public class TooltipUtil {
    * @param showAttribute  Predicate to determine whether an attribute should show
    * @param slots          List of slots to display
    */
-  public static void addAttributes(ITinkerStationDisplay item, IToolStackView tool, @Nullable Player player, List<Component> tooltip, BiPredicate<Attribute, Operation> showAttribute, EquipmentSlot... slots) {
+  public static void addAttributes(ITinkerStationDisplay item, IToolStackView tool, @Nullable Player player, List<Component> tooltip, BiPredicate<Holder<Attribute>,Operation> showAttribute, EquipmentSlot... slots) {
     for (EquipmentSlot slot : slots) {
-      Multimap<Attribute,AttributeModifier> modifiers = item.getAttributeModifiers(tool, slot);
+      Multimap<Holder<Attribute>,AttributeModifier> modifiers = item.getAttributeModifiers(tool, slot);
       if (!modifiers.isEmpty()) {
         if (slots.length > 1) {
           tooltip.add(Component.empty());
           tooltip.add((Component.translatable("item.modifiers." + slot.getName())).withStyle(ChatFormatting.GRAY));
         }
 
-        for (Entry<Attribute, AttributeModifier> entry : modifiers.entries()) {
-          Attribute attribute = entry.getKey();
+        for (Entry<Holder<Attribute>,AttributeModifier> entry : modifiers.entries()) {
+          Holder<Attribute> attribute = entry.getKey();
           AttributeModifier modifier = entry.getValue();
-          Operation operation = modifier.getOperation();
+          Operation operation = modifier.operation();
           // allow suppressing specific attributes
           if (!showAttribute.test(attribute, operation)) {
             continue;
           }
-          addAttribute(attribute, operation, modifier.getAmount(), modifier.getId(), player, tooltip);
+          addAttribute(attribute.value(), operation, modifier.amount(), modifier.id(), player, tooltip);
         }
       }
     }
@@ -446,27 +443,30 @@ public class TooltipUtil {
    * @param attribute  Attribute type
    * @param operation  Attribute operationm
    * @param amount     Attribute amount
-   * @param uuid       Attribute UUID
+   * @param id         Attribute modifier ID
    * @param player     Player instance
    * @param tooltip    Tooltip list
+   * @apiNote  Identifies the modifier by {@link ResourceLocation} rather than {@code UUID}, as that is what an
+   * {@link AttributeModifier} carries in 1.21. Still takes a bare {@link Attribute} rather than a holder: everything it
+   * needs is on the value, and the modules that call it hold the attribute itself.
    */
-  public static void addAttribute(Attribute attribute, Operation operation, double amount, @Nullable UUID uuid, @Nullable Player player, List<Component> tooltip) {
+  public static void addAttribute(Attribute attribute, Operation operation, double amount, @Nullable ResourceLocation id, @Nullable Player player, List<Component> tooltip) {
     // find value
     boolean showEquals = false;
-    if (player != null) {
-      if (uuid == Item.BASE_ATTACK_DAMAGE_UUID) {
+    if (player != null && id != null) {
+      if (id.equals(Item.BASE_ATTACK_DAMAGE_ID)) {
         amount += player.getAttributeBaseValue(Attributes.ATTACK_DAMAGE);
         showEquals = true;
-      } else if (uuid == Item.BASE_ATTACK_SPEED_UUID) {
+      } else if (id.equals(Item.BASE_ATTACK_SPEED_ID)) {
         amount += player.getAttributeBaseValue(Attributes.ATTACK_SPEED);
         showEquals = true;
       }
     }
     // some numbers display a bit different
     double displayValue = amount;
-    if (operation == Operation.ADDITION) {
+    if (operation == Operation.ADD_VALUE) {
       // vanilla multiplies knockback resist by 10 for some odd reason
-      if (attribute.equals(Attributes.KNOCKBACK_RESISTANCE)) {
+      if (attribute == Attributes.KNOCKBACK_RESISTANCE.value()) {
         displayValue *= 10;
       }
     } else {
@@ -477,24 +477,46 @@ public class TooltipUtil {
     Component name = Component.translatable(attribute.getDescriptionId());
     if (showEquals) {
       tooltip.add(Component.literal(" ")
-                           .append(Component.translatable("attribute.modifier.equals." + operation.toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(displayValue), name))
+                           .append(Component.translatable("attribute.modifier.equals." + operation.id(), ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(displayValue), name))
                            .withStyle(ChatFormatting.DARK_GREEN));
     } else if (amount > 0.0D) {
-      tooltip.add((Component.translatable("attribute.modifier.plus." + operation.toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(displayValue), name))
+      tooltip.add((Component.translatable("attribute.modifier.plus." + operation.id(), ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(displayValue), name))
                     .withStyle(ChatFormatting.BLUE));
     } else if (amount < 0.0D) {
       displayValue *= -1;
-      tooltip.add((Component.translatable("attribute.modifier.take." + operation.toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(displayValue), name))
+      tooltip.add((Component.translatable("attribute.modifier.take." + operation.id(), ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(displayValue), name))
                     .withStyle(ChatFormatting.RED));
     }
   }
 
-  /** Gets the tooltip flags for the current ctrl+shift combination, used to hide enchantments and modifiers from the tooltip as needed */
-  public static int getModifierHideFlags(ToolDefinition definition) {
+  /**
+   * Checks whether we are drawing the tool's attribute modifiers ourselves for the current ctrl+shift combination,
+   * meaning vanilla's own attribute section has to be suppressed. Client sensitive; on a server the tooltip key is
+   * always {@link TooltipKey#NORMAL} so this is always false.
+   * @see #onGatherSkippedAttributes(GatherSkippedAttributeTooltipsEvent)
+   */
+  public static boolean hidesAttributes(ToolDefinition definition) {
     TooltipKey key = SafeClientAccess.getTooltipKey();
-    if (key == TooltipKey.SHIFT || (key == TooltipKey.CONTROL && definition.hasMaterials())) {
-      return MODIFIER_HIDE_FLAGS;
+    return key == TooltipKey.SHIFT || (key == TooltipKey.CONTROL && definition.hasMaterials());
+  }
+
+  /**
+   * Suppresses vanilla's attribute modifier section on our tools whenever {@link #getDefaultStats} and friends are
+   * drawing it themselves.
+   * @apiNote  Replaces the {@code getModifierHideFlags} int mask and the {@code IForgeItem#getDefaultTooltipHideFlags}
+   * override that consumed it, both of which are gone: 1.21 replaced {@code ItemStack.TooltipPart} with a
+   * {@code showInTooltip} flag on each component, and NeoForge's attribute tooltip reads that flag off the stored
+   * {@code minecraft:attribute_modifiers} component. Our tools compute their attributes rather than storing that
+   * component, so there is no flag of ours for it to read; this event, which NeoForge fires from
+   * {@code AttributeUtil#applyModifierTooltips} for exactly this purpose, is the only hook that can answer per stack
+   * and per keypress the way the old mask did.
+   * <p>
+   * The enchantment half of the old mask has no equivalent at all - {@code ItemEnchantments#showInTooltip} is stored
+   * on the component and our tools do not own theirs - so it is dropped; see {@link #addModifierNames}.
+   */
+  private static void onGatherSkippedAttributes(GatherSkippedAttributeTooltipsEvent event) {
+    if (event.getStack().getItem() instanceof IModifiable modifiable && hidesAttributes(modifiable.getToolDefinition())) {
+      event.setSkipAll(true);
     }
-    return DEFAULT_HIDE_FLAGS;
   }
 }

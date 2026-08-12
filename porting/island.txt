@@ -709,6 +709,17 @@ src/main/java/slimeknights/tconstruct/library/tools/definition/module/weapon/Par
 src/main/java/slimeknights/tconstruct/library/tools/definition/module/weapon/SweepWeaponAttack.java
 src/main/java/slimeknights/tconstruct/library/tools/definition/module/weapon/package-info.java
 src/main/java/slimeknights/tconstruct/library/tools/definition/package-info.java
+src/main/java/slimeknights/tconstruct/library/tools/helper/ArmorUtil.java
+src/main/java/slimeknights/tconstruct/library/tools/helper/ModifierBuilder.java
+src/main/java/slimeknights/tconstruct/library/tools/helper/ModifierLootingHandler.java
+src/main/java/slimeknights/tconstruct/library/tools/helper/ModifierUtil.java
+src/main/java/slimeknights/tconstruct/library/tools/helper/ToolAttackUtil.java
+src/main/java/slimeknights/tconstruct/library/tools/helper/ToolBuildHandler.java
+src/main/java/slimeknights/tconstruct/library/tools/helper/ToolDamageUtil.java
+src/main/java/slimeknights/tconstruct/library/tools/helper/ToolHarvestLogic.java
+src/main/java/slimeknights/tconstruct/library/tools/helper/TooltipBuilder.java
+src/main/java/slimeknights/tconstruct/library/tools/helper/TooltipUtil.java
+src/main/java/slimeknights/tconstruct/library/tools/helper/package-info.java
 src/main/java/slimeknights/tconstruct/library/tools/layout/LayoutIcon.java
 src/main/java/slimeknights/tconstruct/library/tools/layout/LayoutSlot.java
 src/main/java/slimeknights/tconstruct/library/tools/layout/Patterns.java
