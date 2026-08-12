@@ -176,12 +176,13 @@ public class ToolStack implements IToolStackView {
   }
 
   /**
-   * Creates a tool stack from the given item stack, not copying NBT
+   * Creates a read only view of the given item stack, not copying NBT.
+   * Prefer this over {@link #mutable(ItemStack)} whenever the tool is only read, as it prevents accidentally editing a tool you do not own.
    * @param stack  Stack
-   * @return  Tool stack
+   * @return  Read only view of the stack
    */
-  public static ToolStack from(ItemStack stack) {
-    return from(stack, false);
+  public static IToolStackView from(ItemStack stack) {
+    return mutable(stack);
   }
 
   /**
