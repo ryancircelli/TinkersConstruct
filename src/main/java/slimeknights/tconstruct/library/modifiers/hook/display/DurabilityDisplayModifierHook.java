@@ -51,7 +51,7 @@ public interface DurabilityDisplayModifierHook {
     }
 
     // poll modifiers to see if any think the bar should show or should not show
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     for (ModifierEntry entry : tool.getModifierList()) {
       Boolean show = entry.getHook(ModifierHooks.DURABILITY_DISPLAY).showDurabilityBar(tool, entry);
       if (show != null) {
@@ -89,7 +89,7 @@ public interface DurabilityDisplayModifierHook {
    * @return  Durability width between 0 and 13
    */
   static int getDurabilityWidth(ItemStack stack) {
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     if (tool.isBroken()) {
       return 0;
     }
@@ -111,7 +111,7 @@ public interface DurabilityDisplayModifierHook {
    * @return  RGB value
    */
   static int getDurabilityRGB(ItemStack stack) {
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     // if the tool is broken, it has a 0 width bar, no other way to achieve 0 width bar
     // 0 width is not even visible, so save some effort and call it black
     if (tool.isBroken()) {

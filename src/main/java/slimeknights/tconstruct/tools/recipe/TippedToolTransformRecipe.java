@@ -85,7 +85,7 @@ public class TippedToolTransformRecipe extends ToolBuildingRecipe {
           CompoundTag tag = stack.getTag();
           if (tag != null) {
             ItemStack copy = result.copy();
-            ToolStack.from(copy).getPersistentData().putString(modifier, tag.getString(PotionUtils.TAG_POTION));
+            ToolStack.mutable(copy).getPersistentData().putString(modifier, tag.getString(PotionUtils.TAG_POTION));
             return copy;
           }
           return result;

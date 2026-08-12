@@ -72,7 +72,7 @@ public class ModifierLootModifier extends LootModifier {
     }
     // hopefully one of the two worked
     if (stack != null && stack.is(TinkerTags.Items.LOOT_CAPABLE_TOOL)) {
-      ToolStack tool = ToolStack.from(stack);
+      IToolStackView tool = ToolStack.from(stack);
       if (!tool.isBroken()) {
         for (ModifierEntry entry : tool.getModifierList()) {
           entry.getHook(ModifierHooks.PROCESS_LOOT).processLoot(tool, entry, generatedLoot, context);

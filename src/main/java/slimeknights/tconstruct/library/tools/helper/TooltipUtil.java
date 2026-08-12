@@ -160,7 +160,7 @@ public class TooltipUtil {
     // if the display tag is set, just show modifiers
     ToolDefinition definition = item.getToolDefinition();
     if (isDisplay(stack)) {
-      ToolStack tool = ToolStack.from(stack);
+      IToolStackView tool = ToolStack.from(stack);
       addModifierNames(stack, tool, player, tooltip, tooltipFlag);
       // No definition?
     } else if (!definition.isDataLoaded()) {
@@ -187,7 +187,7 @@ public class TooltipUtil {
           }
           // intentional fallthrough
         default:
-          ToolStack tool = ToolStack.from(stack);
+          IToolStackView tool = ToolStack.from(stack);
           getDefaultInfo(stack, tool, player, tooltip, tooltipFlag);
           break;
       }

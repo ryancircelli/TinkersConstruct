@@ -112,7 +112,7 @@ public class ToolModel implements IUnbakedGeometry<ToolModel> {
       // for modifiers, we need the overrides instance to properly process
       BakedModel itemModel = Minecraft.getInstance().getItemRenderer().getItemModelShaper().getItemModel(stack.getItem());
       if (itemModel != null && itemModel.getOverrides() instanceof MaterialOverrideHandler overrides) {
-        ToolStack tool = ToolStack.from(stack);
+        IToolStackView tool = ToolStack.from(stack);
         // modifier model indexes start at the last part
         List<ModifierEntry> modifiers = (overrides.showTraits ? tool.getModifiers() : tool.getUpgrades()).getModifiers();
         ModifierEntry[] firsts = new ModifierEntry[overrides.firstModifiers.size()];

@@ -227,7 +227,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
   @Override
   public void setDamage(ItemStack stack, int damage) {
     if (canBeDepleted()) {
-      ToolStack.from(stack).setDamage(damage);
+      ToolStack.mutable(stack).setDamage(damage);
     }
   }
 
@@ -327,7 +327,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
   /* Right click hooks */
 
   /** If true, this interaction hook should defer to the offhand */
-  protected static boolean shouldInteract(@Nullable LivingEntity player, ToolStack toolStack, InteractionHand hand) {
+  protected static boolean shouldInteract(@Nullable LivingEntity player, IToolStackView toolStack, InteractionHand hand) {
     IModDataView volatileData = toolStack.getVolatileData();
     if (volatileData.getBoolean(NO_INTERACTION)) {
       return false;
@@ -343,7 +343,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
   @Override
   public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
     if (stack.getCount() == 1) {
-      ToolStack tool = ToolStack.from(stack);
+      IToolStackView tool = ToolStack.from(stack);
       InteractionHand hand = context.getHand();
       if (shouldInteract(context.getPlayer(), tool, hand)) {
         for (ModifierEntry entry : tool.getModifierList()) {
@@ -361,7 +361,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
   public InteractionResult useOn(UseOnContext context) {
     ItemStack stack = context.getItemInHand();
     if (stack.getCount() == 1) {
-      ToolStack tool = ToolStack.from(stack);
+      IToolStackView tool = ToolStack.from(stack);
       InteractionHand hand = context.getHand();
       if (shouldInteract(context.getPlayer(), tool, hand)) {
         for (ModifierEntry entry : tool.getModifierList()) {
@@ -377,7 +377,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
 
   @Override
   public InteractionResult interactLivingEntity(ItemStack stack, Player playerIn, LivingEntity target, InteractionHand hand) {
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     if (shouldInteract(playerIn, tool, hand)) {
       for (ModifierEntry entry : tool.getModifierList()) {
         InteractionResult result = entry.getHook(ModifierHooks.ENTITY_INTERACT).afterEntityUse(tool, entry, playerIn, target, hand, InteractionSource.RIGHT_CLICK);
@@ -395,7 +395,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
     if (stack.getCount() > 1) {
       return InteractionResultHolder.pass(stack);
     }
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     if (shouldInteract(playerIn, tool, hand)) {
       for (ModifierEntry entry : tool.getModifierList()) {
         InteractionResult result = entry.getHook(ModifierHooks.GENERAL_INTERACT).onToolUse(tool, entry, playerIn, hand, InteractionSource.RIGHT_CLICK);
@@ -409,7 +409,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
 
   @Override
   public void onUseTick(Level pLevel, LivingEntity entityLiving, ItemStack stack, int timeLeft) {
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     ModifierEntry activeModifier = GeneralInteractionModifierHook.getActiveModifier(tool);
     // new hook gets called on all actively in use modifiers
     GeneralInteractionModifierHook hook = activeModifier.getHook(ModifierHooks.GENERAL_INTERACT);
@@ -425,7 +425,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
   public boolean canContinueUsing(ItemStack oldStack, ItemStack newStack) {
     if (super.canContinueUsing(oldStack, newStack)) {
       if (oldStack != newStack) {
-        GeneralInteractionModifierHook.finishUsing(ToolStack.from(oldStack));
+        GeneralInteractionModifierHook.finishUsing(ToolStack.mutable(oldStack));
       }
     }
     return super.canContinueUsing(oldStack, newStack);
@@ -433,7 +433,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
 
   @Override
   public ItemStack finishUsingItem(ItemStack stack, Level worldIn, LivingEntity entityLiving) {
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     ModifierEntry activeModifier = GeneralInteractionModifierHook.getActiveModifier(tool);
     GeneralInteractionModifierHook hook = activeModifier.getHook(ModifierHooks.GENERAL_INTERACT);
     int duration = hook.getUseDuration(tool, activeModifier);
@@ -446,7 +446,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
 
   @Override
   public void releaseUsing(ItemStack stack, Level worldIn, LivingEntity entityLiving, int timeLeft) {
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     ModifierEntry activeModifier = GeneralInteractionModifierHook.getActiveModifier(tool);
     GeneralInteractionModifierHook hook = activeModifier.getHook(ModifierHooks.GENERAL_INTERACT);
     int duration = hook.getUseDuration(tool, activeModifier);
@@ -459,14 +459,14 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
   @Override
   public void onStopUsing(ItemStack stack, LivingEntity entity, int timeLeft) {
     // triggers on scroll away and all that
-    ToolStack tool = ToolStack.from(stack);
+    ToolStack tool = ToolStack.mutable(stack);
     UsingToolModifierHook.afterStopUsing(tool, entity, timeLeft);
     GeneralInteractionModifierHook.finishUsing(tool);
   }
 
   @Override
   public int getUseDuration(ItemStack stack) {
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     ModifierEntry activeModifier = GeneralInteractionModifierHook.getActiveModifier(tool);
     if (activeModifier != ModifierEntry.EMPTY) {
       return activeModifier.getHook(ModifierHooks.GENERAL_INTERACT).getUseDuration(tool, activeModifier);
@@ -476,7 +476,7 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
 
   @Override
   public UseAnim getUseAnimation(ItemStack stack) {
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     ModifierEntry activeModifier = GeneralInteractionModifierHook.getActiveModifier(tool);
     if (activeModifier != ModifierEntry.EMPTY) {
       return activeModifier.getHook(ModifierHooks.GENERAL_INTERACT).getUseAction(tool, activeModifier);
@@ -543,8 +543,8 @@ public class ModifiableItem extends TieredItem implements IModifiableDisplay {
     }
 
     // if the tool props changed,
-    ToolStack oldTool = ToolStack.from(oldStack);
-    ToolStack newTool = ToolStack.from(newStack);
+    IToolStackView oldTool = ToolStack.from(oldStack);
+    IToolStackView newTool = ToolStack.from(newStack);
 
     // check if modifiers or materials changed
     if (!oldTool.getMaterials().equals(newTool.getMaterials())) {

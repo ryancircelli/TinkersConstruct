@@ -127,7 +127,7 @@ public class ModifierCrystalItem extends Item {
       ModifierId modifier = getModifier(stack);
       if (modifier != null) {
         if (!player.level().isClientSide || (player.isCreative() && player.containerMenu.menuType == null)) {
-          ToolStack original = ToolStack.from(toolItem);
+          ToolStack original = ToolStack.mutable(toolItem);
           ToolStack tool = original.copy();
 
           // ensure we have something to remove

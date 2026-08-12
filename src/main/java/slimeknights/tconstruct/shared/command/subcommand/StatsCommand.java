@@ -188,7 +188,7 @@ public class StatsCommand {
   private static int resetAll(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
     List<LivingEntity> successes = HeldModifiableItemIterator.apply(context, (living, stack) -> {
       // remove modifier
-      ToolStack tool = ToolStack.from(stack);
+      ToolStack tool = ToolStack.mutable(stack);
       StatOverrideModifier stats = TinkerModifiers.statOverride.get();
       int level = tool.getModifierLevel(stats);
       if (level > 0) {

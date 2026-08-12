@@ -38,7 +38,7 @@ public interface InventoryTickModifierHook {
   static void heldInventoryTick(ItemStack stack, Level worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
     // don't care about non-living, they skip most tool context
     if (entityIn instanceof LivingEntity) {
-      ToolStack tool = ToolStack.from(stack);
+      ToolStack tool = ToolStack.mutable(stack);
       if (!worldIn.isClientSide) {
         tool.ensureHasData();
       }

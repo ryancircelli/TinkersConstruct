@@ -29,7 +29,7 @@ public class ToolCapabilityProvider implements ICapabilityProvider {
   public ToolCapabilityProvider(ItemStack stack) {
     // NBT is not yet initialized when capabilities are created, so delay tool stack creation
     this.stack = stack;
-    this.tool = Lazy.of(() -> ToolStack.from(stack));
+    this.tool = Lazy.of(() -> ToolStack.mutable(stack));
     this.providers = PROVIDER_CONSTRUCTORS.stream().map(con -> con.apply(stack, tool)).filter(Objects::nonNull).collect(Collectors.toList());
   }
 

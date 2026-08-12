@@ -80,6 +80,7 @@ import slimeknights.tconstruct.library.tools.helper.ModifierLootingHandler;
 import slimeknights.tconstruct.library.tools.helper.ModifierUtil;
 import slimeknights.tconstruct.library.tools.helper.ToolDamageUtil;
 import slimeknights.tconstruct.library.tools.item.ranged.ModifiableBowItem;
+import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ModDataNBT;
 import slimeknights.tconstruct.library.tools.nbt.ModifierNBT;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
@@ -240,7 +241,7 @@ public class ModifierEvents {
       multiplier += projectileBoost;
     // being -1 means no projectile was involved, so boost by held tool
     } else if (player != null) {
-      ToolStack tool = Modifier.getHeldTool(player, ModifierLootingHandler.getLootingSlot(player));
+      IToolStackView tool = Modifier.getHeldTool(player, ModifierLootingHandler.getLootingSlot(player));
       if (tool != null) {
         multiplier += tool.getVolatileData().getFloat(EXPERIENCE);
       }
@@ -388,7 +389,7 @@ public class ModifierEvents {
         ItemStack stack = target.getUseItem();
         // living entity must be using one of our shields
         if (stack.is(TinkerTags.Items.SHIELDS)) {
-          ToolStack tool = ToolStack.from(stack);
+          ToolStack tool = ToolStack.mutable(stack);
           // make sure we actually have the modifier
           int reflectingTime = tool.getVolatileData().getInt(REFLECTING);
           if (reflectingTime > 0) {

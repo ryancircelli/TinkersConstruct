@@ -107,7 +107,7 @@ public record ShareDurabilityModule(LazyModifier shield, LevelingInt grant, Leve
 
           // grant some shield to the choice tool
           ItemStack choiceStack = options.get(TConstruct.RANDOM.nextInt(options.size()));
-          ToolStack choice = ToolStack.from(choiceStack);
+          ToolStack choice = ToolStack.mutable(choiceStack);
           Modifier shield = this.shield.get();
           ModifierEntry entry = choice.getModifier(shield);
           // if the modifier is missing, add it

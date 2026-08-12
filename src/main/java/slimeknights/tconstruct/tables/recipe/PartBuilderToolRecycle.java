@@ -39,6 +39,7 @@ import slimeknights.tconstruct.library.tools.helper.ToolBuildHandler;
 import slimeknights.tconstruct.library.tools.helper.TooltipUtil;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
 import slimeknights.tconstruct.library.tools.item.IModifiableDisplay;
+import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IMaterialItem;
 import slimeknights.tconstruct.library.tools.stat.ToolStats;
@@ -129,7 +130,7 @@ public class PartBuilderToolRecycle implements IPartBuilderRecipe, IMultiRecipe<
 
   @Override
   public ItemStack assemble(IPartBuilderContainer inv, RegistryAccess access, Pattern pattern) {
-    ToolStack tool = ToolStack.from(inv.getStack());
+    IToolStackView tool = ToolStack.from(inv.getStack());
     // find our parts list, either set or override
     ToolDefinition definition = tool.getDefinition();
     List<? extends IMaterialItem> parts = this.parts;
@@ -163,7 +164,7 @@ public class PartBuilderToolRecycle implements IPartBuilderRecipe, IMultiRecipe<
 
   @Override
   public ItemStack getLeftover(IPartBuilderContainer inv, Pattern pattern) {
-    ToolStack tool = ToolStack.from(inv.getStack());
+    IToolStackView tool = ToolStack.from(inv.getStack());
 
     // if the tool is damaged, we only have a chance of a second tool part
     int damage = tool.getDamage();
