@@ -10,13 +10,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import slimeknights.mantle.data.predicate.block.BlockPredicate;
 import slimeknights.tconstruct.fixture.MaterialItemFixture;
-import slimeknights.tconstruct.fixture.RegistrationFixture;
 import slimeknights.tconstruct.library.json.LevelingValue;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierFixture;
 import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.definition.module.ToolHooks;
-import slimeknights.tconstruct.library.tools.definition.module.ToolModule;
 import slimeknights.tconstruct.library.tools.definition.module.aoe.AreaOfEffectIterator;
 import slimeknights.tconstruct.library.tools.definition.module.aoe.CircleAOEIterator;
 import slimeknights.tconstruct.library.tools.definition.module.build.MultiplyStatsModule;
@@ -40,6 +38,7 @@ import slimeknights.tconstruct.library.tools.stat.ToolStats;
 import slimeknights.tconstruct.test.BaseMcTest;
 import slimeknights.tconstruct.test.TestHelper;
 import slimeknights.tconstruct.test.TestHelper.ToolDefinitionStats;
+import slimeknights.tconstruct.test.characterization.ToolModuleRegistrations;
 
 import java.util.List;
 import java.util.Map;
@@ -51,16 +50,18 @@ class UpdateToolDefinitionDataPacketTest extends BaseMcTest {
   private static final ResourceLocation EMPTY_ID = new ResourceLocation("test", "empty");
   private static final ResourceLocation FILLED_ID = new ResourceLocation("test", "filled");
 
+  /**
+   * Unlike the JSON fixture tests, this one builds real module objects and encodes them, so it needs the loaders
+   * registered under whatever id serialization will look them up by - it cannot use aliases, as a module reports
+   * its production loader. It therefore asks for the real {@code tconstruct:} ids rather than registering the
+   * singletons under synthetic ones, which also removes an unstated dependency on another test class having
+   * registered {@link SetStatsModule} and {@link MultiplyStatsModule} first.
+   */
   @BeforeAll
   static void initialize() {
     MaterialItemFixture.init();
     ModifierFixture.init();
-    RegistrationFixture.register(ToolModule.LOADER, "slots", ToolSlotsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "is_effective", IsEffectiveModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "circle", CircleAOEIterator.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "sweep", SweepWeaponAttack.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "traits", ToolTraitsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "actions", ToolActionsModule.LOADER);
+    ToolModuleRegistrations.ensureRegistered();
   }
 
   @Test
