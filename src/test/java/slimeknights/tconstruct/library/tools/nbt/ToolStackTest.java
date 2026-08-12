@@ -3,6 +3,7 @@ package slimeknights.tconstruct.library.tools.nbt;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Tiers;
@@ -457,6 +458,24 @@ class ToolStackTest extends ToolItemTest {
 
     IToolStackView toolStack = ToolStack.from(testItemStack);
     assertThat(toolStack.getVolatileData()).isEqualTo(modData);
+  }
+
+  @Test
+  void persistentModData_editingAReadTagDoesNotReachTheStack() {
+    ResourceLocation key = TConstruct.getResource("test");
+    CompoundTag stored = new CompoundTag();
+    stored.putInt("value", 1);
+    ToolStack toolStack = ToolStack.mutable(testItemStack);
+    toolStack.getPersistentData().put(key, stored);
+
+    // editing the tag the read handed back leaves the stack alone
+    CompoundTag read = toolStack.getPersistentData().getCompound(key);
+    read.putInt("value", 2);
+    assertThat(testItemStack.getOrCreateTag().getCompound(ToolStack.TAG_PERSISTENT_MOD_DATA).getCompound(key.toString()).getInt("value")).isEqualTo(1);
+
+    // storing it is what puts it on the stack
+    toolStack.getPersistentData().put(key, read);
+    assertThat(testItemStack.getOrCreateTag().getCompound(ToolStack.TAG_PERSISTENT_MOD_DATA).getCompound(key.toString()).getInt("value")).isEqualTo(2);
   }
 
 

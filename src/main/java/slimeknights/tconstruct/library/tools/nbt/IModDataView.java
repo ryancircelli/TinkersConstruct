@@ -9,7 +9,11 @@ import slimeknights.tconstruct.library.tools.SlotType;
 import java.util.function.BiFunction;
 
 /**
- * Read only view of {@link ModDataNBT}
+ * Read only view of {@link ModDataNBT}.
+ * <p>
+ * Reads are value semantic: a {@link CompoundTag} or {@link ListTag} handed back by any method here is a copy, so
+ * editing it does nothing to the data it came from. Editing it and then storing it through {@link ModDataNBT#put(ResourceLocation, Tag)}
+ * is how a change reaches the data, which keeps every write to a tool visible at the site making it.
  */
 public interface IModDataView {
   /** Empty variant of tool data */
@@ -31,7 +35,9 @@ public interface IModDataView {
   };
 
   /**
-   * Gets a namespaced key from NBT
+   * Gets a namespaced key from NBT.
+   * The function runs against the backing compound; if it returns an entry of that compound rather than a new value,
+   * a copy of the entry is returned instead, so the caller cannot edit the data through the result.
    * @param name      Namedspaced key
    * @param function  Function to get data using the key
    * @param <T>  NBT type of output
@@ -70,7 +76,7 @@ public interface IModDataView {
   /**
    * Reads an generic NBT value from the mod data
    * @param name  Name
-   * @return  Integer value
+   * @return  Copy of the value, or null if absent
    */
   default Tag get(ResourceLocation name) {
     return get(name, CompoundTag::get);
@@ -115,7 +121,7 @@ public interface IModDataView {
   /**
    * Reads a compound from the mod data
    * @param name  Name
-   * @return  Compound value
+   * @return  Copy of the compound value, empty if absent
    */
   default CompoundTag getCompound(ResourceLocation name) {
     return get(name, CompoundTag::getCompound);
@@ -125,7 +131,7 @@ public interface IModDataView {
    * Reads a list from the mod data
    * @param name  Name
    * @param type  List type
-   * @return  List value
+   * @return  Copy of the list value, empty if absent
    */
   default ListTag getList(ResourceLocation name, int type) {
     return get(name, (tag, key) -> tag.getList(key, type));
