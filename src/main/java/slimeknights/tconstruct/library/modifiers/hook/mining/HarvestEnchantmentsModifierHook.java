@@ -5,19 +5,18 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
 import slimeknights.tconstruct.library.modifiers.hook.behavior.EnchantmentModifierHook;
 import slimeknights.tconstruct.library.modifiers.hook.combat.LootingModifierHook;
+import slimeknights.tconstruct.library.modifiers.util.EnchantmentLevels;
 import slimeknights.tconstruct.library.tools.context.EquipmentContext;
 import slimeknights.tconstruct.library.tools.context.ToolHarvestContext;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Modifier hook implementing bonus enchantments from a tool, applied directly before block break.
@@ -31,16 +30,16 @@ public interface HarvestEnchantmentsModifierHook {
   /**
    * Adds harvest loot table related enchantments from this modifier's effect to the tool, called before breaking a block.
    * Needed to add enchantments for silk touch and fortune. Can add conditionally if needed. Only affects tinker tools
-   * @param tool       Tool used
-   * @param modifier   Modifier used
-   * @param context    Harvest context
-   * @param equipment  Context for other equipment on the player
-   * @param slot       Slot being checked for harvest enchantments
-   * @param map        A mutable map to add enchantments from this modifier. May contain negatives.
-   * @see EnchantmentModifierHook#addEnchantment(Map, Enchantment, int)
+   * @param tool          Tool used
+   * @param modifier      Modifier used
+   * @param context       Harvest context
+   * @param equipment     Context for other equipment on the player
+   * @param slot          Slot being checked for harvest enchantments
+   * @param enchantments  A mutable accumulator to add enchantments from this modifier. May contain negatives.
+   * @see EnchantmentLevels#addLevel(net.minecraft.core.Holder, int)
    * @see EnchantmentModifierHook.SingleHarvestEnchantment
    */
-  void updateHarvestEnchantments(IToolStackView tool, ModifierEntry modifier, ToolHarvestContext context, EquipmentContext equipment, EquipmentSlot slot, Map<Enchantment,Integer> map);
+  void updateHarvestEnchantments(IToolStackView tool, ModifierEntry modifier, ToolHarvestContext context, EquipmentContext equipment, EquipmentSlot slot, EnchantmentLevels enchantments);
 
 
   /* Helpers */
@@ -64,7 +63,7 @@ public interface HarvestEnchantmentsModifierHook {
       EquipmentContext equipmentContext = EquipmentContext.withTool(context.getLiving(), tool, EquipmentSlot.MAINHAND);
       // lazily parse the enchantment map, wait until someone has a hook
       ListTag originalEnchants = null;
-      Map<Enchantment,Integer> enchantments = null;
+      EnchantmentLevels enchantments = null;
       // run on all slots except main hand, to prevent double applying luck
       // TODO 1.21: take advantage of the enchantment slot filter to avoid that instead; not like armor can be in the main hand when this runs
       for (EquipmentSlot slot : APPLICABLE_SLOTS) {
@@ -79,7 +78,7 @@ public interface HarvestEnchantmentsModifierHook {
               // if we have not yet parsed the enchantments, time to do so
               if (enchantments == null) {
                 originalEnchants = stack.getEnchantmentTags();
-                enchantments = EnchantmentHelper.deserializeEnchantments(originalEnchants);
+                enchantments = EnchantmentLevels.fromTag(originalEnchants);
               }
               hook.updateHarvestEnchantments(armor, entry, context, equipmentContext, slot, enchantments);
             }
@@ -89,8 +88,8 @@ public interface HarvestEnchantmentsModifierHook {
       // if the enchantments is null, no hooks ran so the enchantments are unchanged
       if (enchantments != null) {
         // we allow 0 values for enchantments in the hook
-        enchantments.values().removeIf(EnchantmentModifierHook.VALUE_REMOVER);
-        EnchantmentHelper.setEnchantments(enchantments, stack);
+        enchantments.removeNonPositive();
+        EnchantmentHelper.setEnchantments(enchantments.toMap(), stack);
         return originalEnchants;
       }
     }
@@ -117,9 +116,9 @@ public interface HarvestEnchantmentsModifierHook {
   /** Merger that runs all submodules */
   record AllMerger(Collection<HarvestEnchantmentsModifierHook> modules) implements HarvestEnchantmentsModifierHook {
     @Override
-    public void updateHarvestEnchantments(IToolStackView tool, ModifierEntry modifier, ToolHarvestContext context, EquipmentContext equipment, EquipmentSlot slot, Map<Enchantment,Integer> map) {
+    public void updateHarvestEnchantments(IToolStackView tool, ModifierEntry modifier, ToolHarvestContext context, EquipmentContext equipment, EquipmentSlot slot, EnchantmentLevels enchantments) {
       for (HarvestEnchantmentsModifierHook module : modules) {
-        module.updateHarvestEnchantments(tool, modifier, context, equipment, slot, map);
+        module.updateHarvestEnchantments(tool, modifier, context, equipment, slot, enchantments);
       }
     }
   }

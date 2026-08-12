@@ -1,6 +1,7 @@
 package slimeknights.tconstruct.library.modifiers;
 
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -74,6 +75,7 @@ import slimeknights.tconstruct.library.modifiers.hook.special.ShearsModifierHook
 import slimeknights.tconstruct.library.modifiers.hook.special.sling.SlingAngleModifierHook;
 import slimeknights.tconstruct.library.modifiers.hook.special.sling.SlingForceModifierHook;
 import slimeknights.tconstruct.library.modifiers.hook.special.sling.SlingLaunchModifierHook;
+import slimeknights.tconstruct.library.modifiers.util.EnchantmentLevels;
 import slimeknights.tconstruct.library.module.ModuleHook;
 import slimeknights.tconstruct.library.tools.capability.BlockItemProviderModifierHook;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
@@ -83,7 +85,6 @@ import slimeknights.tconstruct.library.utils.Schedule.Scheduler;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Map;
 import java.util.function.Function;
 
 /** Collection of all hooks implemented by the mod natively */
@@ -208,12 +209,12 @@ public class ModifierHooks {
   /** Hook for adding item stack attributes to a tool when in the proper slot */
   public static final ModuleHook<EnchantmentModifierHook> ENCHANTMENTS = register("enchantments", EnchantmentModifierHook.class, EnchantmentModifierHook.AllMerger::new, new EnchantmentModifierHook() {
     @Override
-    public int updateEnchantmentLevel(IToolStackView tool, ModifierEntry modifier, Enchantment enchantment, int level) {
+    public int updateEnchantmentLevel(IToolStackView tool, ModifierEntry modifier, Holder<Enchantment> enchantment, int level) {
       return level;
     }
 
     @Override
-    public void updateEnchantments(IToolStackView tool, ModifierEntry modifier, Map<Enchantment,Integer> map) {}
+    public void updateEnchantments(IToolStackView tool, ModifierEntry modifier, EnchantmentLevels enchantments) {}
   });
 
   /** Hook to add data that resets every time stats rebuild */
@@ -297,7 +298,7 @@ public class ModifierHooks {
   /** Hook for leggings boosting the tool's looting level */
   public static final ModuleHook<ArmorLootingModifierHook> ARMOR_LOOTING = register("armor_looting", ArmorLootingModifierHook.class, ArmorLootingModifierHook.ComposeMerger::new, (tool, modifier, context, equipment, slot, looting) -> looting);
   /** Hook for armor adding harvest enchantments to a held tool based on the tool's modifiers */
-  public static final ModuleHook<HarvestEnchantmentsModifierHook> HARVEST_ENCHANTMENTS = register("harvest_enchantments", HarvestEnchantmentsModifierHook.class, HarvestEnchantmentsModifierHook.AllMerger::new, (tool, modifier, context, equipment, slot, map) -> {});
+  public static final ModuleHook<HarvestEnchantmentsModifierHook> HARVEST_ENCHANTMENTS = register("harvest_enchantments", HarvestEnchantmentsModifierHook.class, HarvestEnchantmentsModifierHook.AllMerger::new, (tool, modifier, context, equipment, slot, enchantments) -> {});
 
 
   /* Harvest */
