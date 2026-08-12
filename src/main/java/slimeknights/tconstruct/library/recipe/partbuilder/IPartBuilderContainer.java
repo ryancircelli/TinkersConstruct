@@ -48,7 +48,7 @@ public interface IPartBuilderContainer extends ISingleStackContainer {
   /** @deprecated always 2, not useful */
   @Deprecated
   @Override
-  default int getContainerSize() {
+  default int size() {
     return 2;
   }
 }
