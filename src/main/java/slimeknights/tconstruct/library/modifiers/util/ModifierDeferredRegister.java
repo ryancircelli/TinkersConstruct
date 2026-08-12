@@ -14,7 +14,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Supplier;
 
-/** Utility similar to {@link net.minecraftforge.registries.DeferredRegister} but for modifiers, as they no longer use a forge registry */
+/** Utility similar to {@link net.neoforged.neoforge.registries.DeferredRegister} but for modifiers, as they are not a loader registry */
 @RequiredArgsConstructor(staticName = "create")
 public class ModifierDeferredRegister {
   /** All modifiers will be registered under this domain */
