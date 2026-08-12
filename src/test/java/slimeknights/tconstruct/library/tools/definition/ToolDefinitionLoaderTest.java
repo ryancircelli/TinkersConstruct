@@ -59,18 +59,25 @@ class ToolDefinitionLoaderTest extends BaseMcTest {
   private static final ToolDefinition NEED_PARTS_HAS_NONE = ToolDefinition.create(TConstruct.getResource("need_parts_has_none"));
   private static final ToolDefinition WRONG_PART_TYPE = ToolDefinition.create(TConstruct.getResource("wrong_part_type"));
 
+  /**
+   * This test's fixtures use synthetic {@code test:} module ids, so it needs those ids registered. It registers
+   * aliases rather than the production {@code LOADER} singletons: the registry cannot hold one loader object under
+   * two names, so registering the singletons here would take them away from their real {@code tconstruct:} ids and
+   * make every other suite's success depend on running before this class.
+   * @see RegistrationFixture#alias(slimeknights.mantle.data.loadable.record.RecordLoadable)
+   */
   @BeforeAll
   static void beforeAll() {
     MaterialItemFixture.init();
-    RegistrationFixture.register(ToolModule.LOADER, "base_stats", SetStatsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "multiply_stats", MultiplyStatsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "part_stats", PartStatsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "modifier_slots", ToolSlotsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "traits", ToolTraitsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "actions", ToolActionsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "is_effective", IsEffectiveModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "circle", CircleAOEIterator.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "sweep", SweepWeaponAttack.LOADER);
+    RegistrationFixture.register(ToolModule.LOADER, "base_stats", RegistrationFixture.alias(SetStatsModule.LOADER));
+    RegistrationFixture.register(ToolModule.LOADER, "multiply_stats", RegistrationFixture.alias(MultiplyStatsModule.LOADER));
+    RegistrationFixture.register(ToolModule.LOADER, "part_stats", RegistrationFixture.alias(PartStatsModule.LOADER));
+    RegistrationFixture.register(ToolModule.LOADER, "modifier_slots", RegistrationFixture.alias(ToolSlotsModule.LOADER));
+    RegistrationFixture.register(ToolModule.LOADER, "traits", RegistrationFixture.alias(ToolTraitsModule.LOADER));
+    RegistrationFixture.register(ToolModule.LOADER, "actions", RegistrationFixture.alias(ToolActionsModule.LOADER));
+    RegistrationFixture.register(ToolModule.LOADER, "is_effective", RegistrationFixture.alias(IsEffectiveModule.LOADER));
+    RegistrationFixture.register(ToolModule.LOADER, "circle", RegistrationFixture.alias(CircleAOEIterator.LOADER));
+    RegistrationFixture.register(ToolModule.LOADER, "sweep", RegistrationFixture.alias(SweepWeaponAttack.LOADER));
   }
 
   /** Helper to do all the stats checks */

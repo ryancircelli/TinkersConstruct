@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.test.characterization;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.crafting.CompoundIngredient;
@@ -27,6 +28,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -117,10 +119,11 @@ class RecipeCharacterizationTest extends BaseMcTest {
     String safeName = fileName.replace(".json", "").toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9/._-]", "_");
     ResourceLocation id = TConstruct.getResource("characterization_test/" + safeName);
     TypedMap context = RecipeLoaderRegistry.contextFor(key, id);
-    // mantle:inverted-wrapped predicates lose their inversion on a second parse/serialize cycle - a real, already
-    // pinned asymmetry (see PredicateInversionJsonAsymmetryTest); skip the idempotency assertion here rather than
-    // re-report the same known issue on every fixture that happens to use it.
-    if (json.toString().contains("\"mantle:inverted\"")) {
+    // a mantle:inverted predicate used directly as a recipe field still loses its wrapper on the first serialize
+    // and grows it back on the second, so it is not a fixed point. The same predicate nested inside a mantle:and
+    // does round trip since Mantle's record field serialization order fix, so only the shape that is still broken
+    // is skipped here; PredicateInversionJsonAsymmetryTest pins the nested one directly.
+    if (hasDirectInvertedPredicate(json)) {
       return;
     }
     // a multi-entity "types" set (e.g. severing recipes matching several mobs) round trips through a Set
@@ -145,5 +148,18 @@ class RecipeCharacterizationTest extends BaseMcTest {
     if (!json.toString().contains("\"tag\"") && !json.toString().contains("mantle:potion_display")) {
       RoundTripAssertions.assertNetworkRoundTripJson(loader, json, context);
     }
+  }
+
+  /** Checks whether any field of the recipe is itself a {@code mantle:inverted} predicate, the shape that does not round trip */
+  private static boolean hasDirectInvertedPredicate(JsonObject json) {
+    for (Entry<String,JsonElement> entry : json.entrySet()) {
+      if (entry.getValue().isJsonObject()) {
+        JsonElement type = entry.getValue().getAsJsonObject().get("type");
+        if (type != null && type.isJsonPrimitive() && "mantle:inverted".equals(type.getAsString())) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

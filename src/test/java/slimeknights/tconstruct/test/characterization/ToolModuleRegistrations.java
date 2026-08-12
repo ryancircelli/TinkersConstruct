@@ -111,53 +111,28 @@ public final class ToolModuleRegistrations {
     register(AreaOfEffectIterator.LOADER, id, loader);
   }
 
-  private static void safe(Runnable r) {
-    try {
-      r.run();
-    } catch (Exception e) {
-      // already registered - fine
-    }
-  }
-
   /**
-   * Registers {@code loader} under {@code id} in {@code registry}, working around a real collision this suite
-   * hit: the pre-existing {@code ToolDefinitionLoaderTest} registers several of these exact same production
-   * {@code LOADER} singletons (e.g. {@code SetStatsModule.LOADER}) under a synthetic {@code test:} namespace via
-   * {@code RegistrationFixture}, for its own unrelated purpose (testing the loader mechanics against synthetic
-   * fixtures). {@code GenericLoaderRegistry} is backed by a Guava {@code BiMap} (name <-> loader, both
-   * directions unique), so once a loader object is registered under {@code test:base_stats} there, a normal
-   * {@code registry.register(tconstruct:base_stats, sameLoaderObject)} call throws
-   * {@code IllegalArgumentException: value already present} - registering the SAME loader object under a
-   * SECOND name is fundamentally impossible through the public API, no matter which test runs first.
+   * Registers {@code loader} under {@code id} in {@code registry}, tolerating this method having already run in
+   * this JVM but nothing else.
    * <p>
-   * By the time this runs, {@code ToolDefinitionLoaderTest} (if it ran at all in this JVM) has already
-   * completed every one of its own {@code @Test} methods - JUnit does not interleave test classes - so nothing
-   * still needs the loader under its old {@code test:} name. Reflectively reaching into the registry's backing
-   * {@code BiMap} and calling {@code forcePut} (which reassigns the value to a new key, silently dropping the
-   * old key) is safe here and is the only way to get the real {@code tconstruct:} id resolvable for parsing
-   * real fixture JSON, without modifying the pre-existing test.
+   * {@code GenericLoaderRegistry} is backed by a Guava {@code BiMap} (name &lt;-&gt; loader, both directions
+   * unique), so a loader object can only ever hold one name: any other test registering one of these production
+   * singletons under a name of its own takes it away from its real {@code tconstruct:} id, and then whether this
+   * suite works depends on which class JUnit ran first. That used to be worked around by reflectively
+   * {@code forcePut}ing the id, which silently dropped the other test's name and only looked safe because JUnit
+   * does not interleave test classes. Tests wanting a synthetic id now register an alias object instead (see
+   * {@code RegistrationFixture#alias}), so a collision here means a test has reintroduced the hazard and should
+   * fail loudly rather than be papered over.
    */
   @SuppressWarnings({"unchecked", "rawtypes"})
   private static void register(GenericLoaderRegistry registry, ResourceLocation id, RecordLoadable loader) {
     try {
       registry.register(id, loader);
-    } catch (IllegalArgumentException alreadyPresent) {
-      forcePut(registry, id, loader);
-    }
-  }
-
-  @SuppressWarnings("rawtypes")
-  private static void forcePut(GenericLoaderRegistry registry, ResourceLocation id, RecordLoadable loader) {
-    try {
-      java.lang.reflect.Field loadersField = GenericLoaderRegistry.class.getDeclaredField("loaders");
-      loadersField.setAccessible(true);
-      Object namedComponentRegistry = loadersField.get(registry);
-      java.lang.reflect.Field valuesField = namedComponentRegistry.getClass().getDeclaredField("values");
-      valuesField.setAccessible(true);
-      com.google.common.collect.BiMap<ResourceLocation,Object> values = (com.google.common.collect.BiMap<ResourceLocation,Object>) valuesField.get(namedComponentRegistry);
-      values.forcePut(id, loader);
-    } catch (ReflectiveOperationException | ClassCastException e) {
-      throw new RuntimeException("Could not force-register " + id + " - registry internals may have changed", e);
+    } catch (IllegalArgumentException alreadyRegistered) {
+      // the same loader under the same id is just this method running again, which is expected
+      if (!id.equals(registry.getName(loader))) {
+        throw alreadyRegistered;
+      }
     }
   }
 }
