@@ -12,6 +12,7 @@ import net.minecraft.tags.TagKey;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import slimeknights.mantle.data.GenericDataProvider;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,14 +33,20 @@ public abstract class AbstractTagProvider<T> extends GenericDataProvider {
   private final Predicate<ResourceLocation> staticValuePredicate;
   /** Function to get a key from a value */
   private final Function<T,ResourceLocation> keyGetter;
-  /** Checks for tags in other datapacks */
+  /**
+   * Checks for tags in other datapacks.
+   * @apiNote  Nullable as of 1.21: {@link net.minecraft.data.tags.TagsProvider} made its own helper nullable and the
+   *           NeoForge datagen event hands out a disabled helper rather than none, so a provider must cope with it
+   *           being absent instead of assuming validation is always available.
+   */
+  @Nullable
   protected final ExistingFileHelper existingFileHelper;
   /** Resource type for the existing file helper */
   private final ExistingFileHelper.IResourceType resourceType;
 
   protected final Map<ResourceLocation, TagBuilder> builders = Maps.newLinkedHashMap();
 
-  protected AbstractTagProvider(PackOutput packOutput, String modId, String folder, Function<T,ResourceLocation> keyGetter, Predicate<ResourceLocation> staticValuePredicate, ExistingFileHelper existingFileHelper) {
+  protected AbstractTagProvider(PackOutput packOutput, String modId, String folder, Function<T,ResourceLocation> keyGetter, Predicate<ResourceLocation> staticValuePredicate, @Nullable ExistingFileHelper existingFileHelper) {
     super(packOutput, Target.DATA_PACK, folder);
     this.modId = modId;
     this.keyGetter = keyGetter;
@@ -65,7 +72,10 @@ public abstract class AbstractTagProvider<T> extends GenericDataProvider {
       if (!invalidEntries.isEmpty()) {
         return CompletableFuture.failedFuture(new IllegalArgumentException(String.format("Couldn't define tag %s as it is missing following references: %s", id, invalidEntries.stream().map(Objects::toString).collect(Collectors.joining(",")))));
       } else {
-        return saveJson(cache, id, TagFile.CODEC, new TagFile(tagEntries, entry.getValue().isReplace()));
+        // 1.21 moved removals out of the Forge-only "remove" JSON key into a third TagFile component. Passing the
+        // builder's remove entries through is what makes TagAppender#remove reach the file at all; the two argument
+        // constructor still compiles but would silently drop every removal this provider was asked to write.
+        return saveJson(cache, id, TagFile.CODEC, new TagFile(tagEntries, entry.getValue().isReplace(), entry.getValue().getRemoveEntries().toList()));
       }
     }));
   }
@@ -90,12 +100,18 @@ public abstract class AbstractTagProvider<T> extends GenericDataProvider {
   /** Raw method to make a builder */
   protected TagBuilder getOrCreateRawBuilder(TagKey<T> pTag) {
     return this.builders.computeIfAbsent(pTag.location(), location -> {
-      existingFileHelper.trackGenerated(location, resourceType);
+      if (existingFileHelper != null) {
+        existingFileHelper.trackGenerated(location, resourceType);
+      }
       return TagBuilder.create();
     });
   }
 
-  /** Vanillas tag appender does not let us easily replace the key getter, so replace it */
+  /**
+   * Vanillas tag appender does not let us easily replace the key getter, so replace it
+   * @param modID  Unused as of 1.21. NeoForge dropped the source mod ID from every removal method as it was only ever
+   *               used for a log message; the component is kept so subclasses and their constructors do not change.
+   */
   @SuppressWarnings({"UnusedReturnValue", "unused"})  // API
   public record TagAppender<T>(String modID, TagBuilder internalBuilder, Function<T,ResourceLocation> keyGetter) {
     /** Adds a value to the tag */
@@ -187,7 +203,7 @@ public abstract class AbstractTagProvider<T> extends GenericDataProvider {
      * @return The builder for chaining
      */
     public TagAppender<T> remove(ResourceLocation location) {
-      internalBuilder.removeElement(location, modID);
+      internalBuilder.removeElement(location);
       return this;
     }
 
@@ -210,7 +226,7 @@ public abstract class AbstractTagProvider<T> extends GenericDataProvider {
      * @return The builder for chaining
      */
     public TagAppender<T> remove(TagKey<T> tag) {
-      internalBuilder.removeTag(tag.location(), modID);
+      internalBuilder.removeTag(tag.location());
       return this;
     }
 

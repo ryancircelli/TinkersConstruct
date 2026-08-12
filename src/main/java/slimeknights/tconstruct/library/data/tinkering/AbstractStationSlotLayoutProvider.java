@@ -1,13 +1,13 @@
 package slimeknights.tconstruct.library.data.tinkering;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.PackOutput.Target;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import slimeknights.mantle.data.GenericDataProvider;
 import slimeknights.tconstruct.library.recipe.partbuilder.Pattern;
@@ -101,9 +101,9 @@ public abstract class AbstractStationSlotLayoutProvider extends GenericDataProvi
     /** Serializes the given builder to JSON */
     public JsonObject serialize() {
       JsonObject json = StationSlotLayoutLoader.GSON.toJsonTree(builder.build()).getAsJsonObject();
-      if (!conditions.isEmpty()) {
-        json.add("conditions", CraftingHelper.serialize(conditions.toArray(ICondition[]::new)));
-      }
+      // StationSlotLayoutLoader tests the object with ICondition#conditionsMatched, which only looks under NeoForge's
+      // "neoforge:conditions" key; writeConditions is the writer that matches, and it no-ops on an empty list
+      ICondition.writeConditions(JsonOps.INSTANCE, json, conditions);
       return json;
     }
   }

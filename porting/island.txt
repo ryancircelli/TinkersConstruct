@@ -27,6 +27,34 @@
 # Empty at T1: the machinery exists, the island does not.
 #
 # Sorted, repo-relative, one path per line.
+src/main/java/slimeknights/tconstruct/library/data/AbstractModifierModelMapProvider.java
+src/main/java/slimeknights/tconstruct/library/data/AbstractStructureRepalleter.java
+src/main/java/slimeknights/tconstruct/library/data/AbstractTagProvider.java
+src/main/java/slimeknights/tconstruct/library/data/AbstractToolItemModelProvider.java
+src/main/java/slimeknights/tconstruct/library/data/GenericNBTProvider.java
+src/main/java/slimeknights/tconstruct/library/data/material/AbstractMaterialDataProvider.java
+src/main/java/slimeknights/tconstruct/library/data/material/AbstractMaterialStatsDataProvider.java
+src/main/java/slimeknights/tconstruct/library/data/material/AbstractMaterialTraitDataProvider.java
+src/main/java/slimeknights/tconstruct/library/data/material/package-info.java
+src/main/java/slimeknights/tconstruct/library/data/package-info.java
+src/main/java/slimeknights/tconstruct/library/data/recipe/CostTagAppender.java
+src/main/java/slimeknights/tconstruct/library/data/recipe/CraftingNBTWrapper.java
+src/main/java/slimeknights/tconstruct/library/data/recipe/IByproduct.java
+src/main/java/slimeknights/tconstruct/library/data/recipe/ICastCreationHelper.java
+src/main/java/slimeknights/tconstruct/library/data/recipe/IMaterialRecipeHelper.java
+src/main/java/slimeknights/tconstruct/library/data/recipe/ISmelteryRecipeHelper.java
+src/main/java/slimeknights/tconstruct/library/data/recipe/IToolRecipeHelper.java
+src/main/java/slimeknights/tconstruct/library/data/recipe/SmelteryRecipeBuilder.java
+src/main/java/slimeknights/tconstruct/library/data/recipe/package-info.java
+src/main/java/slimeknights/tconstruct/library/data/tinkering/AbstractEnchantmentToModifierProvider.java
+src/main/java/slimeknights/tconstruct/library/data/tinkering/AbstractFluidEffectProvider.java
+src/main/java/slimeknights/tconstruct/library/data/tinkering/AbstractMaterialTagProvider.java
+src/main/java/slimeknights/tconstruct/library/data/tinkering/AbstractMobEquipmentProvider.java
+src/main/java/slimeknights/tconstruct/library/data/tinkering/AbstractModifierProvider.java
+src/main/java/slimeknights/tconstruct/library/data/tinkering/AbstractModifierTagProvider.java
+src/main/java/slimeknights/tconstruct/library/data/tinkering/AbstractStationSlotLayoutProvider.java
+src/main/java/slimeknights/tconstruct/library/data/tinkering/AbstractToolDefinitionDataProvider.java
+src/main/java/slimeknights/tconstruct/library/data/tinkering/package-info.java
 src/main/java/slimeknights/tconstruct/library/events/MaterialsLoadedEvent.java
 src/main/java/slimeknights/tconstruct/library/events/TinkerToolEvent.java
 src/main/java/slimeknights/tconstruct/library/events/ToolEquipmentChangeEvent.java
