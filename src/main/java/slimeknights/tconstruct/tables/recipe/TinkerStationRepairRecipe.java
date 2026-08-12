@@ -166,7 +166,7 @@ public class TinkerStationRepairRecipe implements ITinkerStationRecipe {
 
   @Override
   public void updateInputs(LazyToolStack result, IMutableTinkerStationContainer inv, boolean isServer) {
-    ToolStack inputTool = ToolStack.from(inv.getTinkerableStack());
+    IToolStackView inputTool = ToolStack.from(inv.getTinkerableStack());
 
     // iterate stacks, removing items as we repair
     int repairRemaining = inputTool.getDamage() - result.getTool().getDamage();
