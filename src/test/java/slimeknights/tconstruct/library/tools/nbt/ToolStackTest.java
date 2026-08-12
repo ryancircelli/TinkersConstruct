@@ -69,15 +69,29 @@ class ToolStackTest extends ToolItemTest {
   }
 
   @Test
-  void from_stillCreatesTheStacksTag() {
-    // documents the one write left on the read path: creating a view of a tagless modifiable stack gives it a tag
+  void from_doesNotCreateTheStacksTag() {
+    // the read path makes no change to the stack at all, including on a tagless tool; mutable is the factory that writes
     ItemStack stack = new ItemStack(tool);
     // vanilla gives a damageable stack a tag on construction, clear it directly as the setter would just put it back
     stack.tag = null;
     assertThat(stack.getTag()).isNull();
     IToolStackView view = ToolStack.from(stack);
-    assertThat(stack.getTag()).overridingErrorMessage("Reading a tagless tool no longer initializes the stack tag").isNotNull();
-    assertThat(view.isSameStack(stack)).isTrue();
+    assertThat(stack.getTag()).overridingErrorMessage("Reading a tagless tool wrote a tag onto the stack").isNull();
+    // the view reads as an empty tool over a tag the stack does not share, so it is not the stack's tool
+    assertThat(view.getStats()).isEqualTo(StatsNBT.EMPTY);
+    assertThat(view.isSameStack(stack)).isFalse();
+  }
+
+  @Test
+  void mutable_stillCreatesTheStacksTag() {
+    // a writable tool has to have somewhere to write, so this factory keeps the tag creating side effect
+    ItemStack stack = new ItemStack(tool);
+    // vanilla gives a damageable stack a tag on construction, clear it directly as the setter would just put it back
+    stack.tag = null;
+    assertThat(stack.getTag()).isNull();
+    ToolStack mutable = ToolStack.mutable(stack);
+    assertThat(stack.getTag()).overridingErrorMessage("Taking a mutable tagless tool no longer initializes the stack tag").isNotNull();
+    assertThat(mutable.isSameStack(stack)).isTrue();
   }
 
   @Test
