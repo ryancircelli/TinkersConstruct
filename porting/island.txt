@@ -469,3 +469,17 @@ src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/Protection
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/ReplaceBlockWalkerModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/ToolActionWalkerTransformModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/armor/package-info.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/EnchantmentModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/ModifierRequirementsModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/ModifierSlotModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/ModifierTraitModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/RarityModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/SetStatModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/StatBoostModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/StatCopyModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/SwappableSlotModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/SwappableToolTraitsModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/VolatileFlagModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/VolatileFloatModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/VolatileIntModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/package-info.java

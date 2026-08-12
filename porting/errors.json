@@ -1,6 +1,6 @@
 {
-    "total": 271,
-    "islandFiles": 442,
+    "total": 291,
+    "islandFiles": 456,
     "categories": {
         "other: static import only from classes and interfaces": 3,
         "package TinkerDataCapability": 4,
@@ -24,7 +24,7 @@
         "package slimeknights.tconstruct.library.tools.capability": 10,
         "package slimeknights.tconstruct.library.tools.capability.TinkerDataCapability": 4,
         "package slimeknights.tconstruct.library.tools.capability.fluid": 1,
-        "package slimeknights.tconstruct.library.tools.helper": 26,
+        "package slimeknights.tconstruct.library.tools.helper": 27,
         "package slimeknights.tconstruct.library.tools.item": 12,
         "package slimeknights.tconstruct.library.tools.item.armor": 1,
         "package slimeknights.tconstruct.shared": 2,
@@ -46,9 +46,9 @@
         "symbol class MutableUseOnContext": 5,
         "symbol class OreRateType": 1,
         "symbol class RecipeResult": 5,
-        "symbol class SlotType": 16,
-        "symbol class TConstruct": 51,
+        "symbol class SlotType": 32,
+        "symbol class TConstruct": 53,
         "symbol class TagUtil": 2,
-        "symbol class Util": 33
+        "symbol class Util": 34
     }
 }
