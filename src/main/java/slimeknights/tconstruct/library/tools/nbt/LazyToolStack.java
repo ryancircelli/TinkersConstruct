@@ -110,7 +110,7 @@ public class LazyToolStack {
   public ToolStack getTool() {
     if (tool == null) {
       assert stack != null;
-      tool = ToolStack.from(stack);
+      tool = ToolStack.mutable(stack);
     }
     return tool;
   }

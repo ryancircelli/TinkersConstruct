@@ -98,7 +98,7 @@ public record MobEquipment(EquipmentSlot slot, IJsonPredicate<Item> match, ItemO
       ItemStack replacement = tool.copy();
       // if its a tool, apply randomized materials
       if (replacement.is(TinkerTags.Items.MODIFIABLE)) {
-        ToolStack tool = ToolStack.from(replacement);
+        ToolStack tool = ToolStack.mutable(replacement);
         ToolDefinition definition = tool.getDefinition();
         RandomSource random = mob.getRandom();
         if (definition.hasMaterials() && !materials.isEmpty()) {

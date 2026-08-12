@@ -138,7 +138,7 @@ public class PartSwapCastingRecipe extends AbstractMaterialCastingRecipe impleme
       return false;
     }
     // ensure the tool is still valid after replacing
-    ToolStack original = ToolStack.from(cast);
+    ToolStack original = ToolStack.mutable(cast);
     ToolStack tool = original.copy();
     tool.replaceMaterial(index, output);
     return tool.tryValidate() == null && ModifierRemovalHook.onRemoved(original, tool) == null;
@@ -159,7 +159,7 @@ public class PartSwapCastingRecipe extends AbstractMaterialCastingRecipe impleme
     MaterialFluidRecipe fluidRecipe = getFluidRecipe(inv);
     MaterialVariant material = fluidRecipe.getOutput();
     ItemStack cast = inv.getStack();
-    ToolStack original = ToolStack.from(cast);
+    ToolStack original = ToolStack.mutable(cast);
     ToolStack tool = original.copy();
     List<MaterialStatsId> stats = ToolMaterialHook.stats(tool.getDefinition());
     int index = getIndex(stats);

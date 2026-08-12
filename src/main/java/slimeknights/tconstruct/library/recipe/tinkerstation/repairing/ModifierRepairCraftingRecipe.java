@@ -64,7 +64,7 @@ public class ModifierRepairCraftingRecipe extends CustomRecipe implements IModif
     }
 
     // scale the repair based on the modifiers
-    ToolStack tool = ToolStack.from(inputs.tool());
+    ToolStack tool = ToolStack.mutable(inputs.tool());
     float repairAmount = inputs.itemsFound() * this.repairAmount * tool.getModifierLevel(modifier);
     for (ModifierEntry entry : tool.getModifierList()) {
       repairAmount = entry.getHook(ModifierHooks.REPAIR_FACTOR).getRepairFactor(tool, entry, repairAmount);

@@ -16,7 +16,7 @@ public interface ITinkerableContainer extends IRecipeContainer {
 
   /** Gets the tinkerable item as a tool stack instance, or returns null if not valid */
   default ToolStack getTinkerable() {
-    return ToolStack.from(getTinkerableStack());
+    return ToolStack.mutable(getTinkerableStack());
   }
 
   /** Gets the size of the tinkerable stack, common operation */

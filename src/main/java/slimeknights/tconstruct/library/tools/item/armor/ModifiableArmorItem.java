@@ -236,7 +236,7 @@ public class ModifiableArmorItem extends ArmorItem implements IModifiableDisplay
   @Override
   public void setDamage(ItemStack stack, int damage) {
     if (canBeDepleted()) {
-      ToolStack.from(stack).setDamage(damage);
+      ToolStack.mutable(stack).setDamage(damage);
     }
   }
 
@@ -244,7 +244,7 @@ public class ModifiableArmorItem extends ArmorItem implements IModifiableDisplay
   public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, T damager, Consumer<T> onBroken) {
     // We basically emulate Itemstack.damageItem here. We always return 0 to skip the handling in ItemStack.
     // If we don't tools ignore our damage logic
-    if (canBeDepleted() && ToolDamageUtil.damage(ToolStack.from(stack), amount, damager, stack)) {
+    if (canBeDepleted() && ToolDamageUtil.damage(ToolStack.mutable(stack), amount, damager, stack)) {
       onBroken.accept(damager);
     }
 
@@ -331,7 +331,7 @@ public class ModifiableArmorItem extends ArmorItem implements IModifiableDisplay
   @Override
   public boolean elytraFlightTick(ItemStack stack, LivingEntity entity, int flightTicks) {
     if (getEquipmentSlot() == EquipmentSlot.CHEST) {
-      ToolStack tool = ToolStack.from(stack);
+      ToolStack tool = ToolStack.mutable(stack);
       if (!tool.isBroken()) {
         // if any modifier says stop flying, stop flying
         for (ModifierEntry entry : tool.getModifierList()) {
@@ -356,7 +356,7 @@ public class ModifiableArmorItem extends ArmorItem implements IModifiableDisplay
   public void inventoryTick(ItemStack stack, Level levelIn, Entity entityIn, int itemSlot, boolean isSelected) {
     // don't care about non-living, they skip most tool context
     if (entityIn instanceof LivingEntity living) {
-      ToolStack tool = ToolStack.from(stack);
+      ToolStack tool = ToolStack.mutable(stack);
       if (!levelIn.isClientSide) {
         tool.ensureHasData();
       }
