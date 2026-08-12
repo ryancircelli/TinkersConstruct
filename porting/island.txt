@@ -521,3 +521,14 @@ src/main/java/slimeknights/tconstruct/library/modifiers/modules/technical/MaxArm
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/technical/MaxArmorStatModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/technical/SlotInChargeModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/technical/package-info.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/EffectLevel.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/FluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/FluidEffectContext.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/FluidEffectManager.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/FluidEffects.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/FluidMobEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/GroupCost.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/TimeAction.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/UnloadableFluidEffect.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/UpdateFluidEffectsPacket.java
+src/main/java/slimeknights/tconstruct/library/modifiers/fluid/package-info.java

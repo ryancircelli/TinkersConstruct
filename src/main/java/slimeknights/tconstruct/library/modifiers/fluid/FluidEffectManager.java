@@ -3,6 +3,7 @@ package slimeknights.tconstruct.library.modifiers.fluid;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.serialization.JsonOps;
 import lombok.Getter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -11,7 +12,7 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
+import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.conditions.ICondition.IContext;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
@@ -83,9 +84,22 @@ public class FluidEffectManager extends SimpleJsonResourceReloadListener {
       try {
         JsonObject json = GsonHelper.convertToJsonObject(entry.getValue(), "fluid_effect");
 
-        // want to parse condition without parsing effects, as the effect serializer may be missing
-        if (!CraftingHelper.processConditions(json, "conditions", conditionContext)) {
-          continue;
+        // want to parse conditions without parsing effects, as the effect loader may be missing
+        // 1.21 replaced CraftingHelper#processConditions with ICondition#CODEC (T4 SS3.2, ModifierManager); this
+        // reads the same "conditions" array the old helper did, AND-combining every entry the same way.
+        JsonElement conditionsElement = json.get("conditions");
+        if (conditionsElement != null) {
+          List<ICondition> conditions = ICondition.LIST_CODEC.parse(JsonOps.INSTANCE, conditionsElement).getOrThrow(JsonSyntaxException::new);
+          boolean matches = true;
+          for (ICondition condition : conditions) {
+            if (!condition.test(conditionContext)) {
+              matches = false;
+              break;
+            }
+          }
+          if (!matches) {
+            continue;
+          }
         }
         fluids.add(new FluidEffects.Entry(key, FluidEffects.LOADABLE.deserialize(json, contextBuilder(key).put(ContextKey.CONDITION_CONTEXT, conditionContext).build())));
       } catch (JsonSyntaxException e) {
