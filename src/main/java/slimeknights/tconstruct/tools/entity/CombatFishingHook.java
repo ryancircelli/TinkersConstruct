@@ -29,7 +29,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ToolActions;
 import slimeknights.mantle.util.CombatHelper;
 import slimeknights.tconstruct.common.TinkerDamageTypes;
 import slimeknights.tconstruct.common.TinkerTags;
@@ -44,6 +43,7 @@ import slimeknights.tconstruct.library.tools.helper.ToolDamageUtil;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.shared.TinkerEffects;
+import slimeknights.tconstruct.tools.TinkerToolActions;
 import slimeknights.tconstruct.tools.TinkerTools;
 
 import java.util.Objects;
@@ -175,9 +175,9 @@ public class CombatFishingHook extends FishingHook implements ProjectileWithKnoc
       ItemStack stack = living.getMainHandItem();
       InteractionHand hand = InteractionHand.MAIN_HAND;
       // must be able to cast
-      if (!stack.canPerformAction(ToolActions.FISHING_ROD_CAST)) {
+      if (!stack.canPerformAction(TinkerToolActions.FISHING_ROD_CAST)) {
         stack = living.getOffhandItem();
-        if (!stack.canPerformAction(ToolActions.FISHING_ROD_CAST)) {
+        if (!stack.canPerformAction(TinkerToolActions.FISHING_ROD_CAST)) {
           return;
         }
         hand = InteractionHand.OFF_HAND;
@@ -246,9 +246,9 @@ public class CombatFishingHook extends FishingHook implements ProjectileWithKnoc
             modifierHook: {
               // find out which stack was used
               ItemStack stack = ownerLiving.getMainHandItem();
-              if (!stack.canPerformAction(ToolActions.FISHING_ROD_CAST)) {
+              if (!stack.canPerformAction(TinkerToolActions.FISHING_ROD_CAST)) {
                 stack = ownerLiving.getOffhandItem();
-                if (!stack.canPerformAction(ToolActions.FISHING_ROD_CAST)) {
+                if (!stack.canPerformAction(TinkerToolActions.FISHING_ROD_CAST)) {
                   break modifierHook;
                 }
               }
