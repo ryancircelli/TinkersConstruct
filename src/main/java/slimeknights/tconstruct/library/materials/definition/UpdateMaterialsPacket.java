@@ -3,9 +3,10 @@ package slimeknights.tconstruct.library.materials.definition;
 import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.tags.TagKey;
-import slimeknights.mantle.network.packet.IThreadsafePacket;
+import slimeknights.mantle.network.packet.IPacket;
+import slimeknights.mantle.network.packet.PacketContext;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.utils.GenericTagUtil;
 
@@ -16,12 +17,19 @@ import java.util.Map;
 
 @Getter
 @AllArgsConstructor
-public class UpdateMaterialsPacket implements IThreadsafePacket {
+/**
+ * Packet syncing the material list on login.
+ * <p>
+ * Its decode reads IDs and primitives and resolves nothing outside its own payload, which is what makes it safe to
+ * handle in any order against the other three sync packets. See {@link slimeknights.tconstruct.library.utils.LazyDecode}
+ * for the failure that rule exists to prevent.
+ */
+public class UpdateMaterialsPacket implements IPacket.Threadsafe {
   private final Map<MaterialId,IMaterial> materials;
   private final Map<MaterialId,MaterialId> redirects;
   private final Map<TagKey<IMaterial>,List<IMaterial>> tags;
 
-  public UpdateMaterialsPacket(FriendlyByteBuf buffer) {
+  public UpdateMaterialsPacket(RegistryFriendlyByteBuf buffer) {
     int materialCount = buffer.readInt();
     ImmutableMap.Builder<MaterialId,IMaterial> materials = ImmutableMap.builder();
 
@@ -48,7 +56,7 @@ public class UpdateMaterialsPacket implements IThreadsafePacket {
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer) {
+  public void encode(RegistryFriendlyByteBuf buffer) {
     buffer.writeInt(this.materials.size());
     this.materials.values().forEach(material -> {
       buffer.writeResourceLocation(material.getIdentifier());
@@ -66,7 +74,7 @@ public class UpdateMaterialsPacket implements IThreadsafePacket {
   }
 
   @Override
-  public void handleThreadsafe(Context context) {
+  public void handleThreadsafe(PacketContext context) {
     MaterialRegistry.updateMaterialsFromServer(this);
   }
 }

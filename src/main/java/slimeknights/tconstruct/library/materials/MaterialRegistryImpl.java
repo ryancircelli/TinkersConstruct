@@ -2,7 +2,7 @@ package slimeknights.tconstruct.library.materials;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
-import slimeknights.mantle.data.loadable.Loadable;
+import slimeknights.mantle.data.registry.IdAwareComponentRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialId;
 import slimeknights.tconstruct.library.materials.definition.MaterialManager;
@@ -77,7 +77,7 @@ public class MaterialRegistryImpl implements IMaterialRegistry {
 
   /** Gets the loader for all stat types */
   @Override
-  public Loadable<MaterialStatType<?>> getStatTypeLoader() {
+  public IdAwareComponentRegistry<MaterialStatType<?>> getStatTypeLoader() {
     return materialStatsManager.getStatTypes();
   }
 
