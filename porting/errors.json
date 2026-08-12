@@ -1,6 +1,6 @@
 {
-    "total": 415,
-    "islandFiles": 295,
+    "total": 413,
+    "islandFiles": 300,
     "categories": {
         "other: static import only from classes and interfaces": 2,
         "package BasicModifier": 1,
@@ -14,8 +14,6 @@
         "package slimeknights.tconstruct.library.client.armor.texture": 1,
         "package slimeknights.tconstruct.library.client.materials": 4,
         "package slimeknights.tconstruct.library.client.model": 1,
-        "package slimeknights.tconstruct.library.events": 1,
-        "package slimeknights.tconstruct.library.exception": 2,
         "package slimeknights.tconstruct.library.modifiers": 59,
         "package slimeknights.tconstruct.library.modifiers.hook.armor": 1,
         "package slimeknights.tconstruct.library.modifiers.hook.build": 1,
@@ -65,6 +63,6 @@
         "symbol class TConstruct": 32,
         "symbol class TagSource": 1,
         "symbol class TagUtil": 2,
-        "symbol class Util": 25
+        "symbol class Util": 26
     }
 }

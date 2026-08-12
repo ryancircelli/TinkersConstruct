@@ -27,6 +27,11 @@
 # Empty at T1: the machinery exists, the island does not.
 #
 # Sorted, repo-relative, one path per line.
+src/main/java/slimeknights/tconstruct/library/events/MaterialsLoadedEvent.java
+src/main/java/slimeknights/tconstruct/library/exception/TinkerAPIException.java
+src/main/java/slimeknights/tconstruct/library/exception/TinkerAPIMaterialException.java
+src/main/java/slimeknights/tconstruct/library/exception/TinkerJSONException.java
+src/main/java/slimeknights/tconstruct/library/exception/package-info.java
 src/main/java/slimeknights/tconstruct/library/json/IntRange.java
 src/main/java/slimeknights/tconstruct/library/json/JsonRedirect.java
 src/main/java/slimeknights/tconstruct/library/json/LevelingInt.java
