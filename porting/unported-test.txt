@@ -35,6 +35,7 @@ src/test/java/slimeknights/tconstruct/library/materials/stats/UpdateMaterialStat
 src/test/java/slimeknights/tconstruct/library/materials/traits/MaterialTraitsManagerTest.java
 src/test/java/slimeknights/tconstruct/library/materials/traits/UpdateMaterialTraitsPacketTest.java
 src/test/java/slimeknights/tconstruct/library/modifiers/ModifierFixture.java
+src/test/java/slimeknights/tconstruct/library/modifiers/UpdateModifiersPacketTest.java
 src/test/java/slimeknights/tconstruct/library/modifiers/util/EnchantmentLevelsTest.java
 src/test/java/slimeknights/tconstruct/library/tools/definition/ToolDefinitionDataTest.java
 src/test/java/slimeknights/tconstruct/library/tools/definition/ToolDefinitionLoaderTest.java
