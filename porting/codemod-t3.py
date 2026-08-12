@@ -488,11 +488,19 @@ def apply_package_renames(text: str, counts: Counter, guarded: set[str]) -> str:
 
 def apply_special_renames(text: str, counts: Counter) -> str:
     for spec in SPECIAL_RENAMES:
-        old_import_line_re = re.compile(
-            r"^import(?:\s+static)?\s+" + re.escape(spec["old_import"]) + r"\s*;\s*$",
+        # Matches both the bare import (`import ...ForgeConfigSpec;`) and any
+        # nested-member import (`import ...ForgeConfigSpec.BooleanValue;`) -
+        # replacing only the old_import prefix and leaving whatever nested
+        # suffix and the trailing `;` exactly as they were. A prefix-only
+        # match here (not anchored to end-of-line) is required: matching only
+        # the bare form would leave nested-member import lines half-renamed
+        # by the token substitution below (right class name, stale package),
+        # which is both wrong and non-idempotent.
+        old_import_prefix_re = re.compile(
+            r"^(import(?:\s+static)?\s+)" + re.escape(spec["old_import"]) + r"\b",
             re.MULTILINE,
         )
-        if not old_import_line_re.search(text):
+        if not old_import_prefix_re.search(text):
             continue
         # Count every whole-word occurrence up front (import line included),
         # then perform the two substitutions - this keeps the reported count
@@ -501,8 +509,8 @@ def apply_special_renames(text: str, counts: Counter) -> str:
         # import line just because a different regex performs that one edit.
         token_re = re.compile(r"\b" + re.escape(spec["old_token"]) + r"\b")
         counts[f"special: {spec['name']}"] += len(token_re.findall(text))
-        text = old_import_line_re.sub(
-            f"import {spec['new_import']};", text
+        text = old_import_prefix_re.sub(
+            lambda m: m.group(1) + spec["new_import"], text
         )
         text = token_re.sub(spec["new_token"], text)
     return text
