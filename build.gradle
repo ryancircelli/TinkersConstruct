@@ -487,20 +487,12 @@ neoForge {
         mappingsVersion = project.parchment_version
     }
 
-    /*
-     * src/main/resources/META-INF/accesstransformer.cfg is still SRG-named (f_97726_,
-     * m_280092_, ...) and cannot load under 1.21, which is Mojang-named end to end.
-     * T2 translates it and deletes this block.
-     *
-     * Clearing the collection is load-bearing rather than cosmetic: ModDevGradle applies a
-     * *convention* pointing at exactly that path, so saying nothing about access transformers
-     * would pick the file up and fail the build. setFrom() with no arguments overrides it.
-     */
-    accessTransformers {
-        files.setFrom()
-    }
-    // validateAccessTransformers is left at its default (off) until T2 makes the file real;
-    // it gets switched on there so a line that stops resolving fails the build.
+    // The shipped access transformer is now Mojang-named end to end (translated and triaged in
+    // T2), so ModDevGradle's convention of picking up
+    // src/main/resources/META-INF/accesstransformer.cfg automatically is left alone.
+    // validateAccessTransformers fails the build if any active line stops resolving, which is
+    // the safety net T2 wants and keeps the file honest for the rest of the port.
+    validateAccessTransformers = true
 
     mods {
         tconstruct {
