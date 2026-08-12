@@ -496,3 +496,12 @@ src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/MiningC
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/OverslimeModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/TimeToCapacityModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/package-info.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/combat/ConditionalMeleeDamageModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/combat/ConditionalPowerModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/combat/KnockbackModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/combat/LootingModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/combat/MeleeAttributeModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/combat/MobEffectModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/combat/ProjectileExplosionModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/combat/SlingForceModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/combat/package-info.java
