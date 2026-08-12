@@ -130,7 +130,7 @@ public class ModifierRemovalRecipe extends AbstractWorktableRecipe {
     int newLevel = tool.getModifierLevel(modifierId) - 1;
     Modifier modifier = entry.getModifier();
     if (newLevel <= 0) {
-      modifier.getHook(ModifierHooks.RAW_DATA).removeRawData(tool, modifier, tool.getRestrictedNBT());
+      modifier.getHook(ModifierHooks.RAW_DATA).removeRawData(tool, modifier, tool.getRawData());
     }
 
     // remove the actual modifier

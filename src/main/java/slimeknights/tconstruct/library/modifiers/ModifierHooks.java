@@ -80,7 +80,7 @@ import slimeknights.tconstruct.library.module.ModuleHook;
 import slimeknights.tconstruct.library.tools.capability.BlockItemProviderModifierHook;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ModDataNBT;
-import slimeknights.tconstruct.library.utils.RestrictedCompoundTag;
+import slimeknights.tconstruct.library.tools.nbt.RawDataNBT;
 import slimeknights.tconstruct.library.utils.Schedule.Scheduler;
 
 import javax.annotation.Nullable;
@@ -223,10 +223,10 @@ public class ModifierHooks {
   /** Hook to add and remove data directly to the tools NBT. It is generally better to use persistent data or volatile data when possible. */
   public static final ModuleHook<RawDataModifierHook> RAW_DATA = register("raw_data", RawDataModifierHook.class, RawDataModifierHook.AllMerger::new, new RawDataModifierHook() {
     @Override
-    public void addRawData(IToolStackView tool, ModifierEntry modifier, RestrictedCompoundTag tag) {}
+    public void addRawData(IToolStackView tool, ModifierEntry modifier, RawDataNBT tag) {}
 
     @Override
-    public void removeRawData(IToolStackView tool, Modifier modifier, RestrictedCompoundTag tag) {}
+    public void removeRawData(IToolStackView tool, Modifier modifier, RawDataNBT tag) {}
   });
 
   /**

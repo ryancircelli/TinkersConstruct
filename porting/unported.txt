@@ -1031,9 +1031,13 @@ src/main/java/slimeknights/tconstruct/library/tools/nbt/MaterialNBT.java
 src/main/java/slimeknights/tconstruct/library/tools/nbt/ModDataNBT.java
 src/main/java/slimeknights/tconstruct/library/tools/nbt/ModifierNBT.java
 src/main/java/slimeknights/tconstruct/library/tools/nbt/MultiplierNBT.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/RawDataNBT.java
 src/main/java/slimeknights/tconstruct/library/tools/nbt/StatsNBT.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/ToolComponents.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/ToolDataComponent.java
 src/main/java/slimeknights/tconstruct/library/tools/nbt/ToolDataNBT.java
 src/main/java/slimeknights/tconstruct/library/tools/nbt/ToolStack.java
+src/main/java/slimeknights/tconstruct/library/tools/nbt/ToolStatsComponent.java
 src/main/java/slimeknights/tconstruct/library/tools/nbt/package-info.java
 src/main/java/slimeknights/tconstruct/library/tools/package-info.java
 src/main/java/slimeknights/tconstruct/library/tools/part/IMaterialItem.java
@@ -1070,7 +1074,6 @@ src/main/java/slimeknights/tconstruct/library/utils/MutableUseOnContext.java
 src/main/java/slimeknights/tconstruct/library/utils/NBTTags.java
 src/main/java/slimeknights/tconstruct/library/utils/Orientation2D.java
 src/main/java/slimeknights/tconstruct/library/utils/ResourceId.java
-src/main/java/slimeknights/tconstruct/library/utils/RestrictedCompoundTag.java
 src/main/java/slimeknights/tconstruct/library/utils/RomanNumeralHelper.java
 src/main/java/slimeknights/tconstruct/library/utils/Schedule.java
 src/main/java/slimeknights/tconstruct/library/utils/SimpleCache.java

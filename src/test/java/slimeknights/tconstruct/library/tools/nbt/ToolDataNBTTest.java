@@ -11,9 +11,9 @@ import slimeknights.tconstruct.test.BaseMcTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ToolDataNBTTest extends BaseMcTest {
-  private static final ResourceLocation testKey = new ResourceLocation("test");
-  private static final ResourceLocation testKey2 = new ResourceLocation("test2");
-  private static final ResourceLocation testKey3 = new ResourceLocation("test3");
+  private static final ResourceLocation testKey = ResourceLocation.parse("test");
+  private static final ResourceLocation testKey2 = ResourceLocation.parse("test2");
+  private static final ResourceLocation testKey3 = ResourceLocation.parse("test3");
 
   @Test
   void empty() {

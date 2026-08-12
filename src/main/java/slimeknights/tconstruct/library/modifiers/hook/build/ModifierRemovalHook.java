@@ -5,7 +5,7 @@ import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
-import slimeknights.tconstruct.library.utils.RestrictedCompoundTag;
+import slimeknights.tconstruct.library.tools.nbt.RawDataNBT;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -20,7 +20,7 @@ public interface ModifierRemovalHook {
    * Alternatives:
    * <ul>
    *   <li>{@link ValidateModifierHook}: Called when the modifier still has levels on the tool</li>
-   *   <li>{@link RawDataModifierHook#removeRawData(IToolStackView, Modifier, RestrictedCompoundTag)}: Grants access to the tools raw NBT, but called before tool stats are rebuilt</li>
+   *   <li>{@link RawDataModifierHook#removeRawData(IToolStackView, Modifier, RawDataNBT)}: Grants access to the tools raw NBT, but called before tool stats are rebuilt</li>
    *   <li>{@link VolatileDataModifierHook}: Adds NBT that is automatically removed</li>
    * </ul>
    * @param tool      Tool instance

@@ -75,6 +75,7 @@ public class AddToolDataFunction extends LootItemConditionalFunction {
       if (damage > 0) {
         tool.setDamage((int)(tool.getStats().get(ToolStats.DURABILITY) * damage));
       }
+      tool.updateStack();
     }
     return stack;
   }

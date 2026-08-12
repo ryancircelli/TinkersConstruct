@@ -54,6 +54,7 @@ import slimeknights.tconstruct.library.tools.capability.TinkerDataCapability.Com
 import slimeknights.tconstruct.library.tools.capability.TinkerDataCapability.TinkerDataKey;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinitionLoader;
 import slimeknights.tconstruct.library.tools.layout.StationSlotLayoutLoader;
+import slimeknights.tconstruct.library.tools.nbt.ToolComponents;
 import slimeknights.tconstruct.library.utils.Util;
 import slimeknights.tconstruct.plugin.DietPlugin;
 import slimeknights.tconstruct.plugin.DummmmmmyPlugin;
@@ -108,6 +109,8 @@ public class TConstruct {
     // initialize modules, done this way rather than with annotations to give us control over the order
     NeoForge.EVENT_BUS.addListener(TConstruct::missingMappings);
     IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+    // the tool data components, registered before anything that builds a tool
+    ToolComponents.init(bus);
     // base
     bus.register(new TinkerCommons());
     bus.register(new TinkerMaterials());
