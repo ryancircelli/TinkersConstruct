@@ -1,12 +1,11 @@
 {
-    "total": 413,
+    "total": 408,
     "islandFiles": 300,
     "categories": {
         "other: static import only from classes and interfaces": 2,
         "package BasicModifier": 1,
         "package ModuleBuilder": 1,
         "package TinkerDataCapability": 2,
-        "package slimeknights.mantle.command.argument": 1,
         "package slimeknights.tconstruct.common": 8,
         "package slimeknights.tconstruct.common.TinkerTags": 2,
         "package slimeknights.tconstruct.common.config": 2,
@@ -44,7 +43,6 @@
         "package slimeknights.tconstruct.tools.stats": 10,
         "symbol class ArmorModuleBuilder": 6,
         "symbol class BreakSpeedContext": 10,
-        "symbol class CombatHelper": 1,
         "symbol class DomainDisplayName": 1,
         "symbol class DummyArmorMaterial": 1,
         "symbol class IModifiable": 1,
@@ -55,13 +53,10 @@
         "symbol class ModifierCondition": 3,
         "symbol class ModifierEntry": 69,
         "symbol class ModifierId": 45,
-        "symbol class OffhandCooldownTracker": 1,
         "symbol class OreRateType": 1,
         "symbol class RecipeResult": 5,
-        "symbol class ResourceColorManager": 1,
         "symbol class SlotType": 16,
         "symbol class TConstruct": 32,
-        "symbol class TagSource": 1,
         "symbol class TagUtil": 2,
         "symbol class Util": 26
     }

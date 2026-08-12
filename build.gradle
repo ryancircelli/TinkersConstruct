@@ -93,8 +93,10 @@ println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty '
  * below is what makes that a rule rather than an intention.
  */
 ext.frontiers = [
-        [name: 'main', ledger: file('porting/unported.txt'), roots: ['src/main/java']],
-        [name: 'test', ledger: file('porting/unported-test.txt'), roots: ['src/test/java', 'src/gametest/java']],
+        [name: 'main', ledger: file('porting/unported.txt'), roots: ['src/main/java'],
+         island: file('porting/island.txt')],
+        [name: 'test', ledger: file('porting/unported-test.txt'), roots: ['src/test/java', 'src/gametest/java'],
+         island: file('porting/island-test.txt')],
 ]
 
 // Reads a ledger into repo-relative paths, dropping blank lines and # comments.
@@ -162,30 +164,42 @@ sourceSets {
  * other checks still run.
  *
  * The one exception to (c) is a file that did not exist at HEAD~ and is listed on
- * porting/island.txt. Rule (c) exists to stop a file that compiles today from being
+ * that ledger's island. Rule (c) exists to stop a file that compiles today from being
  * hidden tomorrow; a file created by the commit that lists it has no such yesterday
- * to be pushed back from. It also cannot be avoided: the island is compiled only for
+ * to be pushed back from. It also cannot be avoided: an island is compiled only for
  * measurement, so a new class written against island classes cannot join
- * sourceSets.main until the island does, and the island ledger is required to be a
- * subset of this one (see errorBudget). Without the exception a slice porting a
- * package into the component era could not add a single class to it, which would
- * decide code shape by ledger mechanics.
+ * sourceSets.main until the island does, and an island ledger is required to be a
+ * subset of its frontier ledger (see errorBudget). Without the exception a slice
+ * porting a package into the component era could not add a single class to it, which
+ * would decide code shape by ledger mechanics.
  *
  * The exception is deliberately narrow. It permits exactly "born on the island,
  * leaves with it at T13" and nothing else: an existing file cannot use it (git says
- * so), and a new file that is not on the island cannot either, so a new class that
+ * so), and a new file that is not on an island cannot either, so a new class that
  * really does compile still has to prove it by joining the source set.
+ *
+ * T5 wrote that exception for src/main/java and porting/island.txt, and T7 found the
+ * asymmetry it left behind: porting/island.txt is required to name only src/main/java
+ * paths, so `island.contains(it)` could never hold for a test path and a slice could
+ * not add a new test file at all - not listing it puts it in sourceSets.test, where it
+ * cannot compile against island classes, and listing it in porting/unported-test.txt
+ * tripped the no-growth rule. Each frontier therefore names its own island ledger:
+ * porting/island.txt for main, porting/island-test.txt for tests. The mechanism is
+ * T5's verbatim - listed on the island, and `git cat-file -e HEAD~:<path>` fails - and
+ * so are the invariants below, which are what errorBudget already enforces on the main
+ * island and what makes a listing mean "compiled for measurement" rather than "hidden".
+ * The test island is measured by `errorBudgetTest`; see the error budget section.
  */
 tasks.register('checkPortingFrontier') {
     group = 'verification'
     description = 'Verifies the porting frontier is intact and has not grown since HEAD~.'
 
     def projectDirectory = projectDir
-    def ledgers = frontiers.collect { [name: it.name, roots: it.roots, path: rootDir.toPath().relativize(it.ledger.toPath()).toString(), file: it.ledger] }
+    def ledgers = frontiers.collect { [name: it.name, roots: it.roots, path: rootDir.toPath().relativize(it.ledger.toPath()).toString(), file: it.ledger,
+                                       islandPath: rootDir.toPath().relativize(it.island.toPath()).toString(), islandFile: it.island] }
     def read = readFrontier
-    def island = readFrontier(islandLedger) as Set
     inputs.files(frontiers*.ledger).withPropertyName('ledgers')
-    inputs.file(islandLedger).withPropertyName('island')
+    inputs.files(frontiers*.island).withPropertyName('islands')
 
     doLast {
         // Reads the committed copy of a ledger at HEAD~; null when there is no baseline.
@@ -227,6 +241,29 @@ tasks.register('checkPortingFrontier') {
             def missing = entries.findAll { !new File(projectDirectory, it).exists() }
             if (!missing.isEmpty()) {
                 failures << "${ledger.path} lists ${missing.size()} path(s) that do not exist. Delete the line if the file was ported or removed:\n  ${missing.join('\n  ')}"
+            }
+
+            // The island this ledger's born-file exception reads from has to hold up the same
+            // invariants errorBudget puts on the main island, or the exception would let a file
+            // through on a listing that means nothing.
+            def islandEntries = read(ledger.islandFile)
+            def island = islandEntries as Set
+            def islandDuplicates = islandEntries.countBy { it }.findAll { it.value > 1 }.keySet()
+            if (!islandDuplicates.isEmpty()) {
+                failures << "${ledger.islandPath} lists ${islandDuplicates.size()} path(s) more than once:\n  ${islandDuplicates.join('\n  ')}"
+            }
+            def islandStray = islandEntries.findAll { entry -> ledger.roots.every { !entry.startsWith("${it}/") } }
+            if (!islandStray.isEmpty()) {
+                failures << "${ledger.islandPath} lists ${islandStray.size()} path(s) outside its frontier's source root(s) ${ledger.roots}:\n  ${islandStray.join('\n  ')}"
+            }
+            def islandMissing = islandEntries.findAll { !new File(projectDirectory, it).exists() }
+            if (!islandMissing.isEmpty()) {
+                failures << "${ledger.islandPath} lists ${islandMissing.size()} path(s) that do not exist:\n  ${islandMissing.join('\n  ')}"
+            }
+            def islandEscaped = islandEntries.findAll { !entries.contains(it) }
+            if (!islandEscaped.isEmpty()) {
+                failures << ("${ledger.islandPath} lists ${islandEscaped.size()} path(s) that ${ledger.path} does not. A file on an " +
+                        "island is compiled for measurement only and must stay excluded from its source set:\n  ${islandEscaped.join('\n  ')}")
             }
 
             def baselineText = baselineOf(ledger.path)
@@ -285,6 +322,10 @@ tasks.named('check').configure {
  *   errorBudgetUpdate  promotes the measurement to porting/errors.json. Run by
  *                      hand; the resulting diff is the reviewable record of a PR
  *                      moving the budget, in either direction.
+ *   errorBudgetTest    compiles porting/island-test.txt - the tests whose subjects
+ *                      are on the island - alongside the island against the test
+ *                      classpath, and counts the errors in the test files only.
+ *                      Run by hand, not gated; see its own comment below.
  *
  * Why the measurement never writes porting/errors.json itself: `check` must not
  * mutate a committed file, or the gate would silently rubber-stamp whatever it
@@ -313,6 +354,91 @@ ext.readErrorBudget = { File f ->
             categories: (parsed.categories ?: [:]).collectEntries { k, v -> [(k as String): v as int] }]
 }
 
+/*
+ * Forks the toolchain's javac over `sourcePaths` with failOnError=false and returns the
+ * diagnostics it printed as [file: absolute path, message: String, symbol: String or null].
+ * The raw output is left in `log` and the source list in `argFile`, both for reading by hand.
+ * Shared by errorBudget (the island) and errorBudgetTest (the test island).
+ */
+ext.forkJavacDiagnostics = { String javacExe, File workingDir, File classesDir, File argFile, File log,
+                             List<String> sourcePaths, FileCollection classpath, FileCollection processorPath ->
+    classesDir.deleteDir()
+    classesDir.mkdirs()
+    if (sourcePaths.isEmpty()) {
+        log.text = ''
+        return []
+    }
+    argFile.text = sourcePaths.join('\n')
+
+    def command = [javacExe, '-d', classesDir.absolutePath, '-encoding', 'UTF-8', '-nowarn',
+                   '-implicit:none', '-Xmaxerrs', '100000', '-classpath', classpath.asPath]
+    if (!processorPath.isEmpty()) {
+        // Lombok. Without it every generated accessor reads as a missing symbol and the
+        // measurement is dominated by errors that do not exist.
+        command += ['-processorpath', processorPath.asPath]
+        command += ['-J--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED',
+                    '-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
+                    '-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED',
+                    '-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+                    '-J--add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED',
+                    '-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED',
+                    '-J--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED',
+                    '-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+                    '-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED',
+                    '-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+                    '-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED']
+    } else {
+        command += ['-proc:none']
+    }
+    command << "@${argFile.absolutePath}".toString()
+
+    // failOnError=false, spelled out: javac's exit code is ignored, its diagnostics are the product.
+    def output = new ByteArrayOutputStream()
+    def proc = new ProcessBuilder(command).directory(workingDir).redirectErrorStream(true).start()
+    proc.outputStream.close()
+    proc.inputStream.transferTo(output)
+    proc.waitFor()
+    log.bytes = output.toByteArray()
+
+    // javac writes an error as a `path:line: error: message` line, sometimes followed by
+    // the offending source line, a caret, and `  symbol:`/`  location:` detail lines.
+    def diagnostics = []
+    def current = null
+    log.readLines('UTF-8').each { line ->
+        def head = line =~ /^(.*\.java):(\d+): (error|warning): (.*)$/
+        if (head.find()) {
+            current = head.group(3) == 'error' ? [file: head.group(1), message: head.group(4).trim(), symbol: null] : null
+            if (current != null) {
+                diagnostics << current
+            }
+            return
+        }
+        def detail = line =~ /^\s+symbol:\s+(.*)$/
+        if (detail.find() && current != null && current.symbol == null) {
+            current.symbol = detail.group(1).trim()
+        }
+    }
+    return diagnostics
+}
+
+// Categorises one diagnostic from forkJavacDiagnostics; see the header comment above.
+ext.categoriseDiagnostic = { d, File projectDirectory ->
+    def pkg = d.message =~ /^package (\S+) (?:does not exist|is not visible)/
+    if (pkg.find()) {
+        return "package ${pkg.group(1)}".toString()
+    }
+    if (d.symbol != null) {
+        // "class ToolAction", "method getFoo(int,int)", "variable bar" -> drop the argument
+        // list, which varies per call site and would shatter one missing method into many.
+        def parts = d.symbol.replaceAll(/\s+/, ' ').split(' ', 2)
+        def name = parts.length > 1 ? parts[1].replaceAll(/\(.*$/, '') : parts[0]
+        return "symbol ${parts[0]} ${name}".toString()
+    }
+    // Strip absolute paths so the key does not depend on where the repo is checked out.
+    def message = d.message.replace(projectDirectory.absolutePath, '').replaceAll(/\s+/, ' ')
+    return "other: ${message.length() > 120 ? message.substring(0, 120) : message}".toString()
+}
+
 tasks.register('errorBudget') {
     group = 'verification'
     description = 'Compiles the island named by porting/island.txt and counts the errors.'
@@ -327,6 +453,8 @@ tasks.register('errorBudget') {
     def processorPath = sourceSets.main.annotationProcessorPath
     def javac = javaToolchains.compilerFor(java.toolchain).map { it.executablePath.asFile.absolutePath }
     def outputDir = layout.buildDirectory.dir('errorBudget')
+    def fork = forkJavacDiagnostics
+    def categorise = categoriseDiagnostic
 
     inputs.file(islandLedger).withPropertyName('island')
     inputs.files(islandSources).withPropertyName('islandSources')
@@ -361,86 +489,13 @@ tasks.register('errorBudget') {
         }
 
         def dir = outputDir.get().asFile
-        def classesDir = new File(dir, 'classes')
-        classesDir.deleteDir()
-        classesDir.mkdirs()
-        def log = new File(dir, 'javac.log')
-
-        def diagnostics = []
-        if (islandEntries.isEmpty()) {
-            log.text = ''
-        } else {
-            def argFile = new File(dir, 'sources.txt')
-            argFile.text = islandEntries.collect { new File(projectDirectory, it).absolutePath.replace('\\', '/') }.join('\n')
-
-            def command = [javac.get(), '-d', classesDir.absolutePath, '-encoding', 'UTF-8', '-nowarn',
-                           '-implicit:none', '-Xmaxerrs', '100000', '-classpath', compileClasspath.asPath]
-            if (!processorPath.isEmpty()) {
-                // Lombok. Without it every generated accessor reads as a missing symbol and the
-                // measurement is dominated by errors that do not exist.
-                command += ['-processorpath', processorPath.asPath]
-                command += ['-J--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED',
-                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
-                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED',
-                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
-                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED',
-                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED',
-                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED',
-                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
-                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED',
-                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
-                            '-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED']
-            } else {
-                command += ['-proc:none']
-            }
-            command << "@${argFile.absolutePath}".toString()
-
-            // failOnError=false, spelled out: javac's exit code is ignored, its diagnostics are the product.
-            def output = new ByteArrayOutputStream()
-            def proc = new ProcessBuilder(command).directory(projectDirectory).redirectErrorStream(true).start()
-            proc.outputStream.close()
-            proc.inputStream.transferTo(output)
-            proc.waitFor()
-            log.bytes = output.toByteArray()
-
-            // javac writes an error as a `path:line: error: message` line, sometimes followed by
-            // the offending source line, a caret, and `  symbol:`/`  location:` detail lines.
-            def current = null
-            log.readLines('UTF-8').each { line ->
-                def head = line =~ /^(.*\.java):(\d+): (error|warning): (.*)$/
-                if (head.find()) {
-                    current = head.group(3) == 'error' ? [message: head.group(4).trim(), symbol: null] : null
-                    if (current != null) {
-                        diagnostics << current
-                    }
-                    return
-                }
-                def detail = line =~ /^\s+symbol:\s+(.*)$/
-                if (detail.find() && current != null && current.symbol == null) {
-                    current.symbol = detail.group(1).trim()
-                }
-            }
-        }
-
-        def categorise = { d ->
-            def pkg = d.message =~ /^package (\S+) (?:does not exist|is not visible)/
-            if (pkg.find()) {
-                return "package ${pkg.group(1)}".toString()
-            }
-            if (d.symbol != null) {
-                // "class ToolAction", "method getFoo(int,int)", "variable bar" -> drop the argument
-                // list, which varies per call site and would shatter one missing method into many.
-                def parts = d.symbol.replaceAll(/\s+/, ' ').split(' ', 2)
-                def name = parts.length > 1 ? parts[1].replaceAll(/\(.*$/, '') : parts[0]
-                return "symbol ${parts[0]} ${name}".toString()
-            }
-            // Strip absolute paths so the key does not depend on where the repo is checked out.
-            def message = d.message.replace(projectDirectory.absolutePath, '').replaceAll(/\s+/, ' ')
-            return "other: ${message.length() > 120 ? message.substring(0, 120) : message}".toString()
-        }
+        def diagnostics = fork(javac.get(), projectDirectory, new File(dir, 'classes'), new File(dir, 'sources.txt'),
+                new File(dir, 'javac.log'),
+                islandEntries.collect { new File(projectDirectory, it).absolutePath.replace('\\', '/') },
+                compileClasspath, processorPath)
 
         def categories = new TreeMap<String, Integer>()
-        diagnostics.each { categories.merge(categorise(it), 1, Integer.&sum) }
+        diagnostics.each { categories.merge(categorise(it, projectDirectory), 1, Integer.&sum) }
         def measurement = [total: diagnostics.size(), islandFiles: islandEntries.size(), categories: categories]
 
         new File(dir, 'errors.json').text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(measurement)) + '\n'
@@ -499,6 +554,79 @@ tasks.register('errorBudgetUpdate', Copy) {
     dependsOn 'errorBudget'
     from layout.buildDirectory.file('errorBudget/errors.json')
     into errorBudgetLedger.parentFile
+}
+
+/*
+ * The test island. A test whose subject is on the island cannot compile in sourceSets.test
+ * either, so it sits on the test frontier the same way its subject sits on the main one, and
+ * porting/island-test.txt names the ones a slice has brought up to 1.21 - "island standard",
+ * which every slice since T5 has claimed in its notes by compiling the test sources alongside
+ * the island by hand. This task is that procedure, so the claim is reproducible and so a
+ * listing on porting/island-test.txt means "compiled for measurement" rather than "hidden".
+ *
+ * The test island is compiled in the same javac invocation as the island (it needs the island's
+ * sources, which have no jar) but against the test compile classpath, which is why it cannot
+ * simply be listed on porting/island.txt: that ledger's files are compiled with the main
+ * classpath, where JUnit and Mockito do not exist.
+ *
+ * Deliberately NOT wired into `check` and deliberately without a committed ledger of its own.
+ * The island's own diagnostics dominate the compilation and are already gated by
+ * checkErrorBudget; a second ratchet over the same javac run would gate the same breakage
+ * twice, and T13 rehomes these files anyway. What a slice owes is the number and the reading
+ * of it in the PR, exactly as T5-T7 did.
+ */
+tasks.register('errorBudgetTest') {
+    group = 'verification'
+    description = 'Compiles porting/island-test.txt alongside the island and counts the errors in the test files.'
+
+    def islandEntries = readFrontier(islandLedger)
+    def testIsland = frontiers.find { it.name == 'test' }
+    def testIslandEntries = readFrontier(testIsland.island)
+    def testIslandPath = rootDir.toPath().relativize(testIsland.island.toPath()).toString()
+    def projectDirectory = projectDir
+    def sources = files((islandEntries + testIslandEntries).collect { file(it) })
+    // Both, and the union is the point: neoForge.unitTest is off while every test is behind the
+    // frontier, so the test classpath carries JUnit, Mockito and AssertJ but no Minecraft. The
+    // island's own classpath is where Minecraft, NeoForge and Mantle come from.
+    def compileClasspath = sourceSets.main.compileClasspath + sourceSets.test.compileClasspath
+    def processorPath = sourceSets.main.annotationProcessorPath + sourceSets.test.annotationProcessorPath
+    def javac = javaToolchains.compilerFor(java.toolchain).map { it.executablePath.asFile.absolutePath }
+    def outputDir = layout.buildDirectory.dir('errorBudgetTest')
+    def fork = forkJavacDiagnostics
+    def categorise = categoriseDiagnostic
+
+    inputs.files(islandLedger, testIsland.island).withPropertyName('islands')
+    inputs.files(sources).withPropertyName('sources')
+    inputs.files(compileClasspath).withPropertyName('compileClasspath')
+    inputs.files(processorPath).withPropertyName('processorPath')
+    outputs.dir(outputDir)
+
+    doLast {
+        // checkPortingFrontier owns this ledger's invariants; this only needs the files to be there.
+        def missing = testIslandEntries.findAll { !new File(projectDirectory, it).exists() }
+        if (!missing.isEmpty()) {
+            throw new GradleException("${testIslandPath} lists ${missing.size()} path(s) that do not exist:\n  ${missing.join('\n  ')}\n")
+        }
+
+        def dir = outputDir.get().asFile
+        def diagnostics = fork(javac.get(), projectDirectory, new File(dir, 'classes'), new File(dir, 'sources.txt'),
+                new File(dir, 'javac.log'),
+                (islandEntries + testIslandEntries).collect { new File(projectDirectory, it).absolutePath.replace('\\', '/') },
+                compileClasspath, processorPath)
+
+        // Only the test island's own diagnostics are this measurement; the island's are errorBudget's.
+        def testPaths = testIslandEntries.collect { new File(projectDirectory, it).absolutePath.replace('\\', '/') } as Set
+        def mine = diagnostics.findAll { testPaths.contains(it.file.replace('\\', '/')) }
+
+        def categories = new TreeMap<String, Integer>()
+        mine.each { categories.merge(categorise(it, projectDirectory), 1, Integer.&sum) }
+        def measurement = [total: mine.size(), islandFiles: testIslandEntries.size(), categories: categories]
+
+        new File(dir, 'errors-test.json').text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(measurement)) + '\n'
+        logger.lifecycle("test error budget: ${measurement.total} error(s) across ${categories.size()} categor(y/ies) " +
+                "in ${measurement.islandFiles} test island file(s), out of ${diagnostics.size()} in the whole compilation")
+        categories.each { name, count -> logger.lifecycle("  ${count.toString().padLeft(6)}  ${name}") }
+    }
 }
 
 tasks.named('check').configure {
