@@ -21,7 +21,6 @@ import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.ToolActions;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.common.network.TinkerNetwork;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
@@ -35,6 +34,7 @@ import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.utils.BlockSideHitListener;
 import slimeknights.tconstruct.library.utils.Util;
+import slimeknights.tconstruct.tools.TinkerToolActions;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -67,7 +67,7 @@ public class ToolHarvestLogic {
   public static int getDamage(IToolStackView tool, Level world, BlockPos pos, BlockState state) {
     if (state.getDestroySpeed(world, pos) == 0 || !tool.hasTag(TinkerTags.Items.HARVEST)) {
       // tools that can shear take damage from instant break for non-fire
-      return (!state.is(BlockTags.FIRE) && ModifierUtil.canPerformAction(tool, ToolActions.SHEARS_DIG)) ? 1 : 0;
+      return (!state.is(BlockTags.FIRE) && ModifierUtil.canPerformAction(tool, TinkerToolActions.SHEARS_DIG)) ? 1 : 0;
     }
     // if it lacks the harvest tag, it takes double damage (swords for instance)
     return tool.hasTag(TinkerTags.Items.HARVEST_PRIMARY) ? 1 : 2;

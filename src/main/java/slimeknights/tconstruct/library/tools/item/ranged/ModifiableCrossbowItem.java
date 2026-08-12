@@ -29,7 +29,6 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.common.ToolActions;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import slimeknights.mantle.client.TooltipKey;
@@ -52,6 +51,7 @@ import slimeknights.tconstruct.library.tools.nbt.ModifierNBT;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.stat.ToolStats;
 import slimeknights.tconstruct.tools.TinkerModifiers;
+import slimeknights.tconstruct.tools.TinkerToolActions;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -183,7 +183,7 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
         return InteractionResultHolder.pass(bow);
       }
       // can block while filled with ammo
-      if (ModifierUtil.canPerformAction(tool, ToolActions.SHIELD_BLOCK)) {
+      if (ModifierUtil.canPerformAction(tool, TinkerToolActions.SHIELD_BLOCK)) {
         player.startUsingItem(hand);
         return InteractionResultHolder.consume(bow);
       }

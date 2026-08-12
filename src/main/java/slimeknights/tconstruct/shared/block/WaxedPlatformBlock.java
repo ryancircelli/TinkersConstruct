@@ -4,10 +4,10 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.common.ToolActions;
 import org.jetbrains.annotations.Nullable;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.shared.TinkerCommons;
+import slimeknights.tconstruct.tools.TinkerToolActions;
 
 public class WaxedPlatformBlock extends PlatformBlock {
   private final WeatherState age;
@@ -24,7 +24,7 @@ public class WaxedPlatformBlock extends PlatformBlock {
   @Nullable
   @Override
   public BlockState getToolModifiedState(BlockState state, UseOnContext context, ToolAction toolAction, boolean simulate) {
-    if (ToolActions.AXE_WAX_OFF.equals(toolAction)) {
+    if (TinkerToolActions.AXE_WAX_OFF.equals(toolAction)) {
       return TinkerCommons.copperPlatform.get(age).withPropertiesOf(state);
     }
     return null;

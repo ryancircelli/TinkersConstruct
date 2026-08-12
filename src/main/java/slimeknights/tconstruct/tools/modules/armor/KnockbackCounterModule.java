@@ -5,7 +5,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.common.ToolActions;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
@@ -28,6 +27,7 @@ import slimeknights.tconstruct.library.tools.helper.ModifierUtil;
 import slimeknights.tconstruct.library.tools.helper.ToolDamageUtil;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.utils.Util;
+import slimeknights.tconstruct.tools.TinkerToolActions;
 
 import java.util.List;
 
@@ -91,7 +91,7 @@ public record KnockbackCounterModule(TinkerDataKey<SlotInCharge> slotInCharge, L
         EquipmentSlot checkSlot = Util.getSlotType(defender.getUsedItemHand());
         IToolStackView blockingTool = context.getValidTool(checkSlot);
         // TODO: CounterModule.isBlocking?
-        if (blockingTool != null && ModifierUtil.canPerformAction(blockingTool, ToolActions.SHIELD_BLOCK) && defender.getItemBySlot(checkSlot).getUseDuration() - defender.getUseItemRemainingTicks() >= 5) {
+        if (blockingTool != null && ModifierUtil.canPerformAction(blockingTool, TinkerToolActions.SHIELD_BLOCK) && defender.getItemBySlot(checkSlot).getUseDuration() - defender.getUseItemRemainingTicks() >= 5) {
           blockingSlot = checkSlot;
         }
       }
