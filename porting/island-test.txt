@@ -25,4 +25,6 @@
 # compile, and the file is deleted with the rest of the machinery.
 #
 # Sorted, repo-relative, one path per line.
+src/test/java/slimeknights/tconstruct/library/modifiers/ModifierFixture.java
+src/test/java/slimeknights/tconstruct/library/modifiers/UpdateModifiersPacketTest.java
 src/test/java/slimeknights/tconstruct/library/modifiers/util/EnchantmentLevelsTest.java

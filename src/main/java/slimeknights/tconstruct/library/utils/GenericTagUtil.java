@@ -50,16 +50,19 @@ public class GenericTagUtil {
    * condition or resolved through a redirect is legitimately in one and not the other. Adding null to the list, which
    * is what this did in 1.20, turns that into a decoder exception and a disconnect.
    * @param valueGetter  Looks a value up by ID, returning null if it has none
+   * @param <T>  Type the tags are keyed for
+   * @param <V>  Type the contents are read as, which is {@code T} for a packet that resolves its values and the value's
+   *             ID type for one that does not. The wire format is the same either way: a tag carries names.
    */
-  public static <T> Map<TagKey<T>,List<T>> decodeTags(RegistryFriendlyByteBuf buf, ResourceKey<? extends Registry<T>> registry, Function<ResourceLocation,T> valueGetter) {
-    ImmutableMap.Builder<TagKey<T>,List<T>> builder = ImmutableMap.builder();
+  public static <T, V> Map<TagKey<T>,List<V>> decodeTags(RegistryFriendlyByteBuf buf, ResourceKey<? extends Registry<T>> registry, Function<ResourceLocation,V> valueGetter) {
+    ImmutableMap.Builder<TagKey<T>,List<V>> builder = ImmutableMap.builder();
     int mapSize = buf.readVarInt();
     for (int i = 0; i < mapSize; i++) {
       ResourceLocation tagId = buf.readResourceLocation();
       int tagSize = buf.readVarInt();
-      ImmutableList.Builder<T> tagBuilder = ImmutableList.builder();
+      ImmutableList.Builder<V> tagBuilder = ImmutableList.builder();
       for (int j = 0; j < tagSize; j++) {
-        T value = valueGetter.apply(buf.readResourceLocation());
+        V value = valueGetter.apply(buf.readResourceLocation());
         if (value != null) {
           tagBuilder.add(value);
         }
@@ -69,14 +72,14 @@ public class GenericTagUtil {
     return builder.build();
   }
 
-  /** Writes a map of tags to a packet */
-  public static <T> void encodeTags(RegistryFriendlyByteBuf buf, Function<T,ResourceLocation> keyGetter, Map<TagKey<T>,? extends Collection<T>> tags) {
+  /** Writes a map of tags to a packet. See {@link #decodeTags} for why the key type and the content type are separate. */
+  public static <T, V> void encodeTags(RegistryFriendlyByteBuf buf, Function<V,ResourceLocation> keyGetter, Map<TagKey<T>,? extends Collection<V>> tags) {
     buf.writeVarInt(tags.size());
-    for (Entry<TagKey<T>,? extends Collection<T>> entry : tags.entrySet()) {
+    for (Entry<TagKey<T>,? extends Collection<V>> entry : tags.entrySet()) {
       buf.writeResourceLocation(entry.getKey().location());
-      Collection<T> values = entry.getValue();
+      Collection<V> values = entry.getValue();
       buf.writeVarInt(values.size());
-      for (T value : values) {
+      for (V value : values) {
         buf.writeResourceLocation(keyGetter.apply(value));
       }
     }

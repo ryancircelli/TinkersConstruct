@@ -1,132 +1,125 @@
 package slimeknights.tconstruct.library.modifiers;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.netty.handler.codec.DecoderException;
-import lombok.RequiredArgsConstructor;
+import lombok.AccessLevel;
+import lombok.Getter;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraftforge.registries.ForgeRegistries;
-import slimeknights.mantle.network.packet.IThreadsafePacket;
+import slimeknights.mantle.network.packet.IPacket;
+import slimeknights.mantle.network.packet.PacketContext;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.modifiers.impl.ComposableModifier;
 import slimeknights.tconstruct.library.utils.GenericTagUtil;
+import slimeknights.tconstruct.library.utils.LazyDecode;
 
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-/** Packet to sync modifiers */
-@RequiredArgsConstructor
-public class UpdateModifiersPacket implements IThreadsafePacket {
-  /** Collection of all modifiers */
-  private final Map<ModifierId,Modifier> allModifiers;
-  /** Map of all modifier tags */
-  private final Map<TagKey<Modifier>,List<Modifier>> tags;
-  /** Collection of non-redirect modifiers */
-  private Collection<ComposableModifier> modifiers;
-  /** Map of modifier redirect ID pairs */
-  private Map<ModifierId,ModifierId> redirects;
-  /** Map of enchantment to modifier pair */
-  private final Map<Enchantment,Modifier> enchantmentMap;
-  /** Collection of all enchantment tag mappings */
-  private final Map<TagKey<Enchantment>, Modifier> enchantmentTagMappings;
+/**
+ * Packet to sync modifiers.
+ * <p>
+ * Its decode reads identifiers and undecoded blocks and resolves nothing, which is what lets it be handled in any
+ * order against the other datapack sync packets - and, uniquely among them, against itself. A modifier's modules may
+ * contain item stacks ({@code EdibleModule}'s representative item, {@code InfinityModule}'s ammo), constructing an
+ * item stack runs {@code Item#verifyComponentsAfterLoad} on every stack in 1.21, and for a Tinkers tool that asks the
+ * modifier registry. So a packet that decoded its modifiers eagerly would be asking for the modifiers it is itself
+ * carrying, which no amount of packet ordering can fix. Each modifier therefore travels as a length prefixed block
+ * that is decoded on first use, after {@link ModifierManager#updateModifiersFromServer} has installed the registry.
+ * @see LazyDecode
+ */
+@Getter(AccessLevel.PACKAGE)
+public class UpdateModifiersPacket implements IPacket.Threadsafe {
+  /** Modifiers by ID, each an undecoded payload until something asks for it */
+  private final Map<ModifierId,LazyDecode<ComposableModifier>> modifiers;
+  /** Map of modifier redirect ID pairs, kept apart from the modifiers as the target may be a static modifier */
+  private final Map<ModifierId,ModifierId> redirects;
+  /** Map of all modifier tags, as IDs */
+  private final Map<TagKey<Modifier>,List<ModifierId>> tags;
+  /** Map of enchantment to modifier ID */
+  private final Map<ResourceKey<Enchantment>,ModifierId> enchantmentMap;
+  /** Map of enchantment tag to modifier ID */
+  private final Map<TagKey<Enchantment>,ModifierId> enchantmentTagMap;
 
-  /** Ensures both the modifiers and redirects lists are calculated, allows one packet to be used multiple times without redundant work */
-  private void ensureCalculated() {
-    if (this.modifiers == null || this.redirects == null) {
-      ImmutableList.Builder<ComposableModifier> modifiers = ImmutableList.builder();
-      ImmutableMap.Builder<ModifierId,ModifierId> redirects = ImmutableMap.builder();
-      for (Entry<ModifierId,Modifier> entry : allModifiers.entrySet()) {
-        ModifierId id = entry.getKey();
-        Modifier value = entry.getValue();
-        ModifierId actual = value.getId();
-        if (id.equals(actual)) {
-          // we can't sync anything that is not composable
-          if (value instanceof ComposableModifier composable) {
-            modifiers.add(composable);
-          } else {
-            TConstruct.LOG.warn("Unable to sync modifier {} as its not ComposableModifier; got class {}", id, value.getClass().getName());
-          }
+  /**
+   * Creates a packet from the manager's state.
+   * @param allModifiers  All dynamic modifiers, including redirects (entries whose value has a different ID)
+   */
+  UpdateModifiersPacket(Map<ModifierId,Supplier<Modifier>> allModifiers, Map<TagKey<Modifier>,List<Modifier>> tags,
+                        Map<ResourceKey<Enchantment>,Modifier> enchantmentMap, Map<TagKey<Enchantment>,Modifier> enchantmentTagMap) {
+    ImmutableMap.Builder<ModifierId,LazyDecode<ComposableModifier>> modifiers = ImmutableMap.builder();
+    ImmutableMap.Builder<ModifierId,ModifierId> redirects = ImmutableMap.builder();
+    for (Entry<ModifierId,Supplier<Modifier>> entry : allModifiers.entrySet()) {
+      ModifierId id = entry.getKey();
+      Modifier value = entry.getValue().get();
+      ModifierId actual = value.getId();
+      if (id.equals(actual)) {
+        // we can't sync anything that is not composable
+        if (value instanceof ComposableModifier composable) {
+          modifiers.put(id, LazyDecode.of(codec(id), composable));
         } else {
-          redirects.put(id, actual);
+          TConstruct.LOG.warn("Unable to sync modifier {} as its not ComposableModifier; got class {}", id, value.getClass().getName());
         }
-      }
-      this.modifiers = modifiers.build();
-      this.redirects = redirects.build();
-    }
-  }
-
-  /** Gets a modifier by the given ID, falling back to the map if needed */
-  private static Modifier getModifier(Map<ModifierId,Modifier> modifiers, ModifierId id) {
-    Modifier modifier = ModifierManager.INSTANCE.getStatic(id);
-    if (modifier == ModifierManager.INSTANCE.getDefaultValue()) {
-      modifier = modifiers.get(id);
-      if (modifier == null) {
-        throw new DecoderException("Unknown modifier " + id);
+      } else {
+        redirects.put(id, actual);
       }
     }
-    return modifier;
+    this.modifiers = modifiers.build();
+    this.redirects = redirects.build();
+    this.tags = mapValues(tags, list -> list.stream().map(Modifier::getId).toList());
+    this.enchantmentMap = mapValues(enchantmentMap, Modifier::getId);
+    this.enchantmentTagMap = mapValues(enchantmentTagMap, Modifier::getId);
   }
 
-  public UpdateModifiersPacket(FriendlyByteBuf buffer) {
+  public UpdateModifiersPacket(RegistryFriendlyByteBuf buffer) {
     // read in modifiers
     int size = buffer.readVarInt();
-    Map<ModifierId,Modifier> modifiers = new HashMap<>();
+    ImmutableMap.Builder<ModifierId,LazyDecode<ComposableModifier>> modifiers = ImmutableMap.builder();
     for (int i = 0; i < size; i++) {
-      ModifierId id = new ModifierId(buffer.readUtf(Short.MAX_VALUE));
-      try {
-        Modifier modifier = ComposableModifier.LOADER.decode(buffer, ModifierManager.contextBuilder(id).build());
-        modifier.setId(id);
-        modifiers.put(id, modifier);
-      } catch (RuntimeException e) {
-        TConstruct.LOG.error("Failed to decode modifier with ID {}", id, e);
-        throw e;
-      }
+      ModifierId id = new ModifierId(buffer.readResourceLocation());
+      modifiers.put(id, LazyDecode.read(buffer, codec(id)));
     }
+    this.modifiers = modifiers.build();
     // read in redirects
     size = buffer.readVarInt();
+    ImmutableMap.Builder<ModifierId,ModifierId> redirects = ImmutableMap.builder();
     for (int i = 0; i < size; i++) {
-      ModifierId from = new ModifierId(buffer.readUtf(Short.MAX_VALUE));
-      modifiers.put(from, getModifier(modifiers, new ModifierId(buffer.readUtf(Short.MAX_VALUE))));
+      redirects.put(new ModifierId(buffer.readResourceLocation()), new ModifierId(buffer.readResourceLocation()));
     }
-    this.allModifiers = modifiers;
-    this.tags = GenericTagUtil.decodeTags(buffer, ModifierManager.REGISTRY_KEY, id -> getModifier(modifiers, new ModifierId(id)));
+    this.redirects = redirects.build();
+    this.tags = GenericTagUtil.decodeTags(buffer, ModifierManager.REGISTRY_KEY, ModifierId::new);
 
     // read in enchantment to modifier mapping
-    ImmutableMap.Builder<Enchantment,Modifier> enchantmentBuilder = ImmutableMap.builder();
+    ImmutableMap.Builder<ResourceKey<Enchantment>,ModifierId> enchantmentMap = ImmutableMap.builder();
     size = buffer.readVarInt();
     for (int i = 0; i < size; i++) {
-      enchantmentBuilder.put(
-        buffer.readRegistryIdUnsafe(ForgeRegistries.ENCHANTMENTS),
-        getModifier(modifiers, new ModifierId(buffer.readResourceLocation())));
+      enchantmentMap.put(ResourceKey.create(Registries.ENCHANTMENT, buffer.readResourceLocation()), new ModifierId(buffer.readResourceLocation()));
     }
-    enchantmentMap = enchantmentBuilder.build();
-    ImmutableMap.Builder<TagKey<Enchantment>, Modifier> enchantmentTagBuilder = ImmutableMap.builder();
+    this.enchantmentMap = enchantmentMap.build();
+    ImmutableMap.Builder<TagKey<Enchantment>,ModifierId> enchantmentTagMap = ImmutableMap.builder();
     size = buffer.readVarInt();
     for (int i = 0; i < size; i++) {
-      enchantmentTagBuilder.put(
-        TagKey.create(Registries.ENCHANTMENT, buffer.readResourceLocation()),
-        getModifier(modifiers, new ModifierId(buffer.readResourceLocation())));
+      enchantmentTagMap.put(TagKey.create(Registries.ENCHANTMENT, buffer.readResourceLocation()), new ModifierId(buffer.readResourceLocation()));
     }
-    enchantmentTagMappings = enchantmentTagBuilder.build();
+    this.enchantmentTagMap = enchantmentTagMap.build();
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer) {
-    ensureCalculated();
+  public void encode(RegistryFriendlyByteBuf buffer) {
     // write modifiers
     buffer.writeVarInt(modifiers.size());
-    for (ComposableModifier modifier : modifiers) {
-      ResourceLocation id = modifier.getId();
+    for (Entry<ModifierId,LazyDecode<ComposableModifier>> entry : modifiers.entrySet()) {
+      ModifierId id = entry.getKey();
       buffer.writeResourceLocation(id);
       try {
-        ComposableModifier.LOADER.encode(buffer, modifier);
+        // a modifier nothing asked for is copied through as the bytes it arrived as, so a proxy neither decodes it nor has to be able to
+        entry.getValue().write(buffer);
       } catch (RuntimeException e) {
         // improve error logging
         TConstruct.LOG.error("Failed to encode modifier with ID {}", id, e);
@@ -139,23 +132,55 @@ public class UpdateModifiersPacket implements IThreadsafePacket {
       buffer.writeResourceLocation(entry.getKey());
       buffer.writeResourceLocation(entry.getValue());
     }
-    GenericTagUtil.encodeTags(buffer, Modifier::getId, this.tags);
+    GenericTagUtil.encodeTags(buffer, id -> id, this.tags);
 
     // enchantment mapping
     buffer.writeVarInt(enchantmentMap.size());
-    for (Entry<Enchantment,Modifier> entry : enchantmentMap.entrySet()) {
-      buffer.writeRegistryIdUnsafe(ForgeRegistries.ENCHANTMENTS, entry.getKey());
-      buffer.writeResourceLocation(entry.getValue().getId());
-    }
-    buffer.writeVarInt(enchantmentTagMappings.size());
-    for (Entry<TagKey<Enchantment>, Modifier> entry : enchantmentTagMappings.entrySet()) {
+    for (Entry<ResourceKey<Enchantment>,ModifierId> entry : enchantmentMap.entrySet()) {
       buffer.writeResourceLocation(entry.getKey().location());
-      buffer.writeResourceLocation(entry.getValue().getId());
+      buffer.writeResourceLocation(entry.getValue());
+    }
+    buffer.writeVarInt(enchantmentTagMap.size());
+    for (Entry<TagKey<Enchantment>,ModifierId> entry : enchantmentTagMap.entrySet()) {
+      buffer.writeResourceLocation(entry.getKey().location());
+      buffer.writeResourceLocation(entry.getValue());
     }
   }
 
   @Override
-  public void handleThreadsafe(Context context) {
-    ModifierManager.INSTANCE.updateModifiersFromServer(allModifiers, tags, enchantmentMap, enchantmentTagMappings);
+  public void handleThreadsafe(PacketContext context) {
+    ModifierManager.INSTANCE.updateModifiersFromServer(this);
+  }
+
+
+  /* Helpers */
+
+  /** Copies a map, mapping the values */
+  private static <K, F, T> Map<K,T> mapValues(Map<K,F> map, Function<F,T> mapper) {
+    ImmutableMap.Builder<K,T> builder = ImmutableMap.builder();
+    map.forEach((key, value) -> builder.put(key, mapper.apply(value)));
+    return builder.build();
+  }
+
+  /**
+   * Codec for a single modifier's payload.
+   * The ID is not part of the payload, so it is baked into the codec: it is both the parsing context every module
+   * loadable expects and the value {@link Modifier#setId(ModifierId)} needs on the way out.
+   */
+  private static StreamCodec<RegistryFriendlyByteBuf,ComposableModifier> codec(ModifierId id) {
+    return StreamCodec.of(
+      ComposableModifier.LOADER::encode,
+      buffer -> withId(ComposableModifier.LOADER.decode(buffer, ModifierManager.contextBuilder(id).build()), id));
+  }
+
+  /**
+   * Names a freshly decoded modifier.
+   * @apiNote  {@link Modifier#setId(ModifierId)} is package private, and a package private member is not inherited
+   *           into a subclass in another package, so it cannot be called through {@link ComposableModifier}.
+   */
+  private static <T extends Modifier> T withId(T modifier, ModifierId id) {
+    Modifier asModifier = modifier;
+    asModifier.setId(id);
+    return modifier;
   }
 }
