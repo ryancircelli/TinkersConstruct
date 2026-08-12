@@ -511,3 +511,5 @@ src/main/java/slimeknights/tconstruct/library/modifiers/modules/display/Modifier
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/display/ModifierVariantNameModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/display/ShowInteractionSourceModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/display/package-info.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/mining/ConditionalMiningSpeedModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/mining/package-info.java
