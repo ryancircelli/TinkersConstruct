@@ -4,12 +4,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import slimeknights.mantle.block.entity.MantleBlockEntity;
 import slimeknights.mantle.inventory.SingleItemHandler;
+import slimeknights.mantle.util.CapabilityHelper;
 import slimeknights.mantle.util.RegistryHelper;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.common.network.InventorySlotSyncPacket;
@@ -33,7 +33,7 @@ public class ProxyItemTank<T extends MantleBlockEntity & IFluidTankUpdater> exte
     Item craftRemainingItem = stack.getItem().getCraftingRemainingItem();
     return !stack.is(TinkerTags.Items.PROXY_TANK_BLACKLIST)
       && (craftRemainingItem == null || !RegistryHelper.contains(TinkerTags.Items.PROXY_TANK_BLACKLIST, craftRemainingItem))
-      && (stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).isPresent());
+      && CapabilityHelper.fluidHandler(stack) != null;
   }
 
   /** Used by the fluid handler logic to sync changes as we directly mutate the internal stack */
@@ -77,7 +77,10 @@ public class ProxyItemTank<T extends MantleBlockEntity & IFluidTankUpdater> exte
   private IFluidHandlerItem getItemTank() {
     if (itemTank == null) {
       ItemStack stack = getStack();
-      itemTank = stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).orElseGet(() -> new EmptyFluidHandlerItem(stack));
+      itemTank = CapabilityHelper.fluidHandler(stack);
+      if (itemTank == null) {
+        itemTank = new EmptyFluidHandlerItem(stack);
+      }
     }
     return itemTank;
   }
