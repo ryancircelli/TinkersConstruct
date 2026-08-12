@@ -161,7 +161,8 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
 
     if (data.contains(key, Tag.TAG_LIST)) {
       // going to cook each slot until we used up all the cooking power
-      ListTag list = tool.getPersistentData().get(key, InventoryModule.GET_COMPOUND_LIST);
+      // the read hands back a copy, so the cooking progress written below only reaches the tool at the end
+      ListTag list = data.get(key, InventoryModule.GET_COMPOUND_LIST);
       float cookingPower = amount * multiplier;
       for (int i = 0; i < list.size(); i++) {
         // lazily load a few pieces of data
@@ -275,6 +276,8 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
           }
         }
       }
+      // store the cooking progress back on the tool
+      data.put(key, list);
     }
   }
 
