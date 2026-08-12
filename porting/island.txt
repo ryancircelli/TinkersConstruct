@@ -28,6 +28,19 @@
 #
 # Sorted, repo-relative, one path per line.
 src/main/java/slimeknights/tconstruct/library/events/MaterialsLoadedEvent.java
+src/main/java/slimeknights/tconstruct/library/events/TinkerToolEvent.java
+src/main/java/slimeknights/tconstruct/library/events/ToolEquipmentChangeEvent.java
+src/main/java/slimeknights/tconstruct/library/events/package-info.java
+src/main/java/slimeknights/tconstruct/library/events/teleport/EnderSlimeTeleportEvent.java
+src/main/java/slimeknights/tconstruct/library/events/teleport/EnderclearanceTeleportEvent.java
+src/main/java/slimeknights/tconstruct/library/events/teleport/EnderdodgingTeleportEvent.java
+src/main/java/slimeknights/tconstruct/library/events/teleport/EnderportingTeleportEvent.java
+src/main/java/slimeknights/tconstruct/library/events/teleport/FluidEffectTeleportEvent.java
+src/main/java/slimeknights/tconstruct/library/events/teleport/ModifierTeleportEvent.java
+src/main/java/slimeknights/tconstruct/library/events/teleport/ReturningTeleportEvent.java
+src/main/java/slimeknights/tconstruct/library/events/teleport/SlimeslingTeleportEvent.java
+src/main/java/slimeknights/tconstruct/library/events/teleport/SlingModifierTeleportEvent.java
+src/main/java/slimeknights/tconstruct/library/events/teleport/package-info.java
 src/main/java/slimeknights/tconstruct/library/exception/TinkerAPIException.java
 src/main/java/slimeknights/tconstruct/library/exception/TinkerAPIMaterialException.java
 src/main/java/slimeknights/tconstruct/library/exception/TinkerJSONException.java
