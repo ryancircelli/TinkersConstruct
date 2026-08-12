@@ -483,3 +483,16 @@ src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/VolatileFl
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/VolatileFloatModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/VolatileIntModule.java
 src/main/java/slimeknights/tconstruct/library/modifiers/modules/build/package-info.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/CapacityBarModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/CapacityBarValidator.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/CapacitySourceModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/DamageToCapacityModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/DurabilityShieldModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/EnergyAsCapacityModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/LaunchCapacityModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/LootToCapacityModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/MeleeCapacityModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/MiningCapacityModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/OverslimeModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/TimeToCapacityModule.java
+src/main/java/slimeknights/tconstruct/library/modifiers/modules/capacity/package-info.java
