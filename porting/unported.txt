@@ -779,11 +779,11 @@ src/main/java/slimeknights/tconstruct/library/recipe/fuel/MeltingFuel.java
 src/main/java/slimeknights/tconstruct/library/recipe/fuel/MeltingFuelBuilder.java
 src/main/java/slimeknights/tconstruct/library/recipe/fuel/MeltingFuelLookup.java
 src/main/java/slimeknights/tconstruct/library/recipe/fuel/package-info.java
-src/main/java/slimeknights/tconstruct/library/recipe/ingredient/BlockTagIngredient.java
 src/main/java/slimeknights/tconstruct/library/recipe/ingredient/MaterialIngredient.java
 src/main/java/slimeknights/tconstruct/library/recipe/ingredient/MaterialValueIngredient.java
 src/main/java/slimeknights/tconstruct/library/recipe/ingredient/NestedIngredient.java
 src/main/java/slimeknights/tconstruct/library/recipe/ingredient/NoContainerIngredient.java
+src/main/java/slimeknights/tconstruct/library/recipe/ingredient/TinkerIngredients.java
 src/main/java/slimeknights/tconstruct/library/recipe/ingredient/ToolHookIngredient.java
 src/main/java/slimeknights/tconstruct/library/recipe/ingredient/package-info.java
 src/main/java/slimeknights/tconstruct/library/recipe/material/IMaterialValue.java

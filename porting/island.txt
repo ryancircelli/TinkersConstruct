@@ -302,6 +302,13 @@ src/main/java/slimeknights/tconstruct/library/recipe/RandomItem.java
 src/main/java/slimeknights/tconstruct/library/recipe/RecipeResult.java
 src/main/java/slimeknights/tconstruct/library/recipe/SingleItemContainer.java
 src/main/java/slimeknights/tconstruct/library/recipe/TagPredicate.java
+src/main/java/slimeknights/tconstruct/library/recipe/ingredient/MaterialIngredient.java
+src/main/java/slimeknights/tconstruct/library/recipe/ingredient/MaterialValueIngredient.java
+src/main/java/slimeknights/tconstruct/library/recipe/ingredient/NestedIngredient.java
+src/main/java/slimeknights/tconstruct/library/recipe/ingredient/NoContainerIngredient.java
+src/main/java/slimeknights/tconstruct/library/recipe/ingredient/TinkerIngredients.java
+src/main/java/slimeknights/tconstruct/library/recipe/ingredient/ToolHookIngredient.java
+src/main/java/slimeknights/tconstruct/library/recipe/ingredient/package-info.java
 src/main/java/slimeknights/tconstruct/library/recipe/package-info.java
 src/main/java/slimeknights/tconstruct/library/recipe/partbuilder/Pattern.java
 src/main/java/slimeknights/tconstruct/library/tools/context/EquipmentChangeContext.java
