@@ -174,7 +174,11 @@ public class TConstruct {
 
     // other datagen
     generator.addProvider(server, new TConstructLootTableProvider(packOutput, lookupProvider));
-    generator.addProvider(server, new AdvancementsProvider(packOutput, lookupProvider));
+    // the island advancements look their structure up by key, and a structure is a datapack registry entry this mod
+    // writes itself, so the advancement provider needs the provider datapackRegistryProvider augments with them -
+    // the plain GatherDataEvent lookup only carries vanilla's. 1.20 named the structure with a bare ResourceKey and
+    // never resolved it, so this only became load bearing when LocationPredicate started taking a Holder.
+    generator.addProvider(server, new AdvancementsProvider(packOutput, datapackRegistryProvider.getRegistryProvider()));
     generator.addProvider(server, new GlobalLootModifiersProvider(packOutput, lookupProvider));
     generator.addProvider(server, new LootTableInjectionProvider(packOutput));
     generator.addProvider(server, new ConfigurationDataProvider(packOutput));
