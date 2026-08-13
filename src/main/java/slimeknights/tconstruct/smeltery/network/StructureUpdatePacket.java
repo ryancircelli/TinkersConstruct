@@ -3,8 +3,9 @@ package slimeknights.tconstruct.smeltery.network;
 import lombok.AllArgsConstructor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import slimeknights.mantle.network.packet.IThreadsafePacket;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import slimeknights.mantle.network.packet.IPacket;
+import slimeknights.mantle.network.packet.PacketContext;
 import slimeknights.mantle.util.BlockEntityHelper;
 import slimeknights.tconstruct.smeltery.block.entity.controller.HeatingStructureBlockEntity;
 
@@ -15,13 +16,13 @@ import java.util.List;
  * Packet sent when the smeltery or foundry structure changes
  */
 @AllArgsConstructor
-public class StructureUpdatePacket implements IThreadsafePacket {
+public class StructureUpdatePacket implements IPacket.Threadsafe {
   private final BlockPos pos;
   private final BlockPos minPos;
   private final BlockPos maxPos;
   private final List<BlockPos> tanks;
 
-  public StructureUpdatePacket(FriendlyByteBuf buffer) {
+  public StructureUpdatePacket(RegistryFriendlyByteBuf buffer) {
     pos = buffer.readBlockPos();
     minPos = buffer.readBlockPos();
     maxPos = buffer.readBlockPos();
@@ -33,7 +34,7 @@ public class StructureUpdatePacket implements IThreadsafePacket {
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer) {
+  public void encode(RegistryFriendlyByteBuf buffer) {
     buffer.writeBlockPos(pos);
     buffer.writeBlockPos(minPos);
     buffer.writeBlockPos(maxPos);
@@ -44,7 +45,7 @@ public class StructureUpdatePacket implements IThreadsafePacket {
   }
 
   @Override
-  public void handleThreadsafe(Context context) {
+  public void handleThreadsafe(PacketContext context) {
     HandleClient.handle(this);
   }
 

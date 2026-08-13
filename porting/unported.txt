@@ -65,7 +65,6 @@ src/main/java/slimeknights/tconstruct/common/multiblock/IServantLogic.java
 src/main/java/slimeknights/tconstruct/common/multiblock/ServantTileEntity.java
 src/main/java/slimeknights/tconstruct/common/multiblock/package-info.java
 src/main/java/slimeknights/tconstruct/common/network/InventorySlotSyncPacket.java
-src/main/java/slimeknights/tconstruct/common/network/SyncPersistentDataPacket.java
 src/main/java/slimeknights/tconstruct/common/network/TinkerNetwork.java
 src/main/java/slimeknights/tconstruct/common/network/UpdateNeighborsPacket.java
 src/main/java/slimeknights/tconstruct/common/network/package-info.java

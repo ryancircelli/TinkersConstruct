@@ -2,33 +2,33 @@ package slimeknights.tconstruct.tables.network;
 
 import lombok.RequiredArgsConstructor;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.network.NetworkHooks;
-import slimeknights.mantle.network.packet.IThreadsafePacket;
+import slimeknights.mantle.network.packet.IPacket;
+import slimeknights.mantle.network.packet.PacketContext;
 import slimeknights.tconstruct.common.network.TinkerNetwork;
 import slimeknights.tconstruct.tables.block.ITabbedBlock;
 
 @RequiredArgsConstructor
-public class StationTabPacket implements IThreadsafePacket {
+public class StationTabPacket implements IPacket.Threadsafe {
   private final BlockPos pos;
 
-  public StationTabPacket(FriendlyByteBuf buffer) {
+  public StationTabPacket(RegistryFriendlyByteBuf buffer) {
     this.pos = buffer.readBlockPos();
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer) {
+  public void encode(RegistryFriendlyByteBuf buffer) {
     buffer.writeBlockPos(pos);
   }
 
   @Override
-  public void handleThreadsafe(Context context) {
+  public void handleThreadsafe(PacketContext context) {
     ServerPlayer sender = context.getSender();
     if (sender != null) {
       ItemStack heldStack = sender.containerMenu.getCarried();
@@ -47,7 +47,7 @@ public class StationTabPacket implements IThreadsafePacket {
       } else {
         MenuProvider provider = state.getMenuProvider(sender.getCommandSenderWorld(), pos);
         if (provider != null) {
-          NetworkHooks.openScreen(sender, provider, pos);
+          sender.openMenu(provider, pos);
         }
       }
 

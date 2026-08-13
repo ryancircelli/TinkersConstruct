@@ -2,13 +2,12 @@ package slimeknights.tconstruct.common.network;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraftforge.network.NetworkDirection;
-import net.neoforged.neoforge.network.PacketDistributor;
 import slimeknights.mantle.network.NetworkWrapper;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.materials.definition.UpdateMaterialsPacket;
@@ -54,9 +53,12 @@ public class TinkerNetwork extends NetworkWrapper {
    * 1: 3.10.1 and before
    * 2: 3.10.2 - new material stat type; item removal
    * 3: 3.11.2+ - lost track of how much changed but its a lot
+   * 4: 1.21 - a packet is a named payload rather than an index into the list below, and item and fluid stacks are
+   *    data components on the wire. Nothing on this channel is byte compatible with a 1.20 build; since a 1.21 client
+   *    cannot connect to a 1.20 server at all this is a statement of intent rather than a guard.
    */
   private TinkerNetwork() {
-    super(TConstruct.getResource("network"), "3");
+    super(TConstruct.getResource("network"), "4");
   }
 
   /** Gets the instance of the network */
@@ -68,7 +70,11 @@ public class TinkerNetwork extends NetworkWrapper {
   }
 
   /**
-   * Called during mod construction to setup the network
+   * Called during mod construction to setup the network.
+   * <p>
+   * Registration order stopped being the wire format when {@code SimpleChannel} did: a packet is called by an
+   * identifier derived from its class name now, so this list may be reordered, or have an entry commented out while
+   * its handler is behind the frontier, with no effect on the packets that remain (M6 SS4).
    */
   public static void setup() {
     if (instance != null) {
@@ -77,46 +83,48 @@ public class TinkerNetwork extends NetworkWrapper {
     instance = new TinkerNetwork();
 
     // shared
-    instance.registerPacket(InventorySlotSyncPacket.class, InventorySlotSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(UpdateNeighborsPacket.class, UpdateNeighborsPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(GeneratePartTexturesPacket.class, GeneratePartTexturesPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(SyncPersistentDataPacket.class, SyncPersistentDataPacket::new, NetworkDirection.PLAY_TO_CLIENT);
+    instance.registerPacket(InventorySlotSyncPacket.class, InventorySlotSyncPacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(UpdateNeighborsPacket.class, UpdateNeighborsPacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(GeneratePartTexturesPacket.class, GeneratePartTexturesPacket::new, PacketFlow.CLIENTBOUND);
+    // SyncPersistentDataPacket was here and is deleted rather than ported: NeoForge syncs a serialized data
+    // attachment at exactly the three points the 1.20 class hand-wired listeners for, so PersistentDataCapability
+    // needs no packet of its own (T10 SS1.2).
 
     // gadgets
-    instance.registerPacket(EntityMovementChangePacket.class, EntityMovementChangePacket::new, NetworkDirection.PLAY_TO_CLIENT);
+    instance.registerPacket(EntityMovementChangePacket.class, EntityMovementChangePacket::new, PacketFlow.CLIENTBOUND);
 
     // tables
-    instance.registerPacket(StationTabPacket.class, StationTabPacket::new, NetworkDirection.PLAY_TO_SERVER);
-    instance.registerPacket(TinkerStationRenamePacket.class, TinkerStationRenamePacket::new, NetworkDirection.PLAY_TO_SERVER);
-    instance.registerPacket(UpdateCraftingRecipePacket.class, UpdateCraftingRecipePacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(TinkerStationSelectionPacket.class, TinkerStationSelectionPacket::new, NetworkDirection.PLAY_TO_SERVER);
-    instance.registerPacket(UpdateTinkerSlotLayoutsPacket.class, UpdateTinkerSlotLayoutsPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(UpdateStationScreenPacket.class, buf -> UpdateStationScreenPacket.INSTANCE, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(UpdateTinkerStationRecipePacket.class, UpdateTinkerStationRecipePacket::new, NetworkDirection.PLAY_TO_CLIENT);
+    instance.registerPacket(StationTabPacket.class, StationTabPacket::new, PacketFlow.SERVERBOUND);
+    instance.registerPacket(TinkerStationRenamePacket.class, TinkerStationRenamePacket::new, PacketFlow.SERVERBOUND);
+    instance.registerPacket(UpdateCraftingRecipePacket.class, UpdateCraftingRecipePacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(TinkerStationSelectionPacket.class, TinkerStationSelectionPacket::new, PacketFlow.SERVERBOUND);
+    instance.registerPacket(UpdateTinkerSlotLayoutsPacket.class, UpdateTinkerSlotLayoutsPacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(UpdateStationScreenPacket.class, buf -> UpdateStationScreenPacket.INSTANCE, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(UpdateTinkerStationRecipePacket.class, UpdateTinkerStationRecipePacket::new, PacketFlow.CLIENTBOUND);
 
     // tools
-    instance.registerPacket(UpdateMaterialsPacket.class, UpdateMaterialsPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(UpdateMaterialStatsPacket.class, UpdateMaterialStatsPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(UpdateMaterialTraitsPacket.class, UpdateMaterialTraitsPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(UpdateToolDefinitionDataPacket.class, UpdateToolDefinitionDataPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(ToolContainerFluidUpdatePacket.class, ToolContainerFluidUpdatePacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(SyncProjectileModifiersPacket.class, SyncProjectileModifiersPacket::new, NetworkDirection.PLAY_TO_CLIENT);
+    instance.registerPacket(UpdateMaterialsPacket.class, UpdateMaterialsPacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(UpdateMaterialStatsPacket.class, UpdateMaterialStatsPacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(UpdateMaterialTraitsPacket.class, UpdateMaterialTraitsPacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(UpdateToolDefinitionDataPacket.class, UpdateToolDefinitionDataPacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(ToolContainerFluidUpdatePacket.class, ToolContainerFluidUpdatePacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(SyncProjectileModifiersPacket.class, SyncProjectileModifiersPacket::new, PacketFlow.CLIENTBOUND);
 
     // modifiers
-    instance.registerPacket(TinkerControlPacket.class, TinkerControlPacket::read, NetworkDirection.PLAY_TO_SERVER);
-    instance.registerPacket(InteractWithAirPacket.class, InteractWithAirPacket::read, NetworkDirection.PLAY_TO_SERVER);
-    instance.registerPacket(UpdateModifiersPacket.class, UpdateModifiersPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(UpdateFluidEffectsPacket.class, UpdateFluidEffectsPacket::decode, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(PushBlockRowPacket.class, PushBlockRowPacket::new, NetworkDirection.PLAY_TO_CLIENT);
+    instance.registerPacket(TinkerControlPacket.class, TinkerControlPacket::read, PacketFlow.SERVERBOUND);
+    instance.registerPacket(InteractWithAirPacket.class, InteractWithAirPacket::read, PacketFlow.SERVERBOUND);
+    instance.registerPacket(UpdateModifiersPacket.class, UpdateModifiersPacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(UpdateFluidEffectsPacket.class, UpdateFluidEffectsPacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(PushBlockRowPacket.class, PushBlockRowPacket::new, PacketFlow.CLIENTBOUND);
 
     // smeltery
-    instance.registerPacket(FluidUpdatePacket.class, FluidUpdatePacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(FaucetActivationPacket.class, FaucetActivationPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(ChannelFlowPacket.class, ChannelFlowPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(SmelteryTankUpdatePacket.class, SmelteryTankUpdatePacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(StructureUpdatePacket.class, StructureUpdatePacket::new, NetworkDirection.PLAY_TO_CLIENT);
-    instance.registerPacket(SmelteryFluidClickedPacket.class, SmelteryFluidClickedPacket::new, NetworkDirection.PLAY_TO_SERVER);
-    instance.registerPacket(StructureErrorPositionPacket.class, StructureErrorPositionPacket::new, NetworkDirection.PLAY_TO_CLIENT);
+    instance.registerPacket(FluidUpdatePacket.class, FluidUpdatePacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(FaucetActivationPacket.class, FaucetActivationPacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(ChannelFlowPacket.class, ChannelFlowPacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(SmelteryTankUpdatePacket.class, SmelteryTankUpdatePacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(StructureUpdatePacket.class, StructureUpdatePacket::new, PacketFlow.CLIENTBOUND);
+    instance.registerPacket(SmelteryFluidClickedPacket.class, SmelteryFluidClickedPacket::new, PacketFlow.SERVERBOUND);
+    instance.registerPacket(StructureErrorPositionPacket.class, StructureErrorPositionPacket::new, PacketFlow.CLIENTBOUND);
   }
 
   /**
@@ -140,26 +148,6 @@ public class TinkerNetwork extends NetworkWrapper {
     if (world instanceof ServerLevel server) {
       sendToClientsAround(msg, server, position);
     }
-  }
-
-  /**
-   * Sends a packet to all entities tracking the given entity
-   * @param msg     Packet
-   * @param entity  Entity to check
-   */
-  @Override
-  public void sendToTrackingAndSelf(Object msg, Entity entity) {
-    this.network.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity), msg);
-  }
-
-  /**
-   * Sends a packet to all entities tracking the given entity
-   * @param msg     Packet
-   * @param entity  Entity to check
-   */
-  @Override
-  public void sendToTracking(Object msg, Entity entity) {
-    this.network.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), msg);
   }
 
   /**

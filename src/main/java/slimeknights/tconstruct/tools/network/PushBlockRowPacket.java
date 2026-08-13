@@ -3,14 +3,15 @@ package slimeknights.tconstruct.tools.network;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.level.Level;
-import slimeknights.mantle.network.packet.IThreadsafePacket;
+import slimeknights.mantle.network.packet.IPacket;
+import slimeknights.mantle.network.packet.PacketContext;
 import slimeknights.tconstruct.library.modifiers.fluid.block.MoveBlocksFluidEffect;
 
 /** Packet handling {@link MoveBlocksFluidEffect} syncing to the client */
-public record PushBlockRowPacket(BlockPos pos, Direction direction, boolean push, int moving) implements IThreadsafePacket {
-  public PushBlockRowPacket(FriendlyByteBuf buffer) {
+public record PushBlockRowPacket(BlockPos pos, Direction direction, boolean push, int moving) implements IPacket.Threadsafe {
+  public PushBlockRowPacket(RegistryFriendlyByteBuf buffer) {
     this(buffer.readBlockPos(), buffer.readEnum(Direction.class), buffer.readBoolean(), buffer.readVarInt());
   }
 
@@ -20,7 +21,7 @@ public record PushBlockRowPacket(BlockPos pos, Direction direction, boolean push
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer) {
+  public void encode(RegistryFriendlyByteBuf buffer) {
     buffer.writeBlockPos(pos);
     buffer.writeEnum(direction);
     buffer.writeBoolean(push);
@@ -28,7 +29,7 @@ public record PushBlockRowPacket(BlockPos pos, Direction direction, boolean push
   }
 
   @Override
-  public void handleThreadsafe(Context context) {
+  public void handleThreadsafe(PacketContext context) {
     HandleClient.handle(this);
   }
 

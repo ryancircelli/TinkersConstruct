@@ -2,15 +2,16 @@ package slimeknights.tconstruct.common.network;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
-import slimeknights.mantle.network.packet.IThreadsafePacket;
+import slimeknights.mantle.network.packet.IPacket;
+import slimeknights.mantle.network.packet.PacketContext;
 import slimeknights.mantle.util.CapabilityHelper;
 
-public class InventorySlotSyncPacket implements IThreadsafePacket {
+public class InventorySlotSyncPacket implements IPacket.Threadsafe {
 
   public final ItemStack itemStack;
   public final int slot;
@@ -22,21 +23,21 @@ public class InventorySlotSyncPacket implements IThreadsafePacket {
     this.pos = pos;
   }
 
-  public InventorySlotSyncPacket(FriendlyByteBuf buffer) {
-    this.itemStack = buffer.readItem();
+  public InventorySlotSyncPacket(RegistryFriendlyByteBuf buffer) {
+    this.itemStack = ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer);
     this.slot = buffer.readShort();
     this.pos = buffer.readBlockPos();
   }
 
   @Override
-  public void encode(FriendlyByteBuf packetBuffer) {
-    packetBuffer.writeItem(this.itemStack);
+  public void encode(RegistryFriendlyByteBuf packetBuffer) {
+    ItemStack.OPTIONAL_STREAM_CODEC.encode(packetBuffer, this.itemStack);
     packetBuffer.writeShort(this.slot);
     packetBuffer.writeBlockPos(this.pos);
   }
 
   @Override
-  public void handleThreadsafe(Context context) {
+  public void handleThreadsafe(PacketContext context) {
     HandleClient.handle(this);
   }
 
