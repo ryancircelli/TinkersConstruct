@@ -1,6 +1,7 @@
 package slimeknights.tconstruct.gadgets;
 
 import net.minecraft.data.DataGenerator;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.CreativeModeTab.ItemDisplayParameters;
@@ -14,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -48,6 +50,15 @@ import slimeknights.tconstruct.world.block.FoliageType;
  */
 @SuppressWarnings("unused")
 public final class TinkerGadgets extends TinkerModule {
+  /**
+   * @param bus  Mod event bus, passed down from {@link slimeknights.tconstruct.TConstruct}'s constructor.
+   *             1.21 has no ambient currently-loading-mod context to fetch it from, unlike 1.20's
+   *             {@code FMLJavaModLoadingContext.get().getModEventBus()}.
+   */
+  public TinkerGadgets(IEventBus bus) {
+    PiggybackCapability.register(bus);
+  }
+
   /* Block base properties */
 
   /*
@@ -96,7 +107,7 @@ public final class TinkerGadgets extends TinkerModule {
   /*
    * Entities
    */
-  public static final DeferredHolder<EntityType<FancyItemFrameEntity>> itemFrameEntity = ENTITIES.register("fancy_item_frame", () ->
+  public static final DeferredHolder<EntityType<?>,EntityType<FancyItemFrameEntity>> itemFrameEntity = ENTITIES.register("fancy_item_frame", () ->
     EntityType.Builder.<FancyItemFrameEntity>of(
       FancyItemFrameEntity::new, MobCategory.MISC)
       .sized(0.5F, 0.5F)
@@ -106,7 +117,7 @@ public final class TinkerGadgets extends TinkerModule {
       .setShouldReceiveVelocityUpdates(false)
   );
   @Deprecated
-  public static final DeferredHolder<EntityType<GlowballEntity>> glowBallEntity = ENTITIES.register("glow_ball", () ->
+  public static final DeferredHolder<EntityType<?>,EntityType<GlowballEntity>> glowBallEntity = ENTITIES.register("glow_ball", () ->
     EntityType.Builder.<GlowballEntity>of(GlowballEntity::new, MobCategory.MISC)
       .sized(0.25F, 0.25F)
       .setTrackingRange(4)
@@ -115,7 +126,7 @@ public final class TinkerGadgets extends TinkerModule {
       .setShouldReceiveVelocityUpdates(true)
   );
   @Deprecated
-  public static final DeferredHolder<EntityType<EFLNEntity>> eflnEntity = ENTITIES.register("efln_ball", () ->
+  public static final DeferredHolder<EntityType<?>,EntityType<EFLNEntity>> eflnEntity = ENTITIES.register("efln_ball", () ->
     EntityType.Builder.<EFLNEntity>of(EFLNEntity::new, MobCategory.MISC)
       .sized(0.25F, 0.25F)
       .setTrackingRange(4)
@@ -123,7 +134,7 @@ public final class TinkerGadgets extends TinkerModule {
       .setCustomClientFactory((spawnEntity, world) -> new EFLNEntity(TinkerGadgets.eflnEntity.get(), world))
       .setShouldReceiveVelocityUpdates(true));
   @Deprecated
-  public static final DeferredHolder<EntityType<QuartzShurikenEntity>> quartzShurikenEntity = ENTITIES.register("quartz_shuriken", () ->
+  public static final DeferredHolder<EntityType<?>,EntityType<QuartzShurikenEntity>> quartzShurikenEntity = ENTITIES.register("quartz_shuriken", () ->
     EntityType.Builder.<QuartzShurikenEntity>of(QuartzShurikenEntity::new, MobCategory.MISC)
       .sized(0.25F, 0.25F)
       .setTrackingRange(4)
@@ -132,7 +143,7 @@ public final class TinkerGadgets extends TinkerModule {
       .setShouldReceiveVelocityUpdates(true)
   );
   @Deprecated
-  public static final DeferredHolder<EntityType<FlintShurikenEntity>> flintShurikenEntity = ENTITIES.register("flint_shuriken", () ->
+  public static final DeferredHolder<EntityType<?>,EntityType<FlintShurikenEntity>> flintShurikenEntity = ENTITIES.register("flint_shuriken", () ->
     EntityType.Builder.<FlintShurikenEntity>of(FlintShurikenEntity::new, MobCategory.MISC)
       .sized(0.25F, 0.25F)
       .setTrackingRange(4)
@@ -144,14 +155,13 @@ public final class TinkerGadgets extends TinkerModule {
   /*
    * Potions
    */
-  public static final DeferredHolder<CarryPotionEffect> carryEffect = MOB_EFFECTS.register("carry", CarryPotionEffect::new);
+  public static final DeferredHolder<MobEffect,CarryPotionEffect> carryEffect = MOB_EFFECTS.register("carry", CarryPotionEffect::new);
 
   /*
    * Events
    */
   @SubscribeEvent
   void commonSetup(final FMLCommonSetupEvent event) {
-    PiggybackCapability.register();
     event.enqueueWork(() -> {
       cake.forEach(block -> ComposterBlock.add(1.0f, block));
       ComposterBlock.add(1.0f, magmaCake.get());
@@ -166,7 +176,7 @@ public final class TinkerGadgets extends TinkerModule {
   @SubscribeEvent
   void gatherData(final GatherDataEvent event) {
     DataGenerator generator = event.getGenerator();
-    generator.addProvider(event.includeServer(), new GadgetRecipeProvider(generator.getPackOutput()));
+    generator.addProvider(event.includeServer(), new GadgetRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
   }
 
   /** Adds all relevant items to the creative tab, called by general tab */

@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.RailBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.Hopper;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import slimeknights.mantle.inventory.EmptyItemHandler;
@@ -23,7 +23,7 @@ public class DropperRailBlock extends RailBlock {
 
   @Override
   public void onMinecartPass(BlockState state, Level world, BlockPos pos, AbstractMinecart cart) {
-    if (!cart.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN).isPresent() || !(cart instanceof Hopper)) {
+    if (Capabilities.ItemHandler.ENTITY.getCapability(cart, null) == null || !(cart instanceof Hopper)) {
       return;
     }
     BlockEntity tileEntity = world.getBlockEntity(pos.below());
@@ -31,8 +31,11 @@ public class DropperRailBlock extends RailBlock {
       return;
     }
 
-    // cart is an entity, not a stack/block entity, so it stays on the raw LazyOptional API - CapabilityHelper only covers those two receivers
-    IItemHandler itemHandlerCart = cart.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP).orElse(EmptyItemHandler.INSTANCE);
+    // cart is an entity, not a stack/block entity, so it stays on the raw EntityCapability API - CapabilityHelper only covers those two receivers
+    IItemHandler itemHandlerCart = Capabilities.ItemHandler.ENTITY.getCapability(cart, null);
+    if (itemHandlerCart == null) {
+      itemHandlerCart = EmptyItemHandler.INSTANCE;
+    }
     IItemHandler itemHandlerTE = CapabilityHelper.itemHandler(tileEntity, Direction.UP);
     if (itemHandlerTE == null) {
       itemHandlerTE = EmptyItemHandler.INSTANCE;

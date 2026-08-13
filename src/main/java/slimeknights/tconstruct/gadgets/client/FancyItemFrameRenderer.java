@@ -10,16 +10,18 @@ import net.minecraft.client.renderer.entity.ItemFrameRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.RenderItemInFrameEvent;
 import net.neoforged.neoforge.client.event.RenderNameTagEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.minecraftforge.eventbus.api.Event.Result;
+import net.neoforged.neoforge.common.util.TriState;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.gadgets.entity.FancyItemFrameEntity;
 import slimeknights.tconstruct.gadgets.entity.FrameType;
@@ -57,8 +59,9 @@ public class FancyItemFrameRenderer<T extends FancyItemFrameEntity> extends Item
     // base entity rendering logic, since calling super gives us the item frame renderer that we are replacing
     RenderNameTagEvent renderNameplate = new RenderNameTagEvent(frame, frame.getDisplayName(), this, matrices, bufferIn, packedLight, partialTicks);
     NeoForge.EVENT_BUS.post(renderNameplate);
-    if (renderNameplate.getResult() == Result.ALLOW || (renderNameplate.getResult() != Result.DENY && this.shouldShowName(frame))) {
-      this.renderNameTag(frame, renderNameplate.getContent(), matrices, bufferIn, packedLight);
+    TriState canRender = renderNameplate.canRender();
+    if (canRender == TriState.TRUE || (canRender == TriState.DEFAULT && this.shouldShowName(frame))) {
+      this.renderNameTag(frame, renderNameplate.getContent(), matrices, bufferIn, packedLight, partialTicks);
     }
 
     // orient the renderer
@@ -103,12 +106,12 @@ public class FancyItemFrameRenderer<T extends FancyItemFrameEntity> extends Item
         int rotation = mapdata != null ? (frameRotation + 2) % 4 * 2 : frameRotation;
         matrices.mulPose(Axis.ZP.rotationDegrees(rotation * 360f / 8f));
       }
-      if (!NeoForge.EVENT_BUS.post(new RenderItemInFrameEvent(frame, this, matrices, bufferIn, packedLight))) {
+      if (!NeoForge.EVENT_BUS.post(new RenderItemInFrameEvent(frame, this, matrices, bufferIn, packedLight)).isCanceled()) {
         if (mapdata != null) {
           matrices.scale(0.0078125F, 0.0078125F, 0.0078125F);
           matrices.translate(-64.0D, -64.0D, -1.0D);
           int light = frameType == FrameType.MANYULLYN ? 0x00F000F0 : packedLight;
-          Integer mapId = MapItem.getMapId(stack);
+          MapId mapId = stack.get(DataComponents.MAP_ID);
           assert mapId != null;
           Minecraft.getInstance().gameRenderer.getMapRenderer().render(matrices, bufferIn, mapId, mapdata, true, light);
         } else {

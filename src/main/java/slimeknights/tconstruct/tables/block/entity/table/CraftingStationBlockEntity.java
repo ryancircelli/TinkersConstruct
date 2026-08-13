@@ -13,10 +13,9 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.ForgeEventFactory;
+import net.neoforged.neoforge.common.CommonHooks;
+import net.neoforged.neoforge.event.EventHooks;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.network.TinkerNetwork;
@@ -43,24 +42,26 @@ public class CraftingStationBlockEntity extends RetexturedTableBlockEntity imple
   private final LazyResultContainer craftingResult;
   /** Crafting inventory for the recipe calls */
   private final CraftingContainerWrapper craftingInventory;
+  /** @implNote  Mantle's {@code InventoryBlockEntity#itemHandler} is final now (T15 §5): a block entity wanting a
+   *             different handler overrides {@link #getItemHandler()} instead of reassigning the field, which is
+   *             also the method {@code InventoryBlockEntity#registerCapability} reads through. */
+  private final ConfigurableInvWrapperCapability craftingItemHandler = new ConfigurableInvWrapperCapability(this, false, false);
 
   public CraftingStationBlockEntity(BlockPos pos, BlockState state) {
     super(TinkerTables.craftingStationTile.get(), pos, state, NAME, 9);
-    this.itemHandler = new ConfigurableInvWrapperCapability(this, false, false);
-    this.itemHandlerCap = LazyOptional.of(() -> this.itemHandler);
     this.craftingInventory = new CraftingContainerWrapper(this, 3, 3);
     this.craftingResult = new LazyResultContainer(this);
+  }
+
+  @Override
+  public IItemHandlerModifiable getItemHandler() {
+    return craftingItemHandler;
   }
 
   @Nullable
   @Override
   public AbstractContainerMenu createMenu(int menuId, Inventory playerInventory, Player playerEntity) {
     return new CraftingStationContainerMenu(menuId, playerInventory, this);
-  }
-
-  @Override
-  public AABB getRenderBoundingBox() {
-    return new AABB(worldPosition, worldPosition.offset(1, 2, 1));
   }
 
   /* Crafting */
@@ -76,7 +77,7 @@ public class CraftingStationBlockEntity extends RetexturedTableBlockEntity imple
       RecipeManager manager = this.level.getServer().getRecipeManager();
 
       // first, try the cached recipe
-      ForgeHooks.setCraftingPlayer(player);
+      CommonHooks.setCraftingPlayer(player);
       CraftingRecipe recipe = lastRecipe;
       // if it does not match, find a new recipe
       // note we intentionally have no player access during matches, that could lead to an unstable recipe
@@ -94,12 +95,12 @@ public class CraftingStationBlockEntity extends RetexturedTableBlockEntity imple
           this.syncToRelevantPlayers(this::syncRecipe);
         }
       }
-      ForgeHooks.setCraftingPlayer(null);
+      CommonHooks.setCraftingPlayer(null);
     }
     else if (this.lastRecipe != null && this.lastRecipe.matches(this.craftingInventory, this.level)) {
-      ForgeHooks.setCraftingPlayer(player);
+      CommonHooks.setCraftingPlayer(player);
       result = this.lastRecipe.assemble(this.craftingInventory, level.registryAccess());
-      ForgeHooks.setCraftingPlayer(null);
+      CommonHooks.setCraftingPlayer(null);
     }
     return result;
   }
@@ -110,12 +111,12 @@ public class CraftingStationBlockEntity extends RetexturedTableBlockEntity imple
    * @return  Player sensitive result
    */
   public ItemStack getResultForPlayer(Player player) {
-    ForgeHooks.setCraftingPlayer(player);
+    CommonHooks.setCraftingPlayer(player);
     CraftingRecipe recipe = this.lastRecipe; // local variable just to prevent race conditions if the field changes, though that is unlikely
 
     // try matches again now that we have player access
     if (recipe == null || this.level == null || !recipe.matches(craftingInventory, level)) {
-      ForgeHooks.setCraftingPlayer(null);
+      CommonHooks.setCraftingPlayer(null);
       return ItemStack.EMPTY;
     }
 
@@ -133,13 +134,13 @@ public class CraftingStationBlockEntity extends RetexturedTableBlockEntity imple
 //      }
 //      // if the player cannot craft this, block crafting
 //      if (locked) {
-//        ForgeHooks.setCraftingPlayer(null);
+//        CommonHooks.setCraftingPlayer(null);
 //        return ItemStack.EMPTY;
 //      }
 //    }
 
     ItemStack result = recipe.assemble(craftingInventory, level.registryAccess());
-    ForgeHooks.setCraftingPlayer(null);
+    CommonHooks.setCraftingPlayer(null);
     return result;
   }
 
@@ -161,13 +162,13 @@ public class CraftingStationBlockEntity extends RetexturedTableBlockEntity imple
       player.awardRecipes(Collections.singleton(recipe));
     }
     result.onCraftedBy(this.level, player, amount);
-    ForgeEventFactory.firePlayerCraftingEvent(player, result, this.craftingInventory);
+    EventHooks.firePlayerCraftingEvent(player, result, this.craftingInventory);
 
     // update all slots in the inventory
     // remove remaining items
-    ForgeHooks.setCraftingPlayer(player);
+    CommonHooks.setCraftingPlayer(player);
     NonNullList<ItemStack> remaining = recipe.getRemainingItems(craftingInventory);
-    ForgeHooks.setCraftingPlayer(null);
+    CommonHooks.setCraftingPlayer(null);
     for (int i = 0; i < remaining.size(); ++i) {
       ItemStack original = this.getItem(i);
       ItemStack newStack = remaining.get(i);

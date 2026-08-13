@@ -9,9 +9,9 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.CakeBlock;
@@ -19,7 +19,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import slimeknights.tconstruct.fluids.item.ContainerFoodItem;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -41,17 +40,20 @@ public class FoodCakeBlock extends CakeBlock {
   }
 
   @Override
-  public void appendHoverText(ItemStack pStack, @Nullable BlockGetter pLevel, List<Component> tooltip, TooltipFlag pFlag) {
+  public void appendHoverText(ItemStack pStack, Item.TooltipContext pContext, List<Component> tooltip, TooltipFlag pFlag) {
     ContainerFoodItem.addEffectTooltip(food, tooltip);
   }
 
+  /** @implNote  1.20's single {@code use} override becomes {@code useWithoutItem} only: this block does nothing
+   *             special with an item in hand, so there is no {@code useItemOn} to write, matching vanilla's own
+   *             {@link net.minecraft.world.level.block.CakeBlock#useWithoutItem}. */
   @Override
-  public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+  protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
     InteractionResult result = this.eatSlice(world, pos, state, player);
     if (result.consumesAction()) {
       return result;
     }
-    if (world.isClientSide() && player.getItemInHand(handIn).isEmpty()) {
+    if (world.isClientSide() && player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {
       return InteractionResult.CONSUME;
     }
     return InteractionResult.PASS;

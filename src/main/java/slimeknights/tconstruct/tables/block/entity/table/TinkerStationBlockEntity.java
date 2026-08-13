@@ -2,6 +2,7 @@ package slimeknights.tconstruct.tables.block.entity.table;
 
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -15,8 +16,8 @@ import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.data.ModelData;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.ForgeEventFactory;
+import net.neoforged.neoforge.event.EventHooks;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import org.apache.commons.lang3.StringUtils;
 import slimeknights.mantle.util.RetexturedHelper;
@@ -62,6 +63,9 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
   private final LazyResultContainer craftingResult;
   /** Crafting inventory for the recipe calls */
   private final TinkerStationContainerWrapper inventoryWrapper;
+  /** @implNote  Mantle's {@code InventoryBlockEntity#itemHandler} is final now (T15 §5): a block entity wanting a
+   *             different handler overrides {@link #getItemHandler()} instead of reassigning the field. */
+  private final ConfigurableInvWrapperCapability tinkerStationItemHandler = new ConfigurableInvWrapperCapability(this, false, false);
 
   /** Current result, may be modified again later */
   @Nullable
@@ -85,10 +89,13 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
 
   public TinkerStationBlockEntity(BlockPos pos, BlockState state, int slots) {
     super(TinkerTables.tinkerStationTile.get(), pos, state, NAME, slots);
-    this.itemHandler = new ConfigurableInvWrapperCapability(this, false, false);
-    this.itemHandlerCap = LazyOptional.of(() -> this.itemHandler);
     this.inventoryWrapper = new TinkerStationContainerWrapper(this);
     this.craftingResult = new LazyResultContainer(this);
+  }
+
+  @Override
+  public IItemHandlerModifiable getItemHandler() {
+    return tinkerStationItemHandler;
   }
 
   @Override
@@ -218,7 +225,7 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
 
     // fire crafting events
     resultItem.onCraftedBy(this.level, player, amount);
-    ForgeEventFactory.firePlayerCraftingEvent(player, resultItem, this.inventoryWrapper);
+    EventHooks.firePlayerCraftingEvent(player, resultItem, this.inventoryWrapper);
     this.playCraftSound(player);
 
     // fetch this before updating inputs so they can do input sensitive shrinking
@@ -339,16 +346,16 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
   }
 
   @Override
-  public void saveSynced(CompoundTag tags) {
-    super.saveSynced(tags);
+  public void saveSynced(CompoundTag tags, HolderLookup.Provider registries) {
+    super.saveSynced(tags, registries);
     if (material != IMaterial.UNKNOWN_ID) {
       tags.putString(MATERIAL_TAG, material.toString());
     }
   }
 
   @Override
-  public void load(CompoundTag tags) {
-    super.load(tags);
+  public void loadAdditional(CompoundTag tags, HolderLookup.Provider registries) {
+    super.loadAdditional(tags, registries);
     if (tags.contains(MATERIAL_TAG, Tag.TAG_STRING)) {
       material = Objects.requireNonNullElse(MaterialVariantId.tryParse(tags.getString(MATERIAL_TAG)), IMaterial.UNKNOWN_ID);
       RetexturedHelper.onTextureUpdated(this);
