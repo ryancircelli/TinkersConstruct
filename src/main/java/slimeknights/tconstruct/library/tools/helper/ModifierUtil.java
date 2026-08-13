@@ -2,6 +2,7 @@ package slimeknights.tconstruct.library.tools.helper;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
@@ -14,10 +15,14 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.EffectCure;
+import net.neoforged.neoforge.common.EffectCures;
 import net.neoforged.neoforge.common.ItemAbility;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
@@ -303,5 +308,38 @@ public final class ModifierUtil {
     if (consumer != null) {
       consumer.accept(entity);
     }
+  }
+
+  /* Effect cures */
+
+  /**
+   * Gets the cure token for an effect that is cured by removing the item that granted it.
+   * <p>
+   * 1.21 deleted curative items: an effect no longer carries a list of {@link ItemStack}s that clear it, it carries a
+   * set of {@link EffectCure} tokens, and a token is interned by name. 1.20's "this effect is cured by exactly this
+   * armor piece" was expressed by putting that piece in the curative list, so naming a token after the item is the
+   * same test with the same granularity - and it survives a save, because the token set is part of what a
+   * {@link net.minecraft.world.effect.MobEffectInstance} serializes.
+   */
+  public static EffectCure curedByItem(Item item) {
+    return EffectCure.get(TConstruct.resourceString("cured_by_item/" + BuiltInRegistries.ITEM.getKey(item)));
+  }
+
+  /**
+   * Gets the cure an item performs, for a caller that used to pass a stack to {@code LivingEntity#curePotionEffects}.
+   * <p>
+   * That method asked every active effect whether the stack was in its curative list; a vanilla effect's list held one
+   * item, the milk bucket, which is now {@link EffectCures#MILK}, and honey is the only other vanilla entry. Anything
+   * else is a Tinkers-granted effect keyed by {@link #curedByItem(Item)}, so the mapping is total for every item that
+   * ever cured anything.
+   */
+  public static EffectCure cureFromItem(Item item) {
+    if (item == Items.MILK_BUCKET) {
+      return EffectCures.MILK;
+    }
+    if (item == Items.HONEY_BOTTLE) {
+      return EffectCures.HONEY;
+    }
+    return curedByItem(item);
   }
 }

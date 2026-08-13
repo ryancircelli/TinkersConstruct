@@ -9,6 +9,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -23,6 +24,7 @@ import slimeknights.tconstruct.library.modifiers.ModifierHooks;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
 import slimeknights.tconstruct.library.modifiers.ModifierManager;
 import slimeknights.tconstruct.library.modifiers.hook.build.ModifierTraitHook.TraitBuilder;
+import slimeknights.tconstruct.library.modifiers.modules.build.RarityModule;
 import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.context.ToolRebuildContext;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
@@ -357,6 +359,19 @@ public class ToolStack implements IToolStackView {
     ToolStatsComponent derived = getStatsComponent();
     if (derived != null) {
       derived.set(stack);
+      // rarity is the minecraft:rarity component in 1.21 and ItemStack#getRarity reads it with no item hook in
+      // between, so the five getRarity overrides 1.20 had have nowhere to go and the number RarityModule computes has
+      // to be written out here instead. Stat rebuild time is the only moment it can be: rarity is volatile data, so it
+      // is not known until the modifiers have run, and it changes exactly when they do.
+      Rarity rarity = RarityModule.getRarity(getVolatileData());
+      if (rarity == Rarity.COMMON) {
+        // removed rather than written, so a tool with no rarity modifier carries no component at all. That also
+        // reproduces 1.20's getRarity, which answered from volatile data alone and ignored Item.Properties#rarity:
+        // removing a component the item's prototype declares patches it back to common.
+        stack.remove(DataComponents.RARITY);
+      } else {
+        stack.set(DataComponents.RARITY, rarity);
+      }
     }
     // only a damageable stack gets a damage entry, as an entry vanilla did not expect would break stacking.
     // Set directly rather than through ItemStack#setDamageValue: that setter routes through IItemExtension#setDamage,

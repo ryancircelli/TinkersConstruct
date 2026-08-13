@@ -57,9 +57,9 @@ public class TinkerStationPartSwappingBuilder extends AbstractRecipeBuilder<Tink
   public void save(RecipeOutput output, ResourceLocation id) {
     // no advancement for this recipe type, matches 1.20's unconditional null
     if (fromTool) {
-      output.accept(id, new ToolMaterialSwappingRecipe(id, tools, maxStackSize, extraRequirements), null);
+      output.accept(id, new ToolMaterialSwappingRecipe(tools, maxStackSize, extraRequirements), null);
     } else {
-      output.accept(id, new TinkerStationPartSwapping(id, tools, maxStackSize, extraRequirements), null);
+      output.accept(id, new TinkerStationPartSwapping(tools, maxStackSize, extraRequirements), null);
     }
   }
 }

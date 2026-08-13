@@ -2,13 +2,13 @@ package slimeknights.tconstruct.library.modifiers.modules.technical;
 
 import lombok.RequiredArgsConstructor;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.ItemStack;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
 import slimeknights.tconstruct.library.modifiers.hook.armor.EquipmentChangeModifierHook;
 import slimeknights.tconstruct.library.module.HookProvider;
 import slimeknights.tconstruct.library.module.ModuleHook;
 import slimeknights.tconstruct.library.tools.context.EquipmentChangeContext;
+import slimeknights.tconstruct.library.tools.helper.ModifierUtil;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 
 import java.util.List;
@@ -35,8 +35,9 @@ public enum CureOnRemovalModule implements HookProvider, EquipmentChangeModifier
     if (context.getChangedSlot() == slot) {
       IToolStackView replacement = context.getReplacementTool();
       if (replacement == null || replacement.getModifierLevel(modifier.getModifier()) == 0 || replacement.getItem() != tool.getItem()) {
-        // cure effects using the helmet
-        context.getEntity().curePotionEffects(new ItemStack(tool.getItem()));
+        // cure effects granted by this piece. curePotionEffects(stack) is gone with curative items; an effect names the
+        // cures that clear it, and ModifierUtil.curedByItem is the token the granting modifier put on it
+        context.getEntity().removeEffectsCuredBy(ModifierUtil.curedByItem(tool.getItem()));
       }
     }
   }
