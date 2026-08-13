@@ -1,9 +1,0 @@
-{
-  "type": "tconstruct:material",
-  "ingredient": {
-    "tag": "c:ingots/steel"
-  },
-  "material": "tconstruct:steel",
-  "needed": 1,
-  "value": 1
-}

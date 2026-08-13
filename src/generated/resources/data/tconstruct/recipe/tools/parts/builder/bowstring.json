@@ -1,8 +1,0 @@
-{
-  "type": "tconstruct:part_builder",
-  "cost": 1,
-  "pattern": "tconstruct:bowstring",
-  "result": {
-    "item": "tconstruct:bowstring"
-  }
-}
