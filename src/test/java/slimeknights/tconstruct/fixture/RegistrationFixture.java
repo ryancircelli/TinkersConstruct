@@ -1,7 +1,7 @@
 package slimeknights.tconstruct.fixture;
 
 import com.google.gson.JsonObject;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.registry.GenericLoaderRegistry;
@@ -46,12 +46,12 @@ public class RegistrationFixture {
     }
 
     @Override
-    public T decode(FriendlyByteBuf buffer, TypedMap context) {
+    public T decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
       return delegate.decode(buffer, context);
     }
 
     @Override
-    public void encode(FriendlyByteBuf buffer, T value) {
+    public void encode(RegistryFriendlyByteBuf buffer, T value) {
       delegate.encode(buffer, value);
     }
   }

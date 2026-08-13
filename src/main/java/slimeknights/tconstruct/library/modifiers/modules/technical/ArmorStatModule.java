@@ -157,7 +157,11 @@ public record ArmorStatModule(TinkerDataKey<Float> key, LevelingValue amount, bo
     if (living instanceof LivingEntity entity) {
       TinkerDataCapability.Holder data = TinkerDataCapability.getData(entity);
       if (data != null) {
-        return data.get(key);
+        // the defaulting overload, because a holder that exists need not carry this key: the single argument one is
+        // @Nullable and unboxing its null is an NPE. 1.20 read this as
+        // `capability.resolve().map(data -> data.get(key)).orElse(0f)`, where Optional#map collapsed the null into
+        // the same 0f as a missing capability, so the null case was covered without ever being written down.
+        return data.get(key, 0f);
       }
     }
     return 0f;

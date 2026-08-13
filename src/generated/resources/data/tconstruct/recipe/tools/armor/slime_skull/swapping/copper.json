@@ -1,0 +1,14 @@
+{
+  "type": "tconstruct:fixed_material_swapping",
+  "index": 0,
+  "ingredient": {
+    "count": 1,
+    "item": "tconstruct:drowned_head"
+  },
+  "material": "tconstruct:copper",
+  "max_stack_size": 16,
+  "repair_value": 6,
+  "tools": {
+    "tag": "tconstruct:modifiable/skulls/swappable"
+  }
+}

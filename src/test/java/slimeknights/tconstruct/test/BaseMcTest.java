@@ -2,8 +2,6 @@ package slimeknights.tconstruct.test;
 
 import io.netty.buffer.Unpooled;
 import net.minecraft.SharedConstants;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.Bootstrap;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,9 +29,10 @@ import org.junit.jupiter.api.BeforeAll;
  *       Forge's ambient "which mod is loading right now" question. NeoForge has no such context for anything on
  *       this path to read: registration is explicit about its namespace, and Mantle's {@code RegistryAdapter} - the
  *       one caller in either mod that used to auto-detect a mod id from it - dropped that constructor and takes the
- *       id as an argument, saying so in its own javadoc. {@code TestModContainer} and {@code TestModInfo} are left
- *       behind on the test frontier with no caller; they implement loader SPI interfaces that all changed shape,
- *       and nothing would use the result.</li>
+ *       id as an argument, saying so in its own javadoc. {@code TestModContainer} and {@code TestModInfo} were the
+ *       stubs that answered it; they implemented loader SPI interfaces that all changed shape, nothing would have
+ *       used the result, and they had no caller left in either source set, so T22 deleted them rather than finish
+ *       porting them.</li>
  * </ul>
  */
 public class BaseMcTest {
@@ -41,16 +40,23 @@ public class BaseMcTest {
   static void setUpRegistries() {
     SharedConstants.tryDetectVersion();
     Bootstrap.bootStrap();
+    // Every test class starts from unfrozen built-in registries, rather than each one that writes to a registry
+    // arranging it for itself. Two things in 1.21 write where 1.20 did not - constructing an Item asks the registry
+    // for an intrusive holder, and building a HolderLookup over the built-ins re-freezes them - so whether a given
+    // class found them frozen depended on which other class had run first, and JUnit does not promise an order.
+    TestRegistries.unfreezeBuiltIns();
   }
 
   /**
    * Creates an empty play buffer.
    * @apiNote  Every play payload is written to a {@link RegistryFriendlyByteBuf} in 1.21, because a stack's data
-   *           components may name a datapack registry. Nothing in a headless test has a server or client registry
-   *           access, so the buffer carries the built-in registries only - which is enough for every packet whose
-   *           payload reaches static registries, and is the same access {@code RoundTripAssertions} uses.
+   *           components may name a datapack registry. The access comes from {@link TestRegistries}, which layers
+   *           the datapack registries a fixture can name over the built-in ones; it is the same access
+   *           {@code RoundTripAssertions} uses. This replaced a bare
+   *           {@code RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY)}, which carried the static
+   *           registries only and so could not encode a holder of anything datapack-scoped.
    */
   protected static RegistryFriendlyByteBuf networkBuffer() {
-    return new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+    return new RegistryFriendlyByteBuf(Unpooled.buffer(), TestRegistries.access());
   }
 }

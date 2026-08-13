@@ -1,0 +1,37 @@
+{
+  "type": "tconstruct:modifier",
+  "allow_crystal": true,
+  "inputs": [
+    {
+      "count": 1,
+      "tag": "c:wither_bones"
+    },
+    {
+      "count": 1,
+      "item": "minecraft:lightning_rod"
+    },
+    {
+      "count": 1,
+      "tag": "c:wither_bones"
+    },
+    {
+      "count": 1,
+      "item": "minecraft:tnt"
+    }
+  ],
+  "level": {
+    "max": 3
+  },
+  "result": "tconstruct:severing",
+  "slots": {
+    "upgrades": 1
+  },
+  "tools": [
+    {
+      "tag": "tconstruct:modifiable/melee"
+    },
+    {
+      "tag": "tconstruct:modifiable/ranged/launcher"
+    }
+  ]
+}

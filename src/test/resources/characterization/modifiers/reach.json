@@ -3,9 +3,9 @@
   "modules": [
     {
       "type": "tconstruct:attribute",
-      "attribute": "forge:block_reach",
+      "attribute": "minecraft:player.block_interaction_range",
       "each_level": 1.0,
-      "operation": "addition",
+      "operation": "add_value",
       "slots": [
         "mainhand",
         "offhand",
@@ -17,9 +17,9 @@
     },
     {
       "type": "tconstruct:attribute",
-      "attribute": "forge:entity_reach",
+      "attribute": "minecraft:player.entity_interaction_range",
       "each_level": 1.0,
-      "operation": "addition",
+      "operation": "add_value",
       "slots": [
         "mainhand",
         "offhand",

@@ -1,0 +1,12 @@
+{
+  "type": "tconstruct:toggle_interaction",
+  "inputs": [
+    {
+      "count": 1,
+      "item": "minecraft:lever"
+    }
+  ],
+  "tools": {
+    "tag": "tconstruct:modifiable/interactable/dual"
+  }
+}

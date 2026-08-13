@@ -59,24 +59,40 @@ class TinkerTagsTest extends BaseMcTest {
 
   @Test
   void everyTagNamesAKnownRegistry() {
+    // vanilla registries, plus tconstruct:modifiers - TinkerTags.Modifiers declares tags over Tinkers' own
+    // modifier registry, which is as real a registry as any of Registries.*
     for (Field field : allTagFields()) {
       TagKey<?> tag = read(field);
       ResourceKey<? extends Registry<?>> registry = tag.registry();
       assertThat(registry.location().getNamespace())
         .as("%s names registry %s", field.getName(), registry.location())
-        .isEqualTo("minecraft");
+        .isIn("minecraft", TConstruct.MOD_ID);
     }
   }
 
   @Test
-  void everyTagIsTinkersOrCommon() {
-    // 1.21 renamed the common tag namespace from `forge` to `c`; Mantle.COMMON is the constant, and a stray `forge`
-    // here would be a tag nothing ever fills
+  void noTagUsesTheOldForgeNamespace() {
+    // this is the property the port could silently break: 1.21 renamed the common tag namespace from `forge` to
+    // `c`, and a surviving `forge` tag is one nothing ever fills. Kept separate from the allowlist below so that
+    // adding a compat namespace can never weaken it.
     for (Field field : allTagFields()) {
       TagKey<?> tag = read(field);
       assertThat(tag.location().getNamespace())
         .as("%s -> %s", field.getName(), tag.location())
-        .isIn(TConstruct.MOD_ID, Mantle.COMMON, "minecraft");
+        .isNotEqualTo("forge");
+    }
+  }
+
+  @Test
+  void everyTagIsTinkersCommonOrDeclaredCompat() {
+    // Tinkers also reads a few tags owned by other mods - Ceramics' cistern connections and two of Create's - which
+    // are deliberately in those mods' namespaces and cannot move to `c`. Listing them here rather than widening the
+    // rule keeps a typo'd namespace a failure.
+    for (Field field : allTagFields()) {
+      TagKey<?> tag = read(field);
+      assertThat(tag.location().getNamespace())
+        .as("%s -> %s", field.getName(), tag.location())
+        .isIn(TConstruct.MOD_ID, Mantle.COMMON, "minecraft", "ceramics", "create");
     }
   }
 

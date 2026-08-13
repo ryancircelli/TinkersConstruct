@@ -75,9 +75,12 @@ class ModifierModelMapTest extends BaseMcTest {
     // the reader. Datagen writes these files, so a one-way change would produce packs this cannot read.
     String json = """
       {"type": "tconstruct:dyed", "texture": "tconstruct:item/modifiers/dyed", "texture_large": "tconstruct:item/modifiers/dyed_large"}""";
-    ModifierModel parsed = parse(json);
-    JsonElement written = ModifierModel.LOADER.serialize(parsed);
-    assertThat(parse(written.toString())).isEqualTo(parsed);
+    JsonElement written = ModifierModel.LOADER.serialize(parse(json));
+    // compared as JSON rather than as models: no ModifierModel implementation declares equals - none did on 1.20
+    // either - so comparing the two parsed objects was comparing identity and could never have held. The fixed
+    // point on the written form is the property this test is named for, and is what the corpus suite asserts too.
+    JsonElement rewritten = ModifierModel.LOADER.serialize(parse(written.toString()));
+    assertThat(rewritten).isEqualTo(written);
   }
 
   @Test

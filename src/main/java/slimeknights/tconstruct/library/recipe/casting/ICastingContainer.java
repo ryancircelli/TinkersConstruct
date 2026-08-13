@@ -2,6 +2,7 @@ package slimeknights.tconstruct.library.recipe.casting;
 
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import slimeknights.mantle.recipe.container.ISingleStackContainer;
 
 /**
@@ -23,5 +24,19 @@ public interface ICastingContainer extends ISingleStackContainer {
    */
   default DataComponentPatch getFluidComponents() {
     return DataComponentPatch.EMPTY;
+  }
+
+  /**
+   * {@inheritDoc}
+   * @apiNote A casting recipe's real input is the fluid; the item is an optional cast, and a basin recipe usually
+   * has none. {@code RecipeManager#getRecipeFor} returns empty without testing a single recipe when
+   * {@link net.minecraft.world.item.crafting.RecipeInput#isEmpty()} is true, and the interface's default
+   * implementation of that only looks at item slots - so every castless casting recipe became unfindable, while
+   * calling {@code matches} on the same recipe and container still returned true. 1.20's {@code getRecipeFor} took
+   * a {@code Container} and had no such short circuit.
+   */
+  @Override
+  default boolean isEmpty() {
+    return getFluid() == Fluids.EMPTY && getStack().isEmpty();
   }
 }

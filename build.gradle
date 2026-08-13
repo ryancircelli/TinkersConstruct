@@ -769,7 +769,12 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-    testImplementation 'org.mockito:mockito-inline:4.2.0'
+    // Mockito 4.2.0 was 'mockito-inline', whose bundled Byte Buddy 1.12.4 refuses any class file newer than Java
+    // 18 ("Java 21 (65) is not supported by the current version of Byte Buddy"). 1.20 compiled and ran on Java 17
+    // so it never hit the ceiling; 1.21.1 is Java 21, and every mock() in the suite failed with
+    // "Could not modify all classes". Mockito 5 makes the inline mock maker the default, so mockito-core is the
+    // whole of what mockito-inline used to add and the separate artifact is not republished past 5.2.0.
+    testImplementation 'org.mockito:mockito-core:5.14.2'
     testImplementation 'org.assertj:assertj-core:3.21.0'
 }
 

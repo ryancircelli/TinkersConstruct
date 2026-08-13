@@ -145,7 +145,14 @@ class RecipeCharacterizationTest extends BaseMcTest {
     // mantle:potion_display is a JEI/display-only ingredient that expands a single "representative" item into
     // one entry per potion NBT variant on its network form (Mantle behavior, unrelated to any single recipe
     // type) - real, but out of scope to chase down further here, so it's excluded from the network assertion too.
-    if (!json.toString().contains("\"tag\"") && !json.toString().contains("mantle:potion_display")) {
+    // A custom ingredient type is the same asymmetry one step further out, and is new in 1.21. Mantle's
+    // IngredientLoadable writes the network form with Ingredient.CONTENTS_STREAM_CODEC, which is named for what it
+    // does: it sends the resolved item list, so a NeoForge ICustomIngredient - tconstruct:material here - arrives as
+    // a plain item list and its type is gone. That is the intended design rather than a defect, since the client
+    // only needs the resolved contents to display and match, and 1.20 had no custom ingredient on the wire to lose.
+    // Only tconstruct:material appears as a cast in this corpus; the JSON round trip above still covers the type.
+    String raw = json.toString();
+    if (!raw.contains("\"tag\"") && !raw.contains("mantle:potion_display") && !raw.contains("tconstruct:material")) {
       RoundTripAssertions.assertNetworkRoundTripJson(loader, json, context);
     }
   }

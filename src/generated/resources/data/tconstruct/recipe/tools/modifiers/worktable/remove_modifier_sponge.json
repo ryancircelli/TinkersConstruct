@@ -1,0 +1,22 @@
+{
+  "type": "tconstruct:remove_modifier",
+  "inputs": [
+    {
+      "count": 1,
+      "item": "minecraft:wet_sponge"
+    }
+  ],
+  "leftovers": [
+    "minecraft:sponge"
+  ],
+  "modifier_predicate": {
+    "type": "mantle:inverted",
+    "inverted_type": "tconstruct:tag",
+    "tag": "tconstruct:remove_blacklist"
+  },
+  "name": "modifiers",
+  "tools": {
+    "count": 1,
+    "tag": "tconstruct:modifiable"
+  }
+}

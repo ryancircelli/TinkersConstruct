@@ -32,7 +32,7 @@ class SmelteryNetworkPacketsTest extends BaseMcTest {
     FluidUpdatePacket decoded = new FluidUpdatePacket(buffer);
 
     assertThat(decoded).extracting("pos").isEqualTo(pos);
-    assertThat(decoded).extracting("fluid").isEqualTo(fluid);
+    assertFluid(decoded, fluid);
   }
 
   @Test
@@ -45,7 +45,7 @@ class SmelteryNetworkPacketsTest extends BaseMcTest {
     FaucetActivationPacket decoded = new FaucetActivationPacket(buffer);
 
     assertThat(decoded).extracting("pos").isEqualTo(pos);
-    assertThat(decoded).extracting("fluid").isEqualTo(fluid);
+    assertFluid(decoded, fluid);
     assertThat(decoded).extracting("isPouring").isEqualTo(true);
   }
 
@@ -72,7 +72,7 @@ class SmelteryNetworkPacketsTest extends BaseMcTest {
     SmelteryTankUpdatePacket decoded = new SmelteryTankUpdatePacket(buffer);
 
     assertThat(decoded).extracting("pos").isEqualTo(pos);
-    assertThat(decoded).extracting("fluids").isEqualTo(fluids);
+    assertFluids(decoded, fluids);
   }
 
   @Test
@@ -125,5 +125,33 @@ class SmelteryNetworkPacketsTest extends BaseMcTest {
 
     assertThat(decoded).extracting("controllerPos").isEqualTo(controller);
     assertThat(decoded).extracting("errorPos").isNull();
+  }
+
+  /**
+   * Asserts a packet's {@code fluid} field survived the round trip.
+   * <p>
+   * {@link FluidStack} has no {@code equals} in 1.21 - it follows {@link net.minecraft.world.item.ItemStack}, which
+   * dropped its own when data components landed, and offers {@link FluidStack#matches} instead. 1.20's Forge
+   * FluidStack did implement equals, so {@code isEqualTo} used to work here and now silently compares identity:
+   * every one of these assertions failed against a decoded stack holding exactly the right fluid and amount.
+   */
+  private static void assertFluid(FluidUpdatePacket packet, FluidStack expected) {
+    assertThat(packet).extracting("fluid").satisfies(value -> {
+      FluidStack actual = (FluidStack) value;
+      assertThat(FluidStack.matches(actual, expected)).as("expected %s, got %s", expected, actual).isTrue();
+    });
+  }
+
+  /** @see #assertFluid(FluidUpdatePacket, FluidStack) */
+  private static void assertFluids(SmelteryTankUpdatePacket packet, List<FluidStack> expected) {
+    assertThat(packet).extracting("fluids").satisfies(value -> {
+      @SuppressWarnings("unchecked")
+      List<FluidStack> actual = (List<FluidStack>) value;
+      assertThat(actual).hasSameSizeAs(expected);
+      for (int i = 0; i < expected.size(); i++) {
+        assertThat(FluidStack.matches(actual.get(i), expected.get(i)))
+          .as("fluid %d: expected %s, got %s", i, expected.get(i), actual.get(i)).isTrue();
+      }
+    });
   }
 }

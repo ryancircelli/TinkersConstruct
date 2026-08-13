@@ -3,8 +3,6 @@ package slimeknights.tconstruct.test.characterization;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
-import net.neoforged.neoforge.common.crafting.DifferenceIngredient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import slimeknights.mantle.data.loadable.field.ContextKey;
@@ -52,16 +50,11 @@ class PredicateInversionJsonAsymmetryTest extends BaseMcTest {
   @BeforeAll
   static void registerPredicateTypes() {
     ModuleTypeRegistrations.ensureRegistered();
-    try {
-      CraftingHelper.register(ResourceLocation.fromNamespaceAndPath("minecraft", "item"), net.minecraftforge.common.crafting.VanillaIngredientSerializer.INSTANCE);
-    } catch (Exception ignored) {
-      // already registered - fine
-    }
-    try {
-      CraftingHelper.register(ResourceLocation.fromNamespaceAndPath("forge", "difference"), DifferenceIngredient.Serializer.INSTANCE);
-    } catch (Exception ignored) {
-      // already registered - fine
-    }
+    // 1.20 seeded two ingredient serializers here through CraftingHelper.register, best-effort inside a swallowed
+    // catch. There is no serializer registry left to seed: a vanilla item ingredient is read by Ingredient.CODEC
+    // directly, a custom one is an ICustomIngredient whose IngredientType NeoForge registers itself, and
+    // CraftingHelper kept its name while losing register() along with every other method this used. Neither
+    // registration has a 1.21 counterpart to write, and the fixture parses without them.
     RealItemStubs.ensureRegistered("characterization/recipes");
   }
 

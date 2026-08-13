@@ -14,6 +14,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.conditions.ICondition.IContext;
+import net.minecraft.core.RegistryAccess;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.bus.api.EventPriority;
@@ -24,6 +25,8 @@ import slimeknights.mantle.util.JsonHelper;
 import slimeknights.mantle.util.typed.TypedMapBuilder;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.utils.JsonUtils;
+
+import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +54,9 @@ public class FluidEffectManager extends SimpleJsonResourceReloadListener {
 
   /** Condition context for recipe loading */
   private IContext conditionContext = IContext.EMPTY;
+  /** Registry access from the reload, for an effect naming a datapack registry entry */
+  @Nullable
+  private RegistryAccess registryAccess;
 
   private FluidEffectManager() {
     super(JsonHelper.DEFAULT_GSON, FOLDER);
@@ -66,6 +72,9 @@ public class FluidEffectManager extends SimpleJsonResourceReloadListener {
   private void addDataPackListeners(final AddReloadListenerEvent event) {
     event.addListener(this);
     conditionContext = event.getConditionContext();
+    // both built in and datapack registries are loaded and frozen by the time this event fires, which is what makes
+    // it the place to take the registries an effect may name. See apply.
+    registryAccess = event.getRegistryAccess();
   }
 
   /** Creates context for modifier parsing */
@@ -101,7 +110,11 @@ public class FluidEffectManager extends SimpleJsonResourceReloadListener {
             continue;
           }
         }
-        fluids.add(new FluidEffects.Entry(key, FluidEffects.LOADABLE.deserialize(json, contextBuilder(key).put(ContextKey.CONDITION_CONTEXT, conditionContext).build())));
+        // the registries go in the context because an effect may name a datapack registry entry - break_block's
+        // "enchantments" map is keyed by one - and Mantle's DynamicRegistryLoadable has no ops to read them from on
+        // this path. Same fix and same reason as ModifierManager.
+        fluids.add(new FluidEffects.Entry(key, FluidEffects.LOADABLE.deserialize(json, contextBuilder(key).put(ContextKey.CONDITION_CONTEXT, conditionContext)
+                                                                                                          .put(ContextKey.REGISTRY_ACCESS, registryAccess).build())));
       } catch (JsonSyntaxException e) {
         TConstruct.LOG.error("Failed to load fluid effect {}", key, e);
       }

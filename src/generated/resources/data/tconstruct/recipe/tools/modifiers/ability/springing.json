@@ -1,0 +1,43 @@
+{
+  "type": "tconstruct:modifier",
+  "allow_crystal": true,
+  "check_trait_level": true,
+  "inputs": [
+    {
+      "count": 1,
+      "item": "tconstruct:sky_slime_vine"
+    },
+    {
+      "count": 1,
+      "item": "tconstruct:sky_slime_crystal"
+    },
+    {
+      "count": 1,
+      "item": "tconstruct:sky_slime_vine"
+    },
+    {
+      "count": 1,
+      "item": "tconstruct:sky_congealed_slime"
+    },
+    {
+      "count": 1,
+      "item": "tconstruct:sky_congealed_slime"
+    }
+  ],
+  "level": 1,
+  "result": "tconstruct:springing",
+  "slots": {
+    "abilities": 1
+  },
+  "tools": {
+    "type": "neoforge:intersection",
+    "children": [
+      {
+        "tag": "tconstruct:modifiable/durability"
+      },
+      {
+        "tag": "tconstruct:modifiable/interactable/charge"
+      }
+    ]
+  }
+}
