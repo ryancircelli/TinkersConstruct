@@ -772,6 +772,8 @@ public class ItemTagProvider extends ItemTagsProvider {
       case LEGGINGS -> LEGGINGS;
       case CHESTPLATE -> CHESTPLATES;
       case HELMET -> HELMETS;
+      // BODY (animal armor) is deliberately not a Tinkers armor slot (T17 §3); this is never called with it
+      case BODY -> throw new IllegalArgumentException("Tinkers armor has no body slot tag");
     };
   }
 
@@ -785,6 +787,8 @@ public class ItemTagProvider extends ItemTagsProvider {
       case LEGGINGS -> ItemTags.LEG_ARMOR;
       case CHESTPLATE -> ItemTags.CHEST_ARMOR;
       case HELMET -> ItemTags.HEAD_ARMOR;
+      // BODY (animal armor) is deliberately not a Tinkers armor slot (T17 §3); this is never called with it
+      case BODY -> throw new IllegalArgumentException("Tinkers armor has no body slot tag");
     };
   }
 
