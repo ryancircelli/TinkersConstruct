@@ -13,6 +13,15 @@ import org.junit.jupiter.api.BeforeAll;
  * rest of what {@link Bootstrap} fills in. Extend it rather than calling {@link Bootstrap#bootStrap()} by hand, as
  * the version has to be set first and the bootstrap is only allowed to run once.
  * <p>
+ * The version is asked for with {@link SharedConstants#tryDetectVersion()} rather than set from a stub. 1.20 ran
+ * this suite on a bare classpath where nothing had a version and nothing could detect one, so the test invented a
+ * {@code TestWorldVersion} and pushed it in. Since T13 the suite runs through NeoForge's test launcher, which has
+ * already set the real 1.21.1 version before any test class loads - and {@code SharedConstants.setVersion} throws
+ * {@code Cannot override the current game version!} rather than accepting a second, different one.
+ * {@code tryDetectVersion} is a no-op when a version is present, reads the real one out of {@code /version.json}
+ * when it is not, and falls back to {@code DetectedVersion.BUILT_IN} when even that is missing. It is therefore
+ * correct in all three cases, and the stub has no remaining caller.
+ * <p>
  * Both of 1.20's other two lines are gone, and neither has a 1.21 replacement to write:
  * <ul>
  *   <li>The bootstrap ran inside a {@code Mockito.mockStatic(NetworkHooks.class)}. {@code NetworkHooks} does not
@@ -30,7 +39,7 @@ import org.junit.jupiter.api.BeforeAll;
 public class BaseMcTest {
   @BeforeAll
   static void setUpRegistries() {
-    SharedConstants.setVersion(TestWorldVersion.INSTANCE);
+    SharedConstants.tryDetectVersion();
     Bootstrap.bootStrap();
   }
 

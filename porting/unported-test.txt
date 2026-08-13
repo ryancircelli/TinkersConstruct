@@ -26,7 +26,6 @@ src/test/java/slimeknights/tconstruct/fixture/MaterialRegistryFixture.java
 src/test/java/slimeknights/tconstruct/fixture/MaterialStatsFixture.java
 src/test/java/slimeknights/tconstruct/fixture/RegistrationFixture.java
 src/test/java/slimeknights/tconstruct/fixture/ToolDefinitionFixture.java
-src/test/java/slimeknights/tconstruct/fixture/package-info.java
 src/test/java/slimeknights/tconstruct/library/client/armor/ArmorModelTest.java
 src/test/java/slimeknights/tconstruct/library/client/book/TinkerBookTest.java
 src/test/java/slimeknights/tconstruct/library/client/modifiers/ModifierModelMapTest.java
@@ -41,7 +40,6 @@ src/test/java/slimeknights/tconstruct/library/materials/traits/MaterialTraitsMan
 src/test/java/slimeknights/tconstruct/library/materials/traits/UpdateMaterialTraitsPacketTest.java
 src/test/java/slimeknights/tconstruct/library/modifiers/ModifierFixture.java
 src/test/java/slimeknights/tconstruct/library/modifiers/UpdateModifiersPacketTest.java
-src/test/java/slimeknights/tconstruct/library/modifiers/util/EnchantmentLevelsTest.java
 src/test/java/slimeknights/tconstruct/library/tools/capability/EntityModifierCapabilityTest.java
 src/test/java/slimeknights/tconstruct/library/tools/capability/PersistentDataCapabilityTest.java
 src/test/java/slimeknights/tconstruct/library/tools/capability/TinkerDataCapabilityTest.java
@@ -49,7 +47,6 @@ src/test/java/slimeknights/tconstruct/library/tools/capability/ToolCapabilityPro
 src/test/java/slimeknights/tconstruct/library/tools/definition/ToolDefinitionDataTest.java
 src/test/java/slimeknights/tconstruct/library/tools/definition/ToolDefinitionLoaderTest.java
 src/test/java/slimeknights/tconstruct/library/tools/definition/UpdateToolDefinitionDataPacketTest.java
-src/test/java/slimeknights/tconstruct/library/tools/helper/ArmorUtilMathTest.java
 src/test/java/slimeknights/tconstruct/library/tools/helper/ToolHarvestLogicTest.java
 src/test/java/slimeknights/tconstruct/library/tools/item/ToolItemDurabilityTest.java
 src/test/java/slimeknights/tconstruct/library/tools/item/ToolItemHarvestTest.java
@@ -67,18 +64,11 @@ src/test/java/slimeknights/tconstruct/library/tools/nbt/ToolDataNBTTest.java
 src/test/java/slimeknights/tconstruct/library/tools/nbt/ToolStackTest.java
 src/test/java/slimeknights/tconstruct/library/tools/stat/StatProviderTest.java
 src/test/java/slimeknights/tconstruct/library/tools/stat/ToolStatsModifierBuilderTest.java
-src/test/java/slimeknights/tconstruct/test/BaseMcTest.java
 src/test/java/slimeknights/tconstruct/test/JsonFileLoader.java
 src/test/java/slimeknights/tconstruct/test/TestHelper.java
-src/test/java/slimeknights/tconstruct/test/TestLivingEntity.java
 src/test/java/slimeknights/tconstruct/test/TestModContainer.java
 src/test/java/slimeknights/tconstruct/test/TestModInfo.java
-src/test/java/slimeknights/tconstruct/test/TestPlayerEntity.java
-src/test/java/slimeknights/tconstruct/test/TestServerWorld.java
-src/test/java/slimeknights/tconstruct/test/TestWorld.java
-src/test/java/slimeknights/tconstruct/test/TestWorldVersion.java
 src/test/java/slimeknights/tconstruct/test/characterization/CommonNetworkPacketsTest.java
-src/test/java/slimeknights/tconstruct/test/characterization/FixtureFiles.java
 src/test/java/slimeknights/tconstruct/test/characterization/FluidEffectCharacterizationTest.java
 src/test/java/slimeknights/tconstruct/test/characterization/FluidIngredientTagNetworkAsymmetryTest.java
 src/test/java/slimeknights/tconstruct/test/characterization/FormulaSerializationAsymmetryTest.java
@@ -96,11 +86,9 @@ src/test/java/slimeknights/tconstruct/test/characterization/PredicateInversionJs
 src/test/java/slimeknights/tconstruct/test/characterization/RealItemStubs.java
 src/test/java/slimeknights/tconstruct/test/characterization/RecipeCharacterizationTest.java
 src/test/java/slimeknights/tconstruct/test/characterization/RecipeLoaderRegistry.java
-src/test/java/slimeknights/tconstruct/test/characterization/RoundTripAssertions.java
 src/test/java/slimeknights/tconstruct/test/characterization/SmelteryNetworkPacketsTest.java
 src/test/java/slimeknights/tconstruct/test/characterization/StationLayoutCharacterizationTest.java
 src/test/java/slimeknights/tconstruct/test/characterization/TablesNetworkPacketsTest.java
 src/test/java/slimeknights/tconstruct/test/characterization/ToolDefinitionCharacterizationTest.java
 src/test/java/slimeknights/tconstruct/test/characterization/ToolModuleRegistrations.java
 src/test/java/slimeknights/tconstruct/test/characterization/ToolsNetworkPacketsTest.java
-src/test/java/slimeknights/tconstruct/test/package-info.java

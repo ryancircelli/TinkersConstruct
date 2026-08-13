@@ -442,6 +442,11 @@ ext.categoriseDiagnostic = { d, File projectDirectory ->
 tasks.register('errorBudget') {
     group = 'verification'
     description = 'Compiles the island named by porting/island.txt and counts the errors.'
+    // T13 flipped the island's self-contained subset into sourceSets.main, so the island is no
+    // longer a closed compilation: what is left of it references classes that now compile for
+    // real. sourceSets.main.output is therefore part of the island's classpath, and compileJava
+    // has to have run before the measurement means anything.
+    dependsOn 'classes'
 
     def islandEntries = readFrontier(islandLedger)
     def mainEntries = readFrontier(frontiers[0].ledger) as Set
@@ -449,7 +454,7 @@ tasks.register('errorBudget') {
     def mainLedgerPath = rootDir.toPath().relativize(frontiers[0].ledger.toPath()).toString()
     def projectDirectory = projectDir
     def islandSources = files(islandEntries.collect { file(it) })
-    def compileClasspath = sourceSets.main.compileClasspath
+    def compileClasspath = sourceSets.main.output + sourceSets.main.compileClasspath
     def processorPath = sourceSets.main.annotationProcessorPath
     def javac = javaToolchains.compilerFor(java.toolchain).map { it.executablePath.asFile.absolutePath }
     def outputDir = layout.buildDirectory.dir('errorBudget')
@@ -578,6 +583,7 @@ tasks.register('errorBudgetUpdate', Copy) {
 tasks.register('errorBudgetTest') {
     group = 'verification'
     description = 'Compiles porting/island-test.txt alongside the island and counts the errors in the test files.'
+    dependsOn 'classes', 'testClasses'
 
     def islandEntries = readFrontier(islandLedger)
     def testIsland = frontiers.find { it.name == 'test' }
@@ -585,10 +591,13 @@ tasks.register('errorBudgetTest') {
     def testIslandPath = rootDir.toPath().relativize(testIsland.island.toPath()).toString()
     def projectDirectory = projectDir
     def sources = files((islandEntries + testIslandEntries).collect { file(it) })
-    // Both, and the union is the point: neoForge.unitTest is off while every test is behind the
-    // frontier, so the test classpath carries JUnit, Mockito and AssertJ but no Minecraft. The
-    // island's own classpath is where Minecraft, NeoForge and Mantle come from.
-    def compileClasspath = sourceSets.main.compileClasspath + sourceSets.test.compileClasspath
+    // Both, and the union is the point: the test classpath carries JUnit, Mockito and AssertJ,
+    // the island's own carries Minecraft, NeoForge and Mantle. Both source sets' *output* joins
+    // them since T13, for the reason errorBudget states - neither island is closed any more.
+    // The test output matters as much as the main one: BaseMcTest, RoundTripAssertions and
+    // FixtureFiles left the test island in T13 and are what the 39 files still on it extend.
+    def compileClasspath = sourceSets.main.output + sourceSets.test.output +
+            sourceSets.main.compileClasspath + sourceSets.test.compileClasspath
     def processorPath = sourceSets.main.annotationProcessorPath + sourceSets.test.annotationProcessorPath
     def javac = javaToolchains.compilerFor(java.toolchain).map { it.executablePath.asFile.absolutePath }
     def outputDir = layout.buildDirectory.dir('errorBudgetTest')
@@ -662,6 +671,17 @@ neoForge {
             // while staying out of the shipped jar (the jar task only takes main)
             sourceSet sourceSets.gametest
         }
+    }
+
+    // T1 left this off on the grounds that every test was behind the frontier, so the test
+    // classpath needed JUnit but not Minecraft. T13 flips the island's self-contained subset
+    // into sourceSets.main and brings the first tests back with it, and every one of them
+    // loads a Minecraft class. Enabling it puts Minecraft, NeoForge and this mod's own classes
+    // on the test classpath and runs `test` through NeoForge's test launcher, which is what
+    // bootstraps the registries the tests then read.
+    unitTest {
+        enable()
+        testedMod = mods.tconstruct
     }
 
     runs {
