@@ -361,7 +361,11 @@ public class ModifierManager extends SimpleJsonResourceReloadListener {
       }
 
       // fallback to actual modifier
-      Modifier modifier = ComposableModifier.LOADER.deserialize(json, contextBuilder(key).put(ContextKey.CONDITION_CONTEXT, conditionContext).build());
+      // The registries go in the context because enchantments are a datapack registry in 1.21 and the enchantment
+      // modules name one: Mantle's DynamicRegistryLoadable has no ops to read them from on this path, and throws
+      // rather than guessing. registryAccess is the reload's own, captured in addDataPackListeners.
+      Modifier modifier = ComposableModifier.LOADER.deserialize(json, contextBuilder(key).put(ContextKey.CONDITION_CONTEXT, conditionContext)
+                                                                                         .put(ContextKey.REGISTRY_ACCESS, registryAccess).build());
       modifier.setId(new ModifierId(key));
       return modifier;
     } catch (JsonSyntaxException e) {
