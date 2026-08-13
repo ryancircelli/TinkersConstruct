@@ -887,3 +887,12 @@ src/main/java/slimeknights/tconstruct/world/data/StructureRepalleter.java
 src/main/java/slimeknights/tconstruct/world/data/WorldRecipeProvider.java
 src/main/java/slimeknights/tconstruct/world/data/WorldgenProvider.java
 src/main/java/slimeknights/tconstruct/world/data/package-info.java
+src/main/java/slimeknights/tconstruct/world/client/BlockModelSkullRenderer.java
+src/main/java/slimeknights/tconstruct/world/client/DragonSkullModel.java
+src/main/java/slimeknights/tconstruct/world/client/SkullModelHelper.java
+src/main/java/slimeknights/tconstruct/world/client/SlimeArmorLayer.java
+src/main/java/slimeknights/tconstruct/world/client/SlimeColorReloadListener.java
+src/main/java/slimeknights/tconstruct/world/client/SlimeColorizer.java
+src/main/java/slimeknights/tconstruct/world/client/TerracubeRenderer.java
+src/main/java/slimeknights/tconstruct/world/client/TinkerSlimeRenderer.java
+src/main/java/slimeknights/tconstruct/world/client/package-info.java

@@ -1,6 +1,6 @@
 {
-    "total": 444,
-    "islandFiles": 860,
+    "total": 447,
+    "islandFiles": 869,
     "categories": {
         "other: static import only from classes and interfaces": 56,
         "package slimeknights.tconstruct.gadgets": 6,
@@ -13,6 +13,7 @@
         "package slimeknights.tconstruct.smeltery.block.entity": 2,
         "package slimeknights.tconstruct.smeltery.block.entity.controller": 2,
         "package slimeknights.tconstruct.smeltery.block.entity.tank": 2,
+        "package slimeknights.tconstruct.smeltery.client.util": 1,
         "package slimeknights.tconstruct.smeltery.data": 3,
         "package slimeknights.tconstruct.smeltery.data.SmelteryCompat": 2,
         "package slimeknights.tconstruct.smeltery.item": 5,
@@ -53,7 +54,7 @@
         "symbol class PlatingMaterialStats": 2,
         "symbol class RepulsiveEffect": 1,
         "symbol class StatOverrideModifier": 1,
-        "symbol class TinkerHeadType": 4,
+        "symbol class TinkerHeadType": 6,
         "symbol class TinkerModifiers": 30,
         "symbol class TinkerSmeltery": 37,
         "symbol class TinkerStationRepairRecipe": 1,
