@@ -107,7 +107,7 @@ public class TConstruct {
     bus.register(new TinkerCommons(bus));
     bus.register(new TinkerMaterials());
     TinkerEffects.init(bus);
-    bus.register(new TinkerGadgets());
+    bus.register(new TinkerGadgets(bus));
     bus.register(new TinkerAttributes(bus));
     // world
     bus.register(new TinkerWorld());

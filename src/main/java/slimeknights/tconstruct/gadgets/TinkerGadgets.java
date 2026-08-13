@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -49,6 +50,15 @@ import slimeknights.tconstruct.world.block.FoliageType;
  */
 @SuppressWarnings("unused")
 public final class TinkerGadgets extends TinkerModule {
+  /**
+   * @param bus  Mod event bus, passed down from {@link slimeknights.tconstruct.TConstruct}'s constructor.
+   *             1.21 has no ambient currently-loading-mod context to fetch it from, unlike 1.20's
+   *             {@code FMLJavaModLoadingContext.get().getModEventBus()}.
+   */
+  public TinkerGadgets(IEventBus bus) {
+    PiggybackCapability.register(bus);
+  }
+
   /* Block base properties */
 
   /*
@@ -152,7 +162,6 @@ public final class TinkerGadgets extends TinkerModule {
    */
   @SubscribeEvent
   void commonSetup(final FMLCommonSetupEvent event) {
-    PiggybackCapability.register();
     event.enqueueWork(() -> {
       cake.forEach(block -> ComposterBlock.add(1.0f, block));
       ComposterBlock.add(1.0f, magmaCake.get());
@@ -167,7 +176,7 @@ public final class TinkerGadgets extends TinkerModule {
   @SubscribeEvent
   void gatherData(final GatherDataEvent event) {
     DataGenerator generator = event.getGenerator();
-    generator.addProvider(event.includeServer(), new GadgetRecipeProvider(generator.getPackOutput()));
+    generator.addProvider(event.includeServer(), new GadgetRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
   }
 
   /** Adds all relevant items to the creative tab, called by general tab */

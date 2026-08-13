@@ -1,8 +1,5 @@
 package slimeknights.tconstruct.gadgets.entity;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
@@ -10,15 +7,15 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Explosion.BlockInteraction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.entity.IEntityAdditionalSpawnData;
-import net.minecraftforge.network.NetworkHooks;
 import slimeknights.tconstruct.gadgets.TinkerGadgets;
 
-import javax.annotation.Nonnull;
-
-/** @deprecated use {@link slimeknights.tconstruct.tools.entity.ThrownShuriken} */
+/**
+ * @deprecated use {@link slimeknights.tconstruct.tools.entity.ThrownShuriken}
+ * @implNote  see {@link slimeknights.tconstruct.gadgets.entity.shuriken.ShurikenEntityBase} for why the 1.20
+ *            spawn-data overrides have no replacement: {@link ThrowableItemProjectile} already syncs its item.
+ */
 @Deprecated
-public class EFLNEntity extends ThrowableItemProjectile implements IEntityAdditionalSpawnData {
+public class EFLNEntity extends ThrowableItemProjectile {
   public EFLNEntity(EntityType<? extends EFLNEntity> type, Level level) {
     super(type, level);
   }
@@ -43,21 +40,5 @@ public class EFLNEntity extends ThrowableItemProjectile implements IEntityAdditi
       new EFLNExplosion(level, position(), 4f, this, 8f, null, 1, false, BlockInteraction.DESTROY).handleServer();
       this.discard();
     }
-  }
-
-  @Override
-  public void writeSpawnData(FriendlyByteBuf buffer) {
-    buffer.writeItem(this.getItemRaw());
-  }
-
-  @Override
-  public void readSpawnData(FriendlyByteBuf additionalData) {
-    this.setItem(additionalData.readItem());
-  }
-
-  @Nonnull
-  @Override
-  public Packet<ClientGamePacketListener> getAddEntityPacket() {
-    return NetworkHooks.getEntitySpawningPacket(this);
   }
 }

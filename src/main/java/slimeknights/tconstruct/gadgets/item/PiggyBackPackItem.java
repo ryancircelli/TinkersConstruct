@@ -1,7 +1,5 @@
 package slimeknights.tconstruct.gadgets.item;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,7 +14,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
@@ -31,7 +28,6 @@ import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.common.network.TinkerNetwork;
 import slimeknights.tconstruct.gadgets.TinkerGadgets;
 import slimeknights.tconstruct.gadgets.capability.PiggybackCapability;
-import slimeknights.tconstruct.gadgets.capability.PiggybackHandler;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
@@ -156,11 +152,8 @@ public class PiggyBackPackItem extends TooltipItem {
     }
   }
 
-  @SuppressWarnings("deprecation")
-  @Override
-  public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot equipmentSlot) {
-    return ImmutableMultimap.of(); // no attributes, the potion effect handles them
-  }
+  // no attributes, the potion effect handles them - Item's own default ItemAttributeModifiers is already EMPTY,
+  // so unlike 1.20's per-EquipmentSlot getDefaultAttributeModifiers override, there is nothing to override here
 
   public static class CarryPotionEffect extends TinkerEffect {
     static final String UUID = "ff4de63a-2b24-11e6-b67b-9e71128cae77";
@@ -172,21 +165,22 @@ public class PiggyBackPackItem extends TooltipItem {
     }
 
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
       return true; // check every tick
     }
 
     @Override
-    public void applyEffectTick(@Nonnull LivingEntity livingEntityIn, int p_76394_2_) {
+    public boolean applyEffectTick(@Nonnull LivingEntity livingEntityIn, int p_76394_2_) {
       ItemStack chestArmor = livingEntityIn.getItemBySlot(EquipmentSlot.CHEST);
       if (chestArmor.isEmpty() || chestArmor.getItem() != TinkerGadgets.piggyBackpack.get()) {
         TinkerGadgets.piggyBackpack.get().matchCarriedEntitiesToCount(livingEntityIn, 0);
       } else {
         TinkerGadgets.piggyBackpack.get().matchCarriedEntitiesToCount(livingEntityIn, chestArmor.getCount());
-        if (!livingEntityIn.getCommandSenderWorld().isClientSide) {
-          livingEntityIn.getCapability(PiggybackCapability.PIGGYBACK, null).ifPresent(PiggybackHandler::updatePassengers);
+        if (!livingEntityIn.getCommandSenderWorld().isClientSide && livingEntityIn instanceof Player player) {
+          PiggybackCapability.get(player).updatePassengers();
         }
       }
+      return true;
     }
 
     @Override
