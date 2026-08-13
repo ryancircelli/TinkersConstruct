@@ -155,6 +155,18 @@ public class TankBlockEntity extends SmelteryComponentBlockEntity implements ITa
     }
   }
 
+  /**
+   * Updates the tank from a placed item's fluid component, used in the block.
+   * Successor to the CompoundTag overload's job on placement: the item stores a fluid rather than a tank compound now.
+   * @param fluid  Fluid the placed item held
+   */
+  public void updateTank(FluidStack fluid) {
+    tank.setFluid(fluid);
+    if (!fluid.isEmpty()) {
+      updateLight(this, tank);
+    }
+  }
+
   @Override
   protected boolean shouldSyncOnUpdate() {
     return true;

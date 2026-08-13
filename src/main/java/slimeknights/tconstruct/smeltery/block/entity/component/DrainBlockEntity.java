@@ -39,7 +39,7 @@ public class DrainBlockEntity extends SmelteryFluidIO implements IDisplayFluidLi
 
   @Override
   public void notifyDisplayFluidUpdated(FluidStack fluid) {
-    if (!fluid.isFluidEqual(displayFluid)) {
+    if (!FluidStack.isSameFluidSameComponents(fluid, displayFluid)) {
       // no need to copy as the fluid was copied by the caller
       displayFluid = fluid;
       requestModelDataUpdate();

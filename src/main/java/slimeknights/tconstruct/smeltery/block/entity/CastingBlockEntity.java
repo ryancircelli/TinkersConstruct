@@ -154,7 +154,7 @@ public abstract class CastingBlockEntity extends TableBlockEntity implements Wor
           // if the recipe has a mold, hand item goes on table (if not consumed in crafting)
           setItem(INPUT, result);
           if (!recipe.isPatternConsumed()) {
-            setItem(OUTPUT, ItemHandlerHelper.copyStackWithSize(held, 1));
+            setItem(OUTPUT, held.copyWithCount(1));
             // send a block update for the comparator, needs to be done after the stack is removed
             level.updateNeighborsAt(this.worldPosition, this.getBlockState().getBlock());
           }
@@ -570,7 +570,7 @@ public abstract class CastingBlockEntity extends TableBlockEntity implements Wor
   @Override
   public void saveSynced(CompoundTag tags, HolderLookup.Provider registries) {
     super.saveSynced(tags, registries);
-    tags.put(TAG_TANK, tank.writeToTag(new CompoundTag()));
+    tags.put(TAG_TANK, tank.writeToTag(new CompoundTag(), registries));
     if (currentRecipe != null || recipeName != null) {
       tags.putInt(TAG_TIMER, timer);
     }
@@ -585,7 +585,7 @@ public abstract class CastingBlockEntity extends TableBlockEntity implements Wor
   @Override
   protected void loadAdditional(CompoundTag tags, HolderLookup.Provider registries) {
     super.loadAdditional(tags, registries);
-    tank.readFromTag(tags.getCompound(TAG_TANK));
+    tank.readFromTag(tags.getCompound(TAG_TANK), registries);
     timer = tags.getInt(TAG_TIMER);
     if (tags.contains(TAG_RECIPE, CompoundTag.TAG_STRING)) {
       ResourceLocation name = ResourceLocation.parse(tags.getString(TAG_RECIPE));

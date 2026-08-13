@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
@@ -74,14 +75,14 @@ public class CastingFluidHandler implements IFluidHandler {
     if (fluid.isEmpty()) {
       int amount = Math.min(capacity, resource.getAmount());
       if (action.execute()) {
-        fluid = new FluidStack(resource, amount);
+        fluid = resource.copyWithAmount(amount);
         tile.onContentsChanged();
       }
       return amount;
     }
 
     // safety: should never be false, but good to check
-    if (!resource.isFluidEqual(fluid)) {
+    if (!FluidStack.isSameFluidSameComponents(resource, fluid)) {
       return 0;
     }
 
@@ -111,7 +112,7 @@ public class CastingFluidHandler implements IFluidHandler {
   @Nonnull
   @Override
   public FluidStack drain(FluidStack resource, FluidAction action) {
-    if (resource.isEmpty() || !resource.isFluidEqual(fluid)) {
+    if (resource.isEmpty() || !FluidStack.isSameFluidSameComponents(resource, fluid)) {
       return FluidStack.EMPTY;
     }
     return this.drain(resource.getAmount(), action);
@@ -125,7 +126,7 @@ public class CastingFluidHandler implements IFluidHandler {
       return FluidStack.EMPTY;
     }
 
-    FluidStack stack = new FluidStack(fluid, drained);
+    FluidStack stack = fluid.copyWithAmount(drained);
     if (action.execute()) {
       fluid.shrink(drained);
       if (fluid.isEmpty()) {
@@ -172,10 +173,10 @@ public class CastingFluidHandler implements IFluidHandler {
   private static final String TAG_CAPACITY = "capacity";
 
   /** Reads the tank from Tag */
-  public void readFromTag(CompoundTag nbt) {
+  public void readFromTag(CompoundTag nbt, HolderLookup.Provider registries) {
     capacity = nbt.getInt(TAG_CAPACITY);
     if (nbt.contains(TAG_FLUID, Tag.TAG_COMPOUND)) {
-      setFluid(FluidStack.loadFluidStackFromNBT(nbt.getCompound(TAG_FLUID)));
+      setFluid(FluidStack.parseOptional(registries, nbt.getCompound(TAG_FLUID)));
     }
     if (nbt.contains(TAG_FILTER, Tag.TAG_STRING)) {
       Fluid fluid = BuiltInRegistries.FLUID.getValue(ResourceLocation.parse(nbt.getString(TAG_FILTER)));
@@ -187,10 +188,10 @@ public class CastingFluidHandler implements IFluidHandler {
 
   /** Write the tank from NBT */
   @SuppressWarnings("deprecation")
-  public CompoundTag writeToTag(CompoundTag nbt) {
+  public CompoundTag writeToTag(CompoundTag nbt, HolderLookup.Provider registries) {
     nbt.putInt(TAG_CAPACITY, capacity);
     if (!fluid.isEmpty()) {
-      nbt.put(TAG_FLUID, fluid.writeToNBT(new CompoundTag()));
+      nbt.put(TAG_FLUID, fluid.save(registries));
     }
     if (filter != Fluids.EMPTY) {
       nbt.putString(TAG_FILTER, BuiltInRegistries.FLUID.getKey(filter).toString());

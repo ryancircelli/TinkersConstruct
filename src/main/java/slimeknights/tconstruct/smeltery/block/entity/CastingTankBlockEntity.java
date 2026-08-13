@@ -267,11 +267,19 @@ public class CastingTankBlockEntity extends TableBlockEntity implements ITankBlo
    * Updates the tank from an NBT tag, used in the block
    * @param nbt  tank NBT
    */
-  public void updateTank(CompoundTag nbt) {
+  public void updateTank(CompoundTag nbt, HolderLookup.Provider registries) {
     if (nbt.isEmpty()) {
       tank.setFluid(FluidStack.EMPTY);
     } else {
-      tank.readFromNBT(nbt);
+      tank.readFromNBT(registries, nbt);
+      TankBlockEntity.updateLight(this, tank);
+    }
+  }
+
+  /** Updates the tank from a placed item's fluid component, used in the block */
+  public void updateTank(FluidStack fluid) {
+    tank.setFluid(fluid);
+    if (!fluid.isEmpty()) {
       TankBlockEntity.updateLight(this, tank);
     }
   }
@@ -279,7 +287,7 @@ public class CastingTankBlockEntity extends TableBlockEntity implements ITankBlo
   @Override
   protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
     tank.setCapacity(getCapacity(getBlockState().getBlock()));
-    updateTank(tag.getCompound(NBTTags.TANK));
+    updateTank(tag.getCompound(NBTTags.TANK), registries);
     lastRedstone = tag.getBoolean(TAG_REDSTONE);
     super.loadAdditional(tag, registries);
   }
@@ -295,7 +303,7 @@ public class CastingTankBlockEntity extends TableBlockEntity implements ITankBlo
     super.saveSynced(tag, registries);
     // want tank on the client on world load
     if (!tank.isEmpty()) {
-      tag.put(NBTTags.TANK, tank.writeToNBT(new CompoundTag()));
+      tag.put(NBTTags.TANK, tank.writeToNBT(registries, new CompoundTag()));
     }
   }
 

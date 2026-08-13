@@ -481,8 +481,12 @@ public abstract class HeatingStructureBlockEntity extends NameableBlockEntity im
     this.setChangedFast();
   }
 
-  @Override
-  public AABB getRenderBoundingBox() {
+  /**
+   * Bounds of this structure for rendering, read by the renderer.
+   * 1.20 overrode {@code BlockEntity#getRenderBoundingBox}; 1.21 moved that hook onto the renderer, so this is a plain
+   * accessor now and the override lives in HeatingStructureBlockEntityRenderer.
+   */
+  public AABB getRenderBounds() {
     if (structure != null) {
       return structure.getBounds();
     } else if (defaultBounds == null) {
@@ -592,14 +596,14 @@ public abstract class HeatingStructureBlockEntity extends NameableBlockEntity im
   protected void loadAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
     super.loadAdditional(nbt, registries);
     if (nbt.contains(TAG_TANK, Tag.TAG_COMPOUND)) {
-      tank.read(nbt.getCompound(TAG_TANK));
+      tank.read(nbt.getCompound(TAG_TANK), registries);
       FluidStack first = tank.getFluidInTank(0);
       if (!first.isEmpty()) {
         updateDisplayFluid(first);
       }
     }
     if (nbt.contains(TAG_INVENTORY, Tag.TAG_COMPOUND)) {
-      meltingInventory.readFromTag(nbt.getCompound(TAG_INVENTORY));
+      meltingInventory.readFromTag(nbt.getCompound(TAG_INVENTORY), registries);
     }
     if (nbt.contains(TAG_STRUCTURE, Tag.TAG_COMPOUND)) {
       setStructure(multiblock.readFromTag(nbt.getCompound(TAG_STRUCTURE), this.worldPosition));
@@ -632,8 +636,8 @@ public abstract class HeatingStructureBlockEntity extends NameableBlockEntity im
   public void saveSynced(CompoundTag compound, HolderLookup.Provider registries) {
     // Tag that writes to disk and syncs to client
     super.saveSynced(compound, registries);
-    compound.put(TAG_TANK, tank.write(new CompoundTag()));
-    compound.put(TAG_INVENTORY, meltingInventory.writeToTag());
+    compound.put(TAG_TANK, tank.write(new CompoundTag(), registries));
+    compound.put(TAG_INVENTORY, meltingInventory.writeToTag(registries));
     if (texture != Blocks.AIR) {
       compound.putString(TAG_TEXTURE, getTextureName());
     }

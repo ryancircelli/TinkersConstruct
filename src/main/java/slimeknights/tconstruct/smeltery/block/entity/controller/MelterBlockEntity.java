@@ -173,7 +173,7 @@ public class MelterBlockEntity extends NameableBlockEntity implements ITankInven
     tank.readFromNBT(registries, tag.getCompound(NBTTags.TANK));
     fuelModule.readFromTag(tag);
     if (tag.contains(TAG_INVENTORY, Tag.TAG_COMPOUND)) {
-      meltingInventory.readFromTag(tag.getCompound(TAG_INVENTORY));
+      meltingInventory.readFromTag(tag.getCompound(TAG_INVENTORY), registries);
     }
   }
 
@@ -181,7 +181,7 @@ public class MelterBlockEntity extends NameableBlockEntity implements ITankInven
   public void saveSynced(CompoundTag tag, HolderLookup.Provider registries) {
     super.saveSynced(tag, registries);
     tag.put(NBTTags.TANK, tank.writeToNBT(registries, new CompoundTag()));
-    tag.put(TAG_INVENTORY, meltingInventory.writeToTag());
+    tag.put(TAG_INVENTORY, meltingInventory.writeToTag(registries));
   }
 
   @Override

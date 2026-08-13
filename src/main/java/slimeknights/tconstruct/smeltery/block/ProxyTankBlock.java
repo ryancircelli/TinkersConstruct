@@ -3,10 +3,12 @@ package slimeknights.tconstruct.smeltery.block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -75,9 +77,18 @@ public class ProxyTankBlock extends Block implements EntityBlock {
 
   /* Inventory */
 
-  @Deprecated
   @Override
-  public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+  protected ItemInteractionResult useItemOn(ItemStack heldStack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    return interact(world, pos, player, hand, hit);
+  }
+
+  @Override
+  protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+    return interact(world, pos, player, InteractionHand.MAIN_HAND, hit).result();
+  }
+
+  /** Shared body of the two halves 1.21 split {@code use} into; the tank takes items out on an empty hand too */
+  private ItemInteractionResult interact(Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
     if (world.getBlockEntity(pos) instanceof ProxyTankBlockEntity tank) {
       boolean clickedTank;
       Direction direction = hit.getDirection();
