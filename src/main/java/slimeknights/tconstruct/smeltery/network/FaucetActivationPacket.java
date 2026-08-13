@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.fluids.FluidStack;
+import slimeknights.mantle.network.packet.PacketContext;
 import slimeknights.tconstruct.smeltery.block.entity.FaucetBlockEntity;
 
 /** Sent to clients to activate the faucet animation clientside **/

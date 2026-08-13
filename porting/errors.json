@@ -1,5 +1,5 @@
 {
-    "total": 384,
+    "total": 383,
     "islandFiles": 1003,
     "categories": {
         "other: static import only from classes and interfaces": 1,
@@ -74,7 +74,6 @@
         "symbol class MaterialSpriteInfo": 2,
         "symbol class ModifierModel": 10,
         "symbol class OvergrowthModule": 1,
-        "symbol class PacketContext": 1,
         "symbol class PartSpriteInfo": 1,
         "symbol class RepulsiveEffect": 1,
         "symbol class StatOverride": 1,
