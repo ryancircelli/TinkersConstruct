@@ -10,6 +10,7 @@ import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -56,23 +57,21 @@ public abstract class AbstractArmorModel extends Model {
     }
   }
 
-  /** Renders a colored model */
-  public static void renderColored(Model model, PoseStack matrices, VertexConsumer buffer, int packedLightIn, int packedOverlayIn, int color, float red, float green, float blue, float alpha) {
-    if (color != -1) {
-      alpha *= (float)(color >> 24 & 255) / 255.0F;
-      red *= (float)(color >> 16 & 255) / 255.0F;
-      green *= (float)(color >> 8 & 255) / 255.0F;
-      blue *= (float)(color & 255) / 255.0F;
-    }
-    model.renderToBuffer(matrices, buffer, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+  /**
+   * Renders a colored model.
+   * 1.21 replaced {@link Model#renderToBuffer}'s four float channels with one packed ARGB int, so tinting is a
+   * multiply of two packed colours rather than four multiplies of floats. {@code -1} is opaque white either way.
+   */
+  public static void renderColored(Model model, PoseStack matrices, VertexConsumer buffer, int packedLightIn, int packedOverlayIn, int color, int baseColor) {
+    model.renderToBuffer(matrices, buffer, packedLightIn, packedOverlayIn, color == -1 ? baseColor : FastColor.ARGB32.multiply(color, baseColor));
   }
 
   /** Renders the wings layer */
-  protected void renderWings(PoseStack matrices, int packedLightIn, int packedOverlayIn, ArmorTexture texture, float red, float green, float blue, float alpha, boolean hasGlint) {
+  protected void renderWings(PoseStack matrices, int packedLightIn, int packedOverlayIn, ArmorTexture texture, int color, boolean hasGlint) {
     matrices.pushPose();
     matrices.translate(0.0D, 0.0D, 0.125D);
     assert buffer != null;
-    texture.renderTexture(getWings(), matrices, buffer, packedLightIn, packedOverlayIn, red, green, blue, alpha, hasGlint);
+    texture.renderTexture(getWings(), matrices, buffer, packedLightIn, packedOverlayIn, color, hasGlint);
     matrices.popPose();
   }
 

@@ -37,20 +37,20 @@ public class MultilayerArmorModel extends AbstractArmorModel {
   }
 
   @Override
-  public void renderToBuffer(PoseStack matrices, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
+  public void renderToBuffer(PoseStack matrices, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, int color) {
     if (this.base != null && buffer != null) {
       boolean armorGlint = hasGlint;
       boolean wingGlint = hasGlint;
       for (ArmorTextureSupplier textureSupplier : model.layers()) {
         ArmorTexture texture = textureSupplier.getArmorTexture(armorStack, textureType, registryAccess);
         if (texture != ArmorTexture.EMPTY) {
-          texture.renderTexture(base, matrices, buffer, packedLightIn, packedOverlayIn, red, green, blue, alpha, armorGlint);
+          texture.renderTexture(base, matrices, buffer, packedLightIn, packedOverlayIn, color, armorGlint);
           armorGlint = false;
         }
         if (hasWings) {
           texture = textureSupplier.getArmorTexture(armorStack, TextureType.WINGS, registryAccess);
           if (texture != ArmorTexture.EMPTY) {
-            renderWings(matrices, packedLightIn, packedOverlayIn, texture, red, green, blue, alpha, wingGlint);
+            renderWings(matrices, packedLightIn, packedOverlayIn, texture, color, wingGlint);
             wingGlint = false;
           }
         }

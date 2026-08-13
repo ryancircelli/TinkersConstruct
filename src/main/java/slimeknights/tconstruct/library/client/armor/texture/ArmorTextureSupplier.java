@@ -37,13 +37,18 @@ public interface ArmorTextureSupplier extends IHaveLoader {
   /** Gets the texture and color to display for the given stack. Use {@link ArmorTexture#EMPTY} to indicates this texture will not render */
   ArmorTexture getArmorTexture(ItemStack stack, TextureType leggings, RegistryAccess access);
 
-  /** Pair of texture and color */
+  /**
+   * Pair of texture and color.
+   * <p>
+   * 1.21 collapsed {@link Model#renderToBuffer}'s four float tint channels into a single packed ARGB int, so the
+   * colour travels through this interface the same way.
+   */
   interface ArmorTexture {
     /** Empty instance since caches don't support caching null. */
-    ArmorTexture EMPTY = (model, matrices, bufferSource, packedLight, packedOverlay, red, green, blue, alpha, hasGlint) -> {};
+    ArmorTexture EMPTY = (model, matrices, bufferSource, packedLight, packedOverlay, color, hasGlint) -> {};
 
     /** Renders this texture to the given model */
-    void renderTexture(Model model, PoseStack matrices, MultiBufferSource bufferSource, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, boolean hasGlint);
+    void renderTexture(Model model, PoseStack matrices, MultiBufferSource bufferSource, int packedLight, int packedOverlay, int color, boolean hasGlint);
   }
 
   /** Texture variants, armor is used for helmet, chestplate, and boots, while leggings is leggings and wings is on chest for elytra */
