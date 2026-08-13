@@ -1,7 +1,11 @@
 package slimeknights.tconstruct.tools.modifiers.traits.harvest;
 
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -51,13 +55,13 @@ public class MomentumModifier extends Modifier implements ProjectileLaunchModifi
 
   /** Gets the bonus for the modifier */
   private static float getBonus(LivingEntity living, ToolType type, ModifierEntry modifier) {
-    return modifier.getEffectiveLevel() * (TinkerEffect.getLevel(living, TinkerModifiers.momentumEffect.get(type)));
+    return modifier.getEffectiveLevel() * (TinkerEffect.getLevel(living, BuiltInRegistries.MOB_EFFECT.wrapAsHolder(TinkerModifiers.momentumEffect.get(type))));
   }
 
   /** Applies the effect to the target */
   private static void applyEffect(LivingEntity living, ToolType type, int duration, int maxLevel) {
-    TinkerEffect effect = TinkerModifiers.momentumEffect.get(type);
-    effect.apply(living, duration, Math.min(maxLevel, TinkerEffect.getAmplifier(living, effect) + 1), true);
+    Holder<MobEffect> effect = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(TinkerModifiers.momentumEffect.get(type));
+    living.addEffect(new MobEffectInstance(effect, duration, Math.min(maxLevel, TinkerEffect.getAmplifier(living, effect) + 1), false, false, true));
   }
 
   @Override
