@@ -1,6 +1,6 @@
 {
-    "total": 350,
-    "islandFiles": 850,
+    "total": 351,
+    "islandFiles": 853,
     "categories": {
         "other: static import only from classes and interfaces": 11,
         "package slimeknights.tconstruct.gadgets": 6,
@@ -63,6 +63,6 @@
         "symbol class TinkerToolActions": 9,
         "symbol class TinkerToolParts": 11,
         "symbol class TinkerTools": 14,
-        "symbol class TinkerWorld": 24
+        "symbol class TinkerWorld": 25
     }
 }

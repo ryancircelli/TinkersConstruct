@@ -877,3 +877,6 @@ src/main/java/slimeknights/tconstruct/world/entity/SlimePlacementPredicate.java
 src/main/java/slimeknights/tconstruct/world/entity/TerracubeEntity.java
 src/main/java/slimeknights/tconstruct/world/entity/TravelersPlateSlimeEntity.java
 src/main/java/slimeknights/tconstruct/world/entity/package-info.java
+src/main/java/slimeknights/tconstruct/world/item/EndermanHeadItem.java
+src/main/java/slimeknights/tconstruct/world/item/SlimeGrassSeedItem.java
+src/main/java/slimeknights/tconstruct/world/item/package-info.java
