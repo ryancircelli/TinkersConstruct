@@ -40,6 +40,11 @@ public class BaseMcTest {
   static void setUpRegistries() {
     SharedConstants.tryDetectVersion();
     Bootstrap.bootStrap();
+    // Every test class starts from unfrozen built-in registries, rather than each one that writes to a registry
+    // arranging it for itself. Two things in 1.21 write where 1.20 did not - constructing an Item asks the registry
+    // for an intrusive holder, and building a HolderLookup over the built-ins re-freezes them - so whether a given
+    // class found them frozen depended on which other class had run first, and JUnit does not promise an order.
+    TestRegistries.unfreezeBuiltIns();
   }
 
   /**

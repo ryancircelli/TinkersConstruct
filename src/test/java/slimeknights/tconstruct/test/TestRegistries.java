@@ -69,6 +69,28 @@ public final class TestRegistries {
     return access;
   }
 
+  /**
+   * Unfreezes the built-in registries a headless test writes to.
+   * <p>
+   * {@link net.minecraft.server.Bootstrap#bootStrap()} freezes them, and 1.21 made that bite in two new ways: an
+   * {@link net.minecraft.world.item.Item} constructor now asks the registry for an intrusive holder, so merely
+   * constructing one throws; and anything that builds a {@link HolderLookup} over the built-ins re-freezes them,
+   * so this is safe and expected to be called more than once.
+   * @apiNote Yes, this is bad, but this is testing so we do bad things sometimes.
+   */
+  public static void unfreezeBuiltIns() {
+    unfreeze(BuiltInRegistries.ITEM);
+    unfreeze(BuiltInRegistries.BLOCK);
+    unfreeze(BuiltInRegistries.ATTRIBUTE);
+    unfreeze(BuiltInRegistries.MOB_EFFECT);
+    unfreeze(BuiltInRegistries.PARTICLE_TYPE);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static void unfreeze(Registry<?> registry) {
+    ((MappedRegistry<Object>) registry).unfreeze();
+  }
+
   @SuppressWarnings("unchecked")
   private static <T> Registry<T> materialise(ResourceKey<? extends Registry<?>> key) {
     ResourceKey<Registry<T>> typed = (ResourceKey<Registry<T>>) key;

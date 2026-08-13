@@ -1,6 +1,5 @@
 package slimeknights.tconstruct.test.characterization;
 
-import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -13,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import slimeknights.tconstruct.TConstruct;
+import slimeknights.tconstruct.test.TestRegistries;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
 import slimeknights.tconstruct.library.materials.stats.MaterialStatsId;
@@ -56,11 +56,7 @@ public final class RealItemStubs {
     // This runs on every call rather than once: anything that asks for a HolderLookup over the built-in registries
     // re-freezes them (TestRegistries does, building the datapack lookup), and which test class that lands between
     // is JUnit's ordering to decide. A one-shot guard made stubbing silently depend on it.
-    unfreeze(BuiltInRegistries.ITEM);
-    unfreeze(BuiltInRegistries.BLOCK);
-    unfreeze(BuiltInRegistries.ATTRIBUTE);
-    unfreeze(BuiltInRegistries.MOB_EFFECT);
-    unfreeze(BuiltInRegistries.PARTICLE_TYPE);
+    TestRegistries.unfreezeBuiltIns();
     Set<String> ids = new HashSet<>();
     for (String folder : classpathFolders) {
       if (scannedFolders.add(folder)) {
@@ -80,12 +76,6 @@ public final class RealItemStubs {
       stubMobEffect(rl);
       stubParticleType(rl);
     }
-  }
-
-  @SuppressWarnings("unchecked")
-  private static void unfreeze(net.minecraft.core.Registry<?> registry) {
-    // yes, this is bad, but this is testing so we do bad things sometimes (mirrors MaterialItemFixture)
-    ((MappedRegistry<Object>) registry).unfreeze();
   }
 
   private static void stubItem(ResourceLocation rl) {

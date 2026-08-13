@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -31,7 +32,15 @@ import static org.mockito.Mockito.verify;
  * mock cannot reach is whether NeoForge then honours the registration, which is a game test.
  */
 class ToolCapabilityProviderTest extends ToolItemTest {
-  /** Registering the same capability twice would leave two entries in the provider's static list, so one per test */
+  /**
+   * Registering the same capability twice would leave two entries in the provider's static list, so one per test.
+   * <p>
+   * That list is not empty to begin with any more, which is why both tests below verify {@code atLeastOnce()}
+   * rather than the default exactly-once. {@code ToolCapabilityProvider.REGISTRATIONS} is static and Tinkers' own
+   * capabilities are in it: NeoForge's JUnit launcher runs full FML mod loading before any test class loads, so the
+   * mod has registered its four by the time a test adds a fifth. 1.20's plain-JUnit run never loaded the mod, so
+   * the list held only what the test put there and exactly-once happened to hold.
+   */
   private static final ItemCapability<String,Void> ATTACHED_CAPABILITY = ItemCapability.createVoid(ResourceLocation.fromNamespaceAndPath("test", "attached_capability"), String.class);
   private static final ItemCapability<String,Void> PROVIDED_CAPABILITY = ItemCapability.createVoid(ResourceLocation.fromNamespaceAndPath("test", "provided_capability"), String.class);
 
@@ -43,9 +52,11 @@ class ToolCapabilityProviderTest extends ToolItemTest {
     RegisterCapabilitiesEvent event = mock(RegisterCapabilitiesEvent.class);
     ToolCapabilityProvider.registerCapabilities(event);
 
-    ArgumentCaptor<ItemLike> items = ArgumentCaptor.forClass(ItemLike.class);
-    verify(event).registerItem(eq(ATTACHED_CAPABILITY), any(), items.capture());
-    assertThat(items.getAllValues())
+    // registerItem takes ItemLike... - the captor is of the array type so it takes the whole varargs run. A
+    // captor of the component type matches an invocation passing exactly one item, which this never does.
+    ArgumentCaptor<ItemLike[]> items = ArgumentCaptor.forClass(ItemLike[].class);
+    verify(event, atLeastOnce()).registerItem(eq(ATTACHED_CAPABILITY), any(), items.capture());
+    assertThat(items.getValue())
       .contains(tool)
       .doesNotContain(MaterialItemFixture.MATERIAL_ITEM_HEAD);
   }
@@ -64,7 +75,9 @@ class ToolCapabilityProviderTest extends ToolItemTest {
     ToolCapabilityProvider.registerCapabilities(event);
 
     ArgumentCaptor<ICapabilityProvider<ItemStack,Void,String>> provider = ArgumentCaptor.forClass(ICapabilityProvider.class);
-    verify(event).registerItem(eq(PROVIDED_CAPABILITY), provider.capture(), any());
+    // any(ItemLike[].class) rather than any(): the items parameter is varargs, and a bare any() stands for a
+    // single one, so it matches no invocation of a method that always passes the whole modifiable item list.
+    verify(event, atLeastOnce()).registerItem(eq(PROVIDED_CAPABILITY), provider.capture(), any(ItemLike[].class));
 
     assertThat(provider.getValue().getCapability(testItemStack, null)).isEqualTo("present");
     assertThat(seen.get().isSameStack(testItemStack))

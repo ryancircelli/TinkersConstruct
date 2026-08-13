@@ -52,10 +52,14 @@ public class ToolItemDurabilityTest extends ToolItemTest {
 
   @Test
   void testMoreThanMaxDamageBreaksTool() {
-    IToolStackView tool = ToolStack.from(testItemStack);
-    int statDurability = tool.getStats().getInt(ToolStats.DURABILITY);
+    int statDurability = ToolStack.from(testItemStack).getStats().getInt(ToolStats.DURABILITY);
 
     testItemStack.setDamageValue(99999999);
+
+    // the view is taken after the damage is written. ToolStack.from is a snapshot in 1.21 and says so in its own
+    // javadoc - it reads DataComponents.DAMAGE once at construction, where 1.20 held a live reference to the
+    // stack's NBT tag and saw a later setDamageValue through it. Taking the view first read damage 0 forever.
+    IToolStackView tool = ToolStack.from(testItemStack);
 
     assertThat(tool.getDamage()).isEqualTo(statDurability);
     assertThat(tool.isBroken()).isTrue();
