@@ -31,9 +31,10 @@ import org.junit.jupiter.api.BeforeAll;
  *       Forge's ambient "which mod is loading right now" question. NeoForge has no such context for anything on
  *       this path to read: registration is explicit about its namespace, and Mantle's {@code RegistryAdapter} - the
  *       one caller in either mod that used to auto-detect a mod id from it - dropped that constructor and takes the
- *       id as an argument, saying so in its own javadoc. {@code TestModContainer} and {@code TestModInfo} are left
- *       behind on the test frontier with no caller; they implement loader SPI interfaces that all changed shape,
- *       and nothing would use the result.</li>
+ *       id as an argument, saying so in its own javadoc. {@code TestModContainer} and {@code TestModInfo} were the
+ *       stubs that answered it; they implemented loader SPI interfaces that all changed shape, nothing would have
+ *       used the result, and they had no caller left in either source set, so T22 deleted them rather than finish
+ *       porting them.</li>
  * </ul>
  */
 public class BaseMcTest {

@@ -20,9 +20,6 @@ import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -171,17 +168,13 @@ public final class RealItemStubs {
   }
 
   private static void collectIds(String classpathFolder, Set<String> ids) {
+    // reading goes through FixtureFiles rather than java.io.File: under ModLauncher the fixture folder is a
+    // union: URL, and the File constructor this used to call threw before a single id was collected - silently,
+    // since the failure landed in the catch below, leaving every fixture's item ids unstubbed
     for (String fileName : FixtureFiles.listJsonFileNames(classpathFolder)) {
-      java.io.File dir = resolveDirectory(classpathFolder);
-      if (dir == null) {
-        continue;
-      }
-      File file = new File(dir, fileName);
-      try {
-        String content = Files.readString(file.toPath());
+      String content = FixtureFiles.readFixture(classpathFolder, fileName);
+      if (content != null) {
         collectFromRawText(content, ids);
-      } catch (IOException ignored) {
-        // skip unreadable file
       }
     }
   }
@@ -197,15 +190,4 @@ public final class RealItemStubs {
     }
   }
 
-  private static File resolveDirectory(String folder) {
-    java.net.URL url = RealItemStubs.class.getClassLoader().getResource(folder);
-    if (url == null) {
-      return null;
-    }
-    try {
-      return new File(url.toURI());
-    } catch (Exception e) {
-      return new File(url.getPath());
-    }
-  }
 }

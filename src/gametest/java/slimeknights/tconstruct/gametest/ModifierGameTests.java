@@ -6,6 +6,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -44,7 +45,7 @@ public class ModifierGameTests {
     inv.setTinkerable(tool.createStack());
     inv.setInput(0, new ItemStack(Items.DIAMOND));
 
-    ITinkerStationRecipe recipe = level.getRecipeManager().getRecipeFor(TinkerRecipeTypes.TINKER_STATION.get(), inv, level).orElse(null);
+    ITinkerStationRecipe recipe = level.getRecipeManager().getRecipeFor(TinkerRecipeTypes.TINKER_STATION.get(), inv, level).map(RecipeHolder::value).orElse(null);
     helper.assertTrue(recipe != null, "no tinker station recipe matched a diamond modifier input");
     RecipeResult<LazyToolStack> result = recipe.getValidatedResult(inv, level.registryAccess());
     helper.assertTrue(result.isSuccess(), "diamond modifier recipe did not succeed");
@@ -66,7 +67,7 @@ public class ModifierGameTests {
       GameTestFixtures.FakeTinkerInventory inv = new GameTestFixtures.FakeTinkerInventory(1);
       inv.setTinkerable(toolStack);
       inv.setInput(0, new ItemStack(Items.COMPASS));
-      ITinkerStationRecipe recipe = level.getRecipeManager().getRecipeFor(TinkerRecipeTypes.TINKER_STATION.get(), inv, level).orElse(null);
+      ITinkerStationRecipe recipe = level.getRecipeManager().getRecipeFor(TinkerRecipeTypes.TINKER_STATION.get(), inv, level).map(RecipeHolder::value).orElse(null);
       helper.assertTrue(recipe != null, "no tinker station recipe matched a compass modifier input on application " + i);
       RecipeResult<LazyToolStack> result = recipe.getValidatedResult(inv, level.registryAccess());
       helper.assertTrue(result.isSuccess(), "magnetic modifier recipe did not succeed on application " + i);
@@ -89,7 +90,7 @@ public class ModifierGameTests {
     GameTestFixtures.FakeTinkerInventory addInv = new GameTestFixtures.FakeTinkerInventory(1);
     addInv.setTinkerable(tool.createStack());
     addInv.setInput(0, new ItemStack(Items.COMPASS));
-    ITinkerStationRecipe addRecipe = level.getRecipeManager().getRecipeFor(TinkerRecipeTypes.TINKER_STATION.get(), addInv, level).orElse(null);
+    ITinkerStationRecipe addRecipe = level.getRecipeManager().getRecipeFor(TinkerRecipeTypes.TINKER_STATION.get(), addInv, level).map(RecipeHolder::value).orElse(null);
     helper.assertTrue(addRecipe != null, "no tinker station recipe matched a compass modifier input");
     RecipeResult<LazyToolStack> addResult = addRecipe.getValidatedResult(addInv, level.registryAccess());
     helper.assertTrue(addResult.isSuccess(), "magnetic modifier recipe did not succeed");
@@ -101,7 +102,7 @@ public class ModifierGameTests {
     GameTestFixtures.FakeTinkerInventory removeInv = new GameTestFixtures.FakeTinkerInventory(1);
     removeInv.setTinkerable(withModifier.createStack());
     removeInv.setInput(0, new ItemStack(Items.WET_SPONGE));
-    IModifierWorktableRecipe removeRecipe = level.getRecipeManager().getRecipeFor(TinkerRecipeTypes.MODIFIER_WORKTABLE.get(), removeInv, level).orElse(null);
+    IModifierWorktableRecipe removeRecipe = level.getRecipeManager().getRecipeFor(TinkerRecipeTypes.MODIFIER_WORKTABLE.get(), removeInv, level).map(RecipeHolder::value).orElse(null);
     helper.assertTrue(removeRecipe != null, "no modifier worktable recipe matched a wet sponge removal input");
     ModifierEntry toRemove = removeRecipe.getModifierOptions(removeInv).stream()
                                           .filter(entry -> entry.getId().equals(ModifierIds.magnetic))

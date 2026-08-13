@@ -1,8 +1,7 @@
 package slimeknights.tconstruct.test.characterization;
 
 import com.google.gson.JsonObject;
-import io.netty.buffer.Unpooled;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.tags.FluidTags;
 import org.junit.jupiter.api.Test;
 import slimeknights.mantle.recipe.ingredient.FluidIngredient;
@@ -53,7 +52,7 @@ class FluidIngredientTagNetworkAsymmetryTest extends BaseMcTest {
 
     FluidIngredient parsed = FluidIngredient.LOADABLE.convert(fluidObj, "fluid", TypedMap.EMPTY);
 
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     FluidIngredient.LOADABLE.encode(buffer, parsed);
     FluidIngredient decoded = FluidIngredient.LOADABLE.decode(buffer, TypedMap.EMPTY);
 
