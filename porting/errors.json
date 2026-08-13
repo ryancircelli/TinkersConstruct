@@ -1,12 +1,15 @@
 {
-    "total": 20,
-    "islandFiles": 1443,
+    "total": 21,
+    "islandFiles": 1473,
     "categories": {
-        "package slimeknights.tconstruct.library.client.model": 12,
-        "package slimeknights.tconstruct.library.client.model.block": 2,
-        "package slimeknights.tconstruct.library.client.model.tools": 2,
-        "symbol class CombatFishingHookRenderer": 1,
-        "symbol class ShieldBannerModifierSpriteSource": 1,
-        "symbol class SlimeskullArmorModel": 2
+        "package RenderGuiOverlayEvent": 1,
+        "package net.minecraftforge.client.event": 1,
+        "package net.minecraftforge.client.gui.overlay": 1,
+        "package net.minecraftforge.common": 1,
+        "package net.minecraftforge.event.TickEvent": 2,
+        "symbol class EventBusSubscriber": 10,
+        "symbol class PlayerTickEvent": 1,
+        "symbol variable Bus": 3,
+        "symbol variable EventBusSubscriber": 1
     }
 }
