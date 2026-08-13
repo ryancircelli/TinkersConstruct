@@ -3,7 +3,6 @@ package slimeknights.tconstruct.library.recipe.modifiers.adding;
 import lombok.Getter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -57,10 +56,14 @@ public class OverslimeModifierRecipe implements ITinkerStationRecipe, IDisplayMo
     ModifierRecipeLookup.addRecipeModifier(null, TinkerModifiers.overslime);
   }
 
-  /** @deprecated use {@link #OverslimeModifierRecipe(ResourceLocation, Ingredient, Ingredient, int)} */
+  /**
+   * @deprecated use {@link #OverslimeModifierRecipe(Ingredient, Ingredient, int)}
+   * @apiNote  The {@code id} this used to pass through is gone with 1.21's move of a recipe's id onto
+   * {@link net.minecraft.world.item.crafting.RecipeHolder} - this delegation dangled after that removal.
+   */
   @Deprecated(forRemoval = true)
   public OverslimeModifierRecipe(Ingredient ingredient, int restoreAmount) {
-    this(id, Ingredient.of(TinkerTags.Items.DURABILITY), ingredient, restoreAmount);
+    this(Ingredient.of(TinkerTags.Items.DURABILITY), ingredient, restoreAmount);
   }
 
   @Override

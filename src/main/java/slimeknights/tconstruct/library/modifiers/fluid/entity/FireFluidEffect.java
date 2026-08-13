@@ -41,7 +41,8 @@ public record FireFluidEffect(TimeAction action, int time) implements FluidEffec
       float value = level.value();
       if (action.execute()) {
         // current time is in ticks, so need to divide to get seconds, do a rounded divide
-        target.setSecondsOnFire(Math.round(time * value) + (target.getRemainingFireTicks() + 10) / 20);
+        // Entity#setSecondsOnFire renamed to igniteForSeconds, same "only extends, never shortens" semantics
+        target.igniteForSeconds(Math.round(time * value) + (target.getRemainingFireTicks() + 10) / 20);
       }
       return value;
     } else {
@@ -49,7 +50,7 @@ public record FireFluidEffect(TimeAction action, int time) implements FluidEffec
       float existing = target.getRemainingFireTicks() / 20f / time;
       float effective = level.effective(existing);
       if (action.execute()) {
-        target.setSecondsOnFire(Math.round(time * effective));
+        target.igniteForSeconds(Math.round(time * effective));
       }
       // only consume what we changed
       return effective - existing;

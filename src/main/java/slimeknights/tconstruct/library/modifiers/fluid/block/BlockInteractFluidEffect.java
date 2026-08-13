@@ -10,6 +10,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlagSet;
@@ -45,7 +46,10 @@ public enum BlockInteractFluidEffect implements FluidEffect<FluidEffectContext.B
     // our tools we know work so ignore them
     if (!level.isClientSide && context.getPlayer() == null && stack.isDamageableItem() && !stack.is(TinkerTags.Items.MODIFIABLE)) {
       // unable to call Forge damageItem as that needs entity access, but its just vanilla broken anyways, right?
-      stack.hurt(1, level.getRandom(), null);
+      // ItemStack#hurt(int,RandomSource,ServerPlayer) is gone; this path is player-less already, so a direct
+      // damage bump is the same "known broken" workaround the comment above already accepted, just without an
+      // Unbreaking roll it never had a player enchantment context to read anyway.
+      stack.setDamageValue(stack.getDamageValue() + 1);
       // calling methods again instead of using return as return may be incorrect for custom broken stacks
       if (stack.getDamageValue() >= stack.getMaxDamage()) {
         // but that won't happen, right? will need to consider another workaround in that case.
@@ -138,7 +142,17 @@ public enum BlockInteractFluidEffect implements FluidEffect<FluidEffectContext.B
       // click the block
       ItemStack original = heldItem.copy();
       if (player != null && (useBlock == TriState.TRUE || (useItem == TriState.DEFAULT && !skipBlock))) {
-        InteractionResult result = state.use(world, player, hand, hitResult);
+        // BlockState#use(Level,Player,InteractionHand,BlockHitResult) split into useItemOn/useWithoutItem; this
+        // reproduces vanilla's own ServerPlayerGameMode#useItemOn fallback (useItemOn, then useWithoutItem on
+        // PASS_TO_DEFAULT_BLOCK_INTERACTION in the main hand) rather than losing the block's own interaction
+        // (doors, buttons, levers all answer through useWithoutItem, not useItemOn) by calling only the first half.
+        ItemInteractionResult itemResult = state.useItemOn(heldItem, world, player, hand, hitResult);
+        InteractionResult result;
+        if (itemResult == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION && hand == InteractionHand.MAIN_HAND) {
+          result = state.useWithoutItem(world, player, hitResult);
+        } else {
+          result = itemResult.result();
+        }
         if (result.consumesAction()) {
           if (player instanceof ServerPlayer serverPlayer) {
             CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger(serverPlayer, pos, original);
