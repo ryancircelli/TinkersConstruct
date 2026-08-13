@@ -175,6 +175,14 @@ src/main/java/slimeknights/tconstruct/library/client/book/sectiontransformer/mat
 src/main/java/slimeknights/tconstruct/library/client/book/sectiontransformer/package-info.java
 src/main/java/slimeknights/tconstruct/library/client/data/AbstractArmorModelProvider.java
 src/main/java/slimeknights/tconstruct/library/client/data/GenericTextureGenerator.java
+src/main/java/slimeknights/tconstruct/library/client/data/material/AbstractMaterialRenderInfoProvider.java
+src/main/java/slimeknights/tconstruct/library/client/data/material/AbstractMaterialSpriteProvider.java
+src/main/java/slimeknights/tconstruct/library/client/data/material/AbstractPartSpriteProvider.java
+src/main/java/slimeknights/tconstruct/library/client/data/material/GeneratorPartTextureJsonGenerator.java
+src/main/java/slimeknights/tconstruct/library/client/data/material/MaterialPaletteDebugGenerator.java
+src/main/java/slimeknights/tconstruct/library/client/data/material/MaterialPartTextureGenerator.java
+src/main/java/slimeknights/tconstruct/library/client/data/material/TrimMaterialPaletteGenerator.java
+src/main/java/slimeknights/tconstruct/library/client/data/material/package-info.java
 src/main/java/slimeknights/tconstruct/library/client/data/package-info.java
 src/main/java/slimeknights/tconstruct/library/client/data/spritetransformer/AnimatedGreyToSpriteTransformer.java
 src/main/java/slimeknights/tconstruct/library/client/data/spritetransformer/FramesSpriteTransformer.java
