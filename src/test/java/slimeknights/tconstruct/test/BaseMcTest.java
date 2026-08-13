@@ -1,6 +1,10 @@
 package slimeknights.tconstruct.test;
 
+import io.netty.buffer.Unpooled;
 import net.minecraft.SharedConstants;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.Bootstrap;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -28,5 +32,16 @@ public class BaseMcTest {
   static void setUpRegistries() {
     SharedConstants.setVersion(TestWorldVersion.INSTANCE);
     Bootstrap.bootStrap();
+  }
+
+  /**
+   * Creates an empty play buffer.
+   * @apiNote  Every play payload is written to a {@link RegistryFriendlyByteBuf} in 1.21, because a stack's data
+   *           components may name a datapack registry. Nothing in a headless test has a server or client registry
+   *           access, so the buffer carries the built-in registries only - which is enough for every packet whose
+   *           payload reaches static registries, and is the same access {@code RoundTripAssertions} uses.
+   */
+  protected static RegistryFriendlyByteBuf networkBuffer() {
+    return new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
   }
 }
