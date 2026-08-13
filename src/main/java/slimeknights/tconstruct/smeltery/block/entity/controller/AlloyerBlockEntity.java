@@ -154,7 +154,7 @@ public class AlloyerBlockEntity extends NameableBlockEntity implements ITankBloc
    * @param side  Side changed
    */
   public void neighborChanged(Direction side) {
-    alloyTank.refresh(side, true);
+    alloyTank.refresh(side);
   }
 
   /*

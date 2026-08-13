@@ -321,13 +321,9 @@ public abstract class HeatingStructureBlockEntity extends NameableBlockEntity im
     }
   }
 
-  @Override
-  public <T extends BlockEntity & IServantLogic> void onServantLoad(T servant) {
-    // if it's a tank, ensure the fluid tank listener is tracking it
-    if (structure != null && structure.getTanks().contains(servant.getBlockPos())) {
-      fuelModule.ensureTankPresent(servant);
-    }
-  }
+  // onServantLoad is not overridden: 1.20 used it to add a tank whose chunk had not loaded when the fuel module built
+  // its handler map, since a missing capability meant a missing map entry forever. The module now holds a cache for
+  // every structure tank whether or not anything answers there yet, so a tank loading later needs no notification.
 
   /* Capability */
 
@@ -365,7 +361,7 @@ public abstract class HeatingStructureBlockEntity extends NameableBlockEntity im
    */
   protected void setStructure(@Nullable StructureData structure) {
     this.structure = structure;
-    fuelModule.clearFluidListeners();
+    fuelModule.clearCachedTanks();
   }
 
   /**
@@ -552,7 +548,7 @@ public abstract class HeatingStructureBlockEntity extends NameableBlockEntity im
    */
   public void setStructureSize(BlockPos minPos, BlockPos maxPos, List<BlockPos> tanks) {
     setStructure(multiblock.createClient(minPos, maxPos, tanks));
-    fuelModule.clearFluidListeners();
+    fuelModule.clearCachedTanks();
     // not really possible to have no structure here as we don't sync the lack of structure to the client, but better safe
     if (structure == null) {
       fluidDisplayListeners.clear();

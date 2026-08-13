@@ -46,7 +46,7 @@ public class AlloyerContainerMenu extends TriggeringBaseContainerMenu<AlloyerBlo
         MixerAlloyTank alloyTank = alloyer.getAlloyTank();
         for (Direction direction : Direction.values()) {
           if (direction != Direction.DOWN) {
-            alloyTank.refresh(direction, true);
+            alloyTank.refresh(direction);
           }
         }
       }

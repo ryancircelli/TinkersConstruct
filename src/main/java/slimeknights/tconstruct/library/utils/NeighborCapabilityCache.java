@@ -8,6 +8,7 @@ import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -80,13 +81,41 @@ public class NeighborCapabilityCache<T> {
       clear();
       return null;
     }
-    if (!(level instanceof ServerLevel server)) {
-      return level.getCapability(capability, pos, side);
-    }
-    if (cache == null || !pos.equals(cachePos) || side != cacheSide) {
+    if (!pos.equals(cachePos) || side != cacheSide) {
       cachePos = pos.immutable();
       cacheSide = side;
-      cache = BlockCapabilityCache.create(capability, server, cachePos, side, valid, onInvalidate);
+      cache = null;
+    }
+    return fetch(level);
+  }
+
+  /**
+   * Gets the handler at the position last passed to {@link #get(Level, BlockPos, Direction)}, for a caller that has
+   * already chosen a target and wants the current answer for it without repeating the choice.
+   * @param level  Level containing the position
+   * @return  Handler, or null if this cache has no position yet or the position has none right now
+   */
+  @Nullable
+  public T get(Level level) {
+    if (cachePos == null || !valid.getAsBoolean()) {
+      return null;
+    }
+    return fetch(level);
+  }
+
+  /** Whether this cache has been pointed at a position yet */
+  public boolean hasPosition() {
+    return cachePos != null;
+  }
+
+  @Nullable
+  private T fetch(Level level) {
+    BlockPos pos = Objects.requireNonNull(cachePos);
+    if (!(level instanceof ServerLevel server)) {
+      return level.getCapability(capability, pos, cacheSide);
+    }
+    if (cache == null) {
+      cache = BlockCapabilityCache.create(capability, server, pos, cacheSide, valid, onInvalidate);
     }
     return cache.getCapability();
   }
