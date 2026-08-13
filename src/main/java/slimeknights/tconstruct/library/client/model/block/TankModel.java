@@ -43,6 +43,7 @@ import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.config.Config;
 import slimeknights.tconstruct.library.client.model.ModelProperties;
 import slimeknights.tconstruct.library.client.model.UniqueGuiModel;
+import slimeknights.tconstruct.smeltery.TinkerSmeltery;
 import slimeknights.tconstruct.smeltery.item.TankItem;
 
 import javax.annotation.Nonnull;
@@ -58,8 +59,6 @@ import java.util.function.Function;
  */
 @AllArgsConstructor
 public class TankModel implements IUnbakedGeometry<TankModel> {
-  protected static final ResourceLocation BAKE_LOCATION = TConstruct.getResource("dynamic_model_baking");
-
   /** Shared loader instance */
   public static final IGeometryLoader<TankModel> LOADER = TankModel::deserialize;
 
@@ -78,12 +77,12 @@ public class TankModel implements IUnbakedGeometry<TankModel> {
   }
 
   @Override
-  public BakedModel bake(IGeometryBakingContext owner, ModelBaker baker, Function<Material,TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides, ResourceLocation location) {
-    BakedModel baked = model.bake(owner, baker, spriteGetter, transform, overrides, location);
+  public BakedModel bake(IGeometryBakingContext owner, ModelBaker baker, Function<Material,TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides) {
+    BakedModel baked = model.bake(owner, baker, spriteGetter, transform, overrides);
     // bake the GUI model if present
     BakedModel bakedGui = baked;
     if (gui != null) {
-      bakedGui = gui.bake(owner, baker, spriteGetter, transform, overrides, location);
+      bakedGui = gui.bake(owner, baker, spriteGetter, transform, overrides);
     }
     return new Baked(owner, transform, baked, bakedGui, this);
   }
@@ -135,11 +134,13 @@ public class TankModel implements IUnbakedGeometry<TankModel> {
       IQuadTransformer quadTransformer = SimpleBlockModel.applyTransform(originalTransforms, owner.getRootTransform());
       // first, add all regular elements
       for (BlockElement element : baseModel.getElements()) {
-        SimpleBlockModel.bakePart(builder, owner, element, spriteGetter, originalTransforms, quadTransformer, BAKE_LOCATION);
+        SimpleBlockModel.bakePart(builder, owner, element, spriteGetter, originalTransforms, quadTransformer);
       }
       // next, add in the fluid
       IQuadTransformer fluidTransformer = color == -1 ? quadTransformer : quadTransformer.andThen(ColoredBlockModel.applyColorQuadTransformer(color));
-      ColoredBlockModel.bakePart(builder, owner, fluid, luminosity, spriteGetter, originalTransforms.getRotation(), fluidTransformer, originalTransforms.isUvLocked(), BAKE_LOCATION);
+      // 1.20 handed bakePart the state decomposed into a Transformation plus an isUvLocked boolean; it takes the state
+      // itself now, which carries mayApplyArbitraryRotation() along with the rotation and the lock the pair dropped
+      ColoredBlockModel.bakePart(builder, owner, fluid, luminosity, spriteGetter, originalTransforms, fluidTransformer);
       return builder.build(SimpleBlockModel.getRenderTypeGroup(owner));
     }
 
@@ -217,8 +218,11 @@ public class TankModel implements IUnbakedGeometry<TankModel> {
     private class FluidPartOverride extends ItemOverrides {
       @Override
       public BakedModel resolve(BakedModel model, ItemStack stack, @Nullable ClientLevel world, @Nullable LivingEntity entity, int seed) {
-        // ensure we have a fluid
-        if (stack.isEmpty() || !stack.hasTag()) {
+        // ensure we have a fluid. 1.20 asked hasTag() as a fast path around building a tank for a stack with no data at
+        // all; the fluid is a component of its own now, so asking after that component is the same fast path. Note
+        // DataComponents.CUSTOM_DATA - the usual translation of hasTag() - would be the wrong question here and would
+        // answer false for every filled tank.
+        if (stack.isEmpty() || !stack.has(TinkerSmeltery.tankFluid.get())) {
           return model;
         }
         // determine fluid
