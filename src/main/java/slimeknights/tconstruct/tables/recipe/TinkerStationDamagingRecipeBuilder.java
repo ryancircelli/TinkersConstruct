@@ -29,6 +29,6 @@ public class TinkerStationDamagingRecipeBuilder extends AbstractRecipeBuilder<Ti
     if (ingredient == Ingredient.EMPTY) {
       throw new IllegalStateException("Empty ingredient not allowed");
     }
-    save(output, id, new TinkerStationDamagingRecipe(id, ingredient, damageAmount), "tinker_station");
+    save(output, id, new TinkerStationDamagingRecipe(ingredient, damageAmount), "tinker_station");
   }
 }

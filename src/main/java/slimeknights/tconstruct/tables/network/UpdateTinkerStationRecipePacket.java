@@ -55,14 +55,14 @@ public class UpdateTinkerStationRecipePacket implements IPacket.Threadsafe {
         if (Minecraft.getInstance().screen instanceof TinkerStationScreen stationScreen) {
           TinkerStationBlockEntity te = stationScreen.getTileEntity();
           if (te.getBlockPos().equals(packet.pos)) {
-            recipe.ifPresent(te::updateRecipe);
+            recipe.ifPresent(r -> te.updateRecipe(new RecipeHolder<>(packet.recipe, r)));
             stationScreen.updateDisplay();
             handled = true;
           }
         }
         // if the wrong screen is open or no screen, use the tile directly
         if (!handled) {
-          recipe.ifPresent(r -> BlockEntityHelper.get(TinkerStationBlockEntity.class, world, packet.pos).ifPresent(te -> te.updateRecipe(r)));
+          recipe.ifPresent(r -> BlockEntityHelper.get(TinkerStationBlockEntity.class, world, packet.pos).ifPresent(te -> te.updateRecipe(new RecipeHolder<>(packet.recipe, r))));
         }
       }
     }

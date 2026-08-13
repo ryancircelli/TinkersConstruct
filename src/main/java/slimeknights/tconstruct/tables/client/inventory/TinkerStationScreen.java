@@ -632,11 +632,8 @@ public class TinkerStationScreen extends ToolTableScreen<TinkerStationBlockEntit
     }
   }
 
-  @Override
-  public void containerTick() {
-    super.containerTick();
-    this.textField.tick();
-  }
+  // no containerTick override: EditBox#tick() is gone in 1.21, its cursor blink is time-based (Util.getMillis())
+  // in EditBox#renderWidget rather than counted per tick, so there is nothing left for this override to do.
 
   @Override
   public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {

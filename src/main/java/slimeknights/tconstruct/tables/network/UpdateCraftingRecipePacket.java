@@ -46,7 +46,8 @@ public class UpdateCraftingRecipePacket implements IPacket.Threadsafe {
       Level world = Minecraft.getInstance().level;
       if (world != null) {
         BlockEntityHelper.get(CraftingStationBlockEntity.class, world, packet.pos).ifPresent(te ->
-          RecipeHelper.getRecipe(world.getRecipeManager(), packet.recipe, CraftingRecipe.class).ifPresent(te::updateRecipe));
+          RecipeHelper.getRecipe(world.getRecipeManager(), packet.recipe, CraftingRecipe.class)
+            .ifPresent(recipe -> te.updateRecipe(new RecipeHolder<>(packet.recipe, recipe))));
       }
     }
   }
