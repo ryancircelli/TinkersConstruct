@@ -28,8 +28,25 @@
 #
 # Sorted, repo-relative, one path per line.
 src/main/java/slimeknights/tconstruct/TConstruct.java
+src/main/java/slimeknights/tconstruct/common/ClientEventBase.java
+src/main/java/slimeknights/tconstruct/common/SoundUtils.java
+src/main/java/slimeknights/tconstruct/common/Sounds.java
+src/main/java/slimeknights/tconstruct/common/TinkerDamageTypes.java
+src/main/java/slimeknights/tconstruct/common/TinkerEffect.java
 src/main/java/slimeknights/tconstruct/common/TinkerModule.java
+src/main/java/slimeknights/tconstruct/common/TinkerTags.java
+src/main/java/slimeknights/tconstruct/common/config/Config.java
+src/main/java/slimeknights/tconstruct/common/config/package-info.java
+src/main/java/slimeknights/tconstruct/common/json/BlockOrEntityCondition.java
+src/main/java/slimeknights/tconstruct/common/json/ConfigEnabledCondition.java
+src/main/java/slimeknights/tconstruct/common/json/package-info.java
+src/main/java/slimeknights/tconstruct/common/multiblock/IMasterLogic.java
+src/main/java/slimeknights/tconstruct/common/multiblock/IServantLogic.java
+src/main/java/slimeknights/tconstruct/common/multiblock/ServantTileEntity.java
+src/main/java/slimeknights/tconstruct/common/multiblock/package-info.java
 src/main/java/slimeknights/tconstruct/common/package-info.java
+src/main/java/slimeknights/tconstruct/common/recipe/RecipeCacheInvalidator.java
+src/main/java/slimeknights/tconstruct/common/recipe/package-info.java
 src/main/java/slimeknights/tconstruct/common/registration/BlockDeferredRegisterExtension.java
 src/main/java/slimeknights/tconstruct/common/registration/CastItemObject.java
 src/main/java/slimeknights/tconstruct/common/registration/FluidDeferredRegisterExtension.java

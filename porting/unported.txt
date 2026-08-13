@@ -19,7 +19,6 @@ src/main/java/slimeknights/tconstruct/common/TinkerEffect.java
 src/main/java/slimeknights/tconstruct/common/TinkerModule.java
 src/main/java/slimeknights/tconstruct/common/TinkerTags.java
 src/main/java/slimeknights/tconstruct/common/config/Config.java
-src/main/java/slimeknights/tconstruct/common/config/ConfigurableAction.java
 src/main/java/slimeknights/tconstruct/common/config/package-info.java
 src/main/java/slimeknights/tconstruct/common/data/AdvancementsProvider.java
 src/main/java/slimeknights/tconstruct/common/data/BaseRecipeProvider.java

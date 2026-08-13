@@ -31,7 +31,6 @@ import slimeknights.mantle.registration.object.ItemObject;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.TinkerModule;
 import slimeknights.tconstruct.common.config.Config;
-import slimeknights.tconstruct.common.config.ConfigurableAction;
 import slimeknights.tconstruct.common.data.tags.MaterialTagProvider;
 import slimeknights.tconstruct.library.client.data.material.GeneratorPartTextureJsonGenerator;
 import slimeknights.tconstruct.library.client.data.material.MaterialPaletteDebugGenerator;
@@ -291,9 +290,6 @@ public final class TinkerTools extends TinkerModule {
     ToolCapabilityProvider.register(ToolInventoryCapability.Provider::new);
     ToolCapabilityProvider.register((stack, tool) -> new ToolEnergyCapability.Provider(tool));
     ToolCapabilityProvider.register((stack, tool) -> new BlockItemProviderModifierHook.Provider(tool));
-    for (ConfigurableAction action : Config.COMMON.toolTweaks) {
-      event.enqueueWork(action);
-    }
     event.enqueueWork(() -> {
       DispenserBlock.registerBehavior(TinkerTools.arrow.get(), ModifiableArrowDispenserBehavior.INSTANCE);
       DispenserBlock.registerBehavior(TinkerTools.shuriken.get(), ModifiableShurikenDispenserBehavior.INSTANCE);
