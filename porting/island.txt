@@ -27,6 +27,8 @@
 # Empty at T1: the machinery exists, the island does not.
 #
 # Sorted, repo-relative, one path per line.
+src/main/java/slimeknights/tconstruct/TConstruct.java
+src/main/java/slimeknights/tconstruct/library/TinkerBookIDs.java
 src/main/java/slimeknights/tconstruct/library/data/AbstractModifierModelMapProvider.java
 src/main/java/slimeknights/tconstruct/library/data/AbstractStructureRepalleter.java
 src/main/java/slimeknights/tconstruct/library/data/AbstractTagProvider.java
@@ -478,6 +480,7 @@ src/main/java/slimeknights/tconstruct/library/module/ModuleHook.java
 src/main/java/slimeknights/tconstruct/library/module/ModuleHookMap.java
 src/main/java/slimeknights/tconstruct/library/module/WithHooks.java
 src/main/java/slimeknights/tconstruct/library/module/package-info.java
+src/main/java/slimeknights/tconstruct/library/package-info.java
 src/main/java/slimeknights/tconstruct/library/recipe/FluidValues.java
 src/main/java/slimeknights/tconstruct/library/recipe/ITinkerableContainer.java
 src/main/java/slimeknights/tconstruct/library/recipe/RandomItem.java
@@ -835,3 +838,4 @@ src/main/java/slimeknights/tconstruct/library/utils/TinkerTooltipFlags.java
 src/main/java/slimeknights/tconstruct/library/utils/Util.java
 src/main/java/slimeknights/tconstruct/library/utils/WeakListenerList.java
 src/main/java/slimeknights/tconstruct/library/utils/package-info.java
+src/main/java/slimeknights/tconstruct/package-info.java
