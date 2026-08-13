@@ -41,7 +41,8 @@ public class MelterScreen extends AbstractContainerScreen<MelterContainerMenu> i
 
   @Override
   public void render(GuiGraphics graphics, int x, int y, float partialTicks) {
-    this.renderBackground(graphics);
+    // AbstractContainerScreen#render calls renderBackground itself in 1.21, and the no-argument form the manual call
+    // used is gone, so the only thing left for this override to add is the tooltip pass
     super.render(graphics, x, y, partialTicks);
     this.renderTooltip(graphics, x, y);
   }

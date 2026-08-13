@@ -5,9 +5,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -46,18 +48,37 @@ public abstract class AbstractCastingBlock extends TableBlock {
     return null;
   }
 
-  @Deprecated
-  @Override
-  public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult rayTraceResult) {
+  /**
+   * Shared body of the two halves 1.21 split {@code use} into.
+   * The casting table cares about the held item (placing a cast) and about the empty hand (taking the result), so it
+   * overrides both rather than only {@code useWithoutItem}: only {@code useItemOn} is told which hand was used.
+   * @return  true if the interaction was handled
+   */
+  private static boolean interact(Level world, BlockPos pos, Player player, InteractionHand hand) {
     if (player.isShiftKeyDown()) {
-      return InteractionResult.PASS;
+      return false;
     }
-    BlockEntity te = world.getBlockEntity(pos);
-    if (te instanceof CastingBlockEntity) {
-      ((CastingBlockEntity) te).interact(player, hand);
+    if (world.getBlockEntity(pos) instanceof CastingBlockEntity casting) {
+      casting.interact(player, hand);
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    if (interact(world, pos, player, hand)) {
+      return ItemInteractionResult.SUCCESS;
+    }
+    return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+  }
+
+  @Override
+  protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+    if (interact(world, pos, player, InteractionHand.MAIN_HAND)) {
       return InteractionResult.SUCCESS;
     }
-    return super.use(state, world, pos, player, hand, rayTraceResult);
+    return super.useWithoutItem(state, world, pos, player, hit);
   }
 
   @SuppressWarnings("deprecation")

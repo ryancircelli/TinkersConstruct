@@ -1,9 +1,9 @@
 package slimeknights.tconstruct.smeltery.block.entity.tank;
 
-import net.minecraftforge.common.util.LazyOptional;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 // TODO: reassess
@@ -20,10 +20,16 @@ public interface ISmelteryTankHandler {
   SmelteryTank<?> getTank();
 
   /**
-   * Gets the fluid capability for this smeltery. Provided here as the smeltery itself does not expose this
-   * @return  Fluid capability
+   * Gets the fluid handler for this smeltery. Provided here as the smeltery itself does not expose this as a block
+   * capability; only its drains and ducts do, and they read it through this method.
+   * <p>
+   * 1.20 returned a {@code LazyOptional} the smeltery invalidated when its structure broke, which is what told the
+   * drains to stop handing it out. There is no equivalent to invalidate now, so this returns null while the structure
+   * is not formed and the drains drop their copy whenever their master changes - the one event that can flip this.
+   * @return  Fluid handler, or null if this smeltery has no formed structure
    */
-  LazyOptional<IFluidHandler> getFluidCapability();
+  @Nullable
+  IFluidHandler getFluidHandler();
 
   /**
    * Called when the tank adds or removes a fluid to notify listeners

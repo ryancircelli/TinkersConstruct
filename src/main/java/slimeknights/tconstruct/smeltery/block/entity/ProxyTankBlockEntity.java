@@ -2,7 +2,7 @@ package slimeknights.tconstruct.smeltery.block.entity;
 
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.InteractionHand;
@@ -10,10 +10,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.Nullable;
 import slimeknights.mantle.block.entity.MantleBlockEntity;
 import slimeknights.mantle.fluid.FluidTransferHelper;
 import slimeknights.tconstruct.library.fluid.IFluidTankUpdater;
@@ -24,11 +20,9 @@ import static net.minecraft.world.level.block.state.properties.BlockStatePropert
 
 /** Block entity with a tank that proxies to the nested item handler */
 public class ProxyTankBlockEntity extends MantleBlockEntity implements IFluidTankUpdater {
-  /** Direct access to the fluid handler and item handler */
+  /** Direct access to the fluid handler and item handler; both capabilities are registered onto it by TinkerSmeltery */
   @Getter
   private final ProxyItemTank<ProxyTankBlockEntity> itemTank = new ProxyItemTank<>(this);
-  /** Capability instance for both items and fluids */
-  private final LazyOptional<ProxyItemTank<?>> capability = LazyOptional.of(() -> itemTank);
   /** Last comparator strength to reduce block updates */
   private int lastStrength = -1;
   protected ProxyTankBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -37,23 +31,6 @@ public class ProxyTankBlockEntity extends MantleBlockEntity implements IFluidTan
 
   public ProxyTankBlockEntity(BlockPos pos, BlockState state) {
     this(TinkerSmeltery.proxyTank.get(), pos, state);
-  }
-
-
-  /* Capability */
-
-  @Override
-  public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-    if (cap == ForgeCapabilities.ITEM_HANDLER || cap == ForgeCapabilities.FLUID_HANDLER) {
-      return capability.cast();
-    }
-    return super.getCapability(cap, side);
-  }
-
-  @Override
-  public void invalidateCaps() {
-    super.invalidateCaps();
-    capability.invalidate();
   }
 
 
@@ -146,16 +123,16 @@ public class ProxyTankBlockEntity extends MantleBlockEntity implements IFluidTan
   }
 
   @Override
-  public void load(CompoundTag tag) {
-    super.load(tag);
+  protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+    super.loadAdditional(tag, registries);
     if (tag.contains(TAG_ITEM, Tag.TAG_COMPOUND)) {
-      itemTank.readFromNBT(tag.getCompound(TAG_ITEM));
+      itemTank.readFromNBT(tag.getCompound(TAG_ITEM), registries);
     }
   }
 
   @Override
-  protected void saveSynced(CompoundTag tag) {
-    super.saveSynced(tag);
-    tag.put(TAG_ITEM, itemTank.writeToNBT());
+  protected void saveSynced(CompoundTag tag, HolderLookup.Provider registries) {
+    super.saveSynced(tag, registries);
+    tag.put(TAG_ITEM, itemTank.writeToNBT(registries));
   }
 }

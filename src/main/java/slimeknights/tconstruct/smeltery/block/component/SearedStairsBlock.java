@@ -12,11 +12,11 @@ import slimeknights.mantle.util.BlockEntityHelper;
 import slimeknights.tconstruct.smeltery.block.entity.component.SmelteryComponentBlockEntity;
 
 import javax.annotation.Nullable;
-import java.util.function.Supplier;
 
 public class SearedStairsBlock extends StairBlock implements EntityBlock {
 
-  public SearedStairsBlock(Supplier<BlockState> state, Properties properties) {
+  /** 1.21's StairBlock takes the base state directly; Forge's Supplier overload, which existed to defer registration, is gone */
+  public SearedStairsBlock(BlockState state, Properties properties) {
     super(state, properties);
   }
 

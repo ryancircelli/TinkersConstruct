@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Plane;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -24,6 +25,16 @@ import slimeknights.tconstruct.smeltery.block.entity.ChannelBlockEntity;
 
 public class ChannelBlockEntityRenderer implements BlockEntityRenderer<ChannelBlockEntity> {
   public ChannelBlockEntityRenderer(Context context) {}
+
+  /**
+   * 1.20 declared the render bounds on the block entity; 1.21 moved the hook onto the renderer
+   * ({@code IBlockEntityRendererExtension#getRenderBoundingBox}), which is the only place it was ever read from.
+   */
+  @Override
+  public AABB getRenderBoundingBox(ChannelBlockEntity be) {
+    BlockPos pos = be.getBlockPos();
+    return new AABB(pos.getX(), pos.getY() - 1, pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+  }
 
 	@Override
 	public void render(ChannelBlockEntity te, float partialTicks, PoseStack matrices, MultiBufferSource buffer, int light, int combinedOverlayIn)  {

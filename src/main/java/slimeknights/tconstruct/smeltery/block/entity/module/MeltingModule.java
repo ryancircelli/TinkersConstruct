@@ -2,8 +2,10 @@ package slimeknights.tconstruct.smeltery.block.entity.module;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
@@ -86,7 +88,7 @@ public class MeltingModule implements IMeltingContainer, ContainerData {
     // clear progress if setting to empty or the items do not match
     if (newStack.isEmpty()) {
       resetRecipe();
-    } else if (this.stack.isEmpty() || !ItemHandlerHelper.canItemStacksStack(this.stack, newStack)) {
+    } else if (this.stack.isEmpty() || !ItemStack.isSameItemSameComponents(this.stack, newStack)) {
       currentTime = 0;
     }
 
@@ -176,7 +178,7 @@ public class MeltingModule implements IMeltingContainer, ContainerData {
       return last;
     }
     // if that fails, try to find a new recipe
-    Optional<IMeltingRecipe> newRecipe = world.getRecipeManager().getRecipeFor(TinkerRecipeTypes.MELTING.get(), this, world);
+    Optional<IMeltingRecipe> newRecipe = world.getRecipeManager().getRecipeFor(TinkerRecipeTypes.MELTING.get(), this, world).map(RecipeHolder::value);
     if (newRecipe.isPresent()) {
       lastRecipe = newRecipe.get();
       return lastRecipe;
@@ -208,10 +210,12 @@ public class MeltingModule implements IMeltingContainer, ContainerData {
    * Writes this module to NBT
    * @return  Module in NBT
    */
-  public CompoundTag writeToTag() {
+  public CompoundTag writeToTag(HolderLookup.Provider registries) {
     CompoundTag nbt = new CompoundTag();
     if (!stack.isEmpty()) {
-      stack.save(nbt);
+      // 1.20's ItemStack#save(CompoundTag) wrote into the tag it was given; 1.21's returns a Tag of its own, so the
+      // extra melting keys are merged onto the result rather than written alongside
+      nbt = (CompoundTag)stack.save(registries, nbt);
       nbt.putInt(TAG_CURRENT_TIME, currentTime);
       nbt.putInt(TAG_REQUIRED_TIME, requiredTime);
       nbt.putInt(TAG_REQUIRED_TEMP, requiredTemp);
@@ -223,8 +227,8 @@ public class MeltingModule implements IMeltingContainer, ContainerData {
    * Reads this module from NBT
    * @param nbt  NBT
    */
-  public void readFromTag(CompoundTag nbt) {
-    stack = ItemStack.of(nbt);
+  public void readFromTag(CompoundTag nbt, HolderLookup.Provider registries) {
+    stack = ItemStack.parseOptional(registries, nbt);
     if (!stack.isEmpty()) {
       currentTime = nbt.getInt(TAG_CURRENT_TIME);
       requiredTime = nbt.getInt(TAG_REQUIRED_TIME);

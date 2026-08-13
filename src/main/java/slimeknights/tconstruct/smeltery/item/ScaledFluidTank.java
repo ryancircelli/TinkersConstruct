@@ -1,6 +1,5 @@
 package slimeknights.tconstruct.smeltery.item;
 
-import net.minecraft.nbt.CompoundTag;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
@@ -17,11 +16,13 @@ public class ScaledFluidTank extends FluidTank {
     this.scale = scale;
   }
 
-  /** Creates a new instance */
-  public static FluidTank create(int capacity, int scale) {
-    if (scale == 1) {
-      return new FluidTank(capacity);
-    }
+  /**
+   * Creates a new instance.
+   * 1.20 returned a plain {@link FluidTank} for a scale of 1 to skip the modulo work; the scaling now lives in
+   * {@link #setStoredFluid}/{@link #getStoredFluid} rather than in NBT methods a plain tank also has, so every caller
+   * needs this type and a scale of 1 is simply a no-op through the same code.
+   */
+  public static ScaledFluidTank create(int capacity, int scale) {
     return new ScaledFluidTank(capacity, scale);
   }
 
@@ -81,23 +82,24 @@ public class ScaledFluidTank extends FluidTank {
   }
 
 
-  /* NBT */
+  /* Stack storage */
 
-  @Override
-  public FluidTank readFromNBT(CompoundTag nbt) {
-    // scale the fluid on reading from NBT; as each instance should store the fluid relative to stack size 1
-    FluidStack fluid = FluidStack.loadFluidStackFromNBT(nbt);
-    fluid.setAmount(fluid.getAmount() * scale);
-    setFluid(fluid);
-    return this;
+  /**
+   * Fills this tank from the fluid stored on one item of the stack.
+   * Successor to {@code readFromNBT}: each item stores the fluid relative to stack size 1, so it scales up here.
+   * @param stored  Fluid stored per item
+   */
+  public void setStoredFluid(FluidStack stored) {
+    setFluid(stored.isEmpty() ? FluidStack.EMPTY : stored.copyWithAmount(stored.getAmount() * scale));
   }
 
-  @Override
-  public CompoundTag writeToNBT(CompoundTag nbt) {
-    // scale the fluid on reading from NBT; as each instance should store the fluid relative to stack size 1
-    FluidStack fluid = this.fluid.copy();
-    fluid.setAmount(fluid.getAmount() / scale);
-    fluid.writeToNBT(nbt);
-    return nbt;
+  /**
+   * Gets the fluid to store on one item of the stack.
+   * Successor to {@code writeToNBT}, scaling back down for the same reason.
+   * @return  Fluid to store per item
+   */
+  public FluidStack getStoredFluid() {
+    FluidStack fluid = getFluid();
+    return fluid.isEmpty() ? FluidStack.EMPTY : fluid.copyWithAmount(fluid.getAmount() / scale);
   }
 }
