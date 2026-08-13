@@ -442,6 +442,11 @@ ext.categoriseDiagnostic = { d, File projectDirectory ->
 tasks.register('errorBudget') {
     group = 'verification'
     description = 'Compiles the island named by porting/island.txt and counts the errors.'
+    // T13 flipped the island's self-contained subset into sourceSets.main, so the island is no
+    // longer a closed compilation: what is left of it references classes that now compile for
+    // real. sourceSets.main.output is therefore part of the island's classpath, and compileJava
+    // has to have run before the measurement means anything.
+    dependsOn 'classes'
 
     def islandEntries = readFrontier(islandLedger)
     def mainEntries = readFrontier(frontiers[0].ledger) as Set
@@ -449,7 +454,7 @@ tasks.register('errorBudget') {
     def mainLedgerPath = rootDir.toPath().relativize(frontiers[0].ledger.toPath()).toString()
     def projectDirectory = projectDir
     def islandSources = files(islandEntries.collect { file(it) })
-    def compileClasspath = sourceSets.main.compileClasspath
+    def compileClasspath = sourceSets.main.output + sourceSets.main.compileClasspath
     def processorPath = sourceSets.main.annotationProcessorPath
     def javac = javaToolchains.compilerFor(java.toolchain).map { it.executablePath.asFile.absolutePath }
     def outputDir = layout.buildDirectory.dir('errorBudget')
@@ -578,6 +583,7 @@ tasks.register('errorBudgetUpdate', Copy) {
 tasks.register('errorBudgetTest') {
     group = 'verification'
     description = 'Compiles porting/island-test.txt alongside the island and counts the errors in the test files.'
+    dependsOn 'classes'
 
     def islandEntries = readFrontier(islandLedger)
     def testIsland = frontiers.find { it.name == 'test' }
@@ -585,10 +591,10 @@ tasks.register('errorBudgetTest') {
     def testIslandPath = rootDir.toPath().relativize(testIsland.island.toPath()).toString()
     def projectDirectory = projectDir
     def sources = files((islandEntries + testIslandEntries).collect { file(it) })
-    // Both, and the union is the point: neoForge.unitTest is off while every test is behind the
-    // frontier, so the test classpath carries JUnit, Mockito and AssertJ but no Minecraft. The
-    // island's own classpath is where Minecraft, NeoForge and Mantle come from.
-    def compileClasspath = sourceSets.main.compileClasspath + sourceSets.test.compileClasspath
+    // Both, and the union is the point: the test classpath carries JUnit, Mockito and AssertJ,
+    // the island's own carries Minecraft, NeoForge and Mantle. sourceSets.main.output joins them
+    // since T13, for the reason errorBudget states: the island is no longer closed.
+    def compileClasspath = sourceSets.main.output + sourceSets.main.compileClasspath + sourceSets.test.compileClasspath
     def processorPath = sourceSets.main.annotationProcessorPath + sourceSets.test.annotationProcessorPath
     def javac = javaToolchains.compilerFor(java.toolchain).map { it.executablePath.asFile.absolutePath }
     def outputDir = layout.buildDirectory.dir('errorBudgetTest')
