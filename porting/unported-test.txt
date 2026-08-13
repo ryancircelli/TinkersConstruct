@@ -18,6 +18,8 @@ src/gametest/java/slimeknights/tconstruct/gametest/SmelteryGameTests.java
 src/gametest/java/slimeknights/tconstruct/gametest/ToolGameTests.java
 src/test/java/slimeknights/mantle/data/listener/MergingJsonFileLoader.java
 src/test/java/slimeknights/tconstruct/common/TagFixture.java
+src/test/java/slimeknights/tconstruct/common/TinkerModulePropertiesTest.java
+src/test/java/slimeknights/tconstruct/common/TinkerTagsTest.java
 src/test/java/slimeknights/tconstruct/fixture/MaterialFixture.java
 src/test/java/slimeknights/tconstruct/fixture/MaterialItemFixture.java
 src/test/java/slimeknights/tconstruct/fixture/MaterialRegistryFixture.java

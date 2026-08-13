@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.shared.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,8 +12,15 @@ import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.Vec3;
 
 public class SlimesteelBlock extends Block {
+  public static final MapCodec<SlimesteelBlock> CODEC = simpleCodec(SlimesteelBlock::new);
+
   public SlimesteelBlock(Properties properties) {
     super(properties);
+  }
+
+  @Override
+  public MapCodec<? extends SlimesteelBlock> codec() {
+    return CODEC;
   }
 
   @Override
@@ -48,7 +56,7 @@ public class SlimesteelBlock extends Block {
   }
 
   @Override
-  public boolean isPathfindable(BlockState state, BlockGetter worldIn, BlockPos pos, PathComputationType type) {
+  public boolean isPathfindable(BlockState state, PathComputationType type) {
     return false;
   }
 }

@@ -1,15 +1,12 @@
 package slimeknights.tconstruct.common.config;
 
-import com.google.common.collect.ImmutableList;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
 import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 import net.neoforged.neoforge.common.ModConfigSpec.DoubleValue;
 import net.neoforged.neoforge.common.ModConfigSpec.EnumValue;
 import net.neoforged.neoforge.common.ModConfigSpec.IntValue;
-import net.minecraftforge.fml.ModLoadingContext;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import org.apache.commons.lang3.tuple.Pair;
 import slimeknights.tconstruct.library.recipe.melting.IMeltingContainer.IOreRate;
@@ -18,7 +15,6 @@ import slimeknights.tconstruct.library.utils.Orientation2D;
 import slimeknights.tconstruct.world.TinkerHeadType;
 
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 
 public class Config {
@@ -27,7 +23,6 @@ public class Config {
    */
   public static class Common {
     public final BooleanValue shouldSpawnWithTinkersBook;
-    public final List<ConfigurableAction> toolTweaks;
     public final BooleanValue syncKnockbackResistance;
     public final EnumValue<ToolSyncType> toolInventorySync;
 
@@ -70,14 +65,10 @@ public class Config {
         .worldRestart()
         .define("shouldSpawnWithTinkersBook", true);
 
-      ImmutableList.Builder<ConfigurableAction> actions = ImmutableList.builder();
-      actions.add(new ConfigurableAction(builder, "extendFireProtectionSlots", true,
-                                         "If true, extends the applicable slots for the fire protection enchantment to work better with shields. Will not impact gameplay with the vanilla enchantment.\nIf false, fire protection on a shield will not reduce fire tick time.",
-                                         () -> Enchantments.FIRE_PROTECTION.slots = EquipmentSlot.values()));
-      actions.add(new ConfigurableAction(builder, "extendBlastProtectionSlots", true,
-                                         "If true, extends the applicable slots for the blast protection enchantment to work better with shields. Will not impact gameplay with the vanilla enchantment.\nIf false, blast protection on a shield will not reduce explosion knockback.",
-                                         () -> Enchantments.BLAST_PROTECTION.slots = EquipmentSlot.values()));
-      toolTweaks = actions.build();
+      // 1.20's extendFireProtectionSlots and extendBlastProtectionSlots were here, and both are gone with their
+      // mechanism: an enchantment is datapack content in 1.21 with no mutable `slots` field to rewrite at load, so
+      // the whole `toolTweaks` list and `ConfigurableAction` go with them. The 1.21 route to the same effect is a
+      // datapack override of the two enchantment files; see the T11 note.
 
       this.syncKnockbackResistance = builder
         .comment("If true, makes the knockback resistance attribute sync its value to client side. This allows modifiers such as springing and flinging to work properly.",
@@ -407,10 +398,13 @@ public class Config {
     COMMON = specPair.getLeft();
   }
 
-  /** Registers any relevant listeners for config */
-  public static void init() {
-    ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.commonSpec);
-    ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.clientSpec);
+  /**
+   * Registers the config specs against our mod container.
+   * @param container  Mod container, handed to the mod constructor by the loader in place of 1.20's ModLoadingContext
+   */
+  public static void init(ModContainer container) {
+    container.registerConfig(ModConfig.Type.COMMON, Config.commonSpec);
+    container.registerConfig(ModConfig.Type.CLIENT, Config.clientSpec);
   }
 
   /** Method of syncing the tool inventory on open to prevent desyncs down the line. */

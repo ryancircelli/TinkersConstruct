@@ -1,11 +1,12 @@
 package slimeknights.tconstruct.tools.network;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
-import slimeknights.mantle.network.packet.IThreadsafePacket;
+import slimeknights.mantle.network.packet.IPacket;
+import slimeknights.mantle.network.packet.PacketContext;
 
-public class EntityMovementChangePacket implements IThreadsafePacket {
+public class EntityMovementChangePacket implements IPacket.Threadsafe {
   private final int entityID;
   private final double x;
   private final double y;
@@ -22,7 +23,7 @@ public class EntityMovementChangePacket implements IThreadsafePacket {
     this.xRot = entity.getXRot();
   }
 
-  public EntityMovementChangePacket(FriendlyByteBuf buffer) {
+  public EntityMovementChangePacket(RegistryFriendlyByteBuf buffer) {
     this.entityID = buffer.readInt();
     this.x = buffer.readDouble();
     this.y = buffer.readDouble();
@@ -32,7 +33,7 @@ public class EntityMovementChangePacket implements IThreadsafePacket {
   }
 
   @Override
-  public void encode(FriendlyByteBuf packetBuffer) {
+  public void encode(RegistryFriendlyByteBuf packetBuffer) {
     packetBuffer.writeInt(this.entityID);
     packetBuffer.writeDouble(this.x);
     packetBuffer.writeDouble(this.y);
@@ -42,7 +43,7 @@ public class EntityMovementChangePacket implements IThreadsafePacket {
   }
 
   @Override
-  public void handleThreadsafe(Context context) {
+  public void handleThreadsafe(PacketContext context) {
     if (context.getSender() != null) {
       HandleClient.handle(this);
     }

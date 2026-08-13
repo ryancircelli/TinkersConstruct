@@ -2,11 +2,11 @@ package slimeknights.tconstruct.common.multiblock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.extensions.IForgeBlockEntity;
+import net.neoforged.neoforge.common.extensions.IBlockEntityExtension;
 
 import javax.annotation.Nullable;
 
-public interface IServantLogic extends IForgeBlockEntity {
+public interface IServantLogic extends IBlockEntityExtension {
   /**
    * Gets the position of the master block
    * @return  Master position, null if none is set

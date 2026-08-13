@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.shared.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
@@ -16,7 +17,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +26,7 @@ import slimeknights.tconstruct.common.TinkerDamageTypes;
 
 /** Block implementing knightmetal's spiky behavior. Based on <a href="https://github.com/TeamTwilight/twilightforest/blob/1.21.x/src/main/java/twilightforest/block/KnightmetalBlock.java">Twilight Forest</a> */
 public class KnightMetalBlock extends Block implements SimpleWaterloggedBlock {
+  public static final MapCodec<KnightMetalBlock> CODEC = simpleCodec(KnightMetalBlock::new);
   private static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
   // TODO: more accurate shape? would need to ensure hitbox is still this
   public static final VoxelShape SHAPE = Block.box(1.0D, 1.0D, 1.0D, 15.0D, 15.0D, 15.0D);
@@ -32,6 +34,11 @@ public class KnightMetalBlock extends Block implements SimpleWaterloggedBlock {
   public KnightMetalBlock(Properties props) {
     super(props);
     this.registerDefaultState(this.getStateDefinition().any().setValue(WATERLOGGED, false));
+  }
+
+  @Override
+  public MapCodec<? extends KnightMetalBlock> codec() {
+    return CODEC;
   }
 
   @Override
@@ -67,8 +74,8 @@ public class KnightMetalBlock extends Block implements SimpleWaterloggedBlock {
 
   @Nullable
   @Override
-  public BlockPathTypes getBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @Nullable Mob mob) {
-    return BlockPathTypes.DAMAGE_OTHER;
+  public PathType getBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @Nullable Mob mob) {
+    return PathType.DAMAGE_OTHER;
   }
 
   @Override

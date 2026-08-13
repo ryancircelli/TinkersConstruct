@@ -38,24 +38,25 @@ public class FluidParticle extends TextureSheetParticle {
     return ParticleRenderType.TERRAIN_SHEET;
   }
 
+  // TextureAtlasSprite#getU/#getV take a 0-1 fraction of the sprite in 1.21; 1.20 took 0-16, hence the dropped * 16
   @Override
   protected float getU0() {
-    return this.sprite.getU((this.uCoord + 1.0F) / 4.0F * 16.0F);
+    return this.sprite.getU((this.uCoord + 1.0F) / 4.0F);
   }
 
   @Override
   protected float getU1() {
-    return this.sprite.getU(this.uCoord / 4.0F * 16.0F);
+    return this.sprite.getU(this.uCoord / 4.0F);
   }
 
   @Override
   protected float getV0() {
-    return this.sprite.getV(this.vCoord / 4.0F * 16.0F);
+    return this.sprite.getV(this.vCoord / 4.0F);
   }
 
   @Override
   protected float getV1() {
-    return this.sprite.getV((this.vCoord + 1.0F) / 4.0F * 16.0F);
+    return this.sprite.getV((this.vCoord + 1.0F) / 4.0F);
   }
 
   @Override

@@ -1,5 +1,7 @@
 package slimeknights.tconstruct.shared.block;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
 import net.minecraft.world.level.block.state.BlockState;
@@ -10,10 +12,20 @@ import slimeknights.tconstruct.shared.TinkerCommons;
 import slimeknights.tconstruct.tools.TinkerToolActions;
 
 public class WaxedPlatformBlock extends PlatformBlock {
+  public static final MapCodec<WaxedPlatformBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+    WeatherState.CODEC.fieldOf("weathering_state").forGetter(block -> block.age),
+    propertiesCodec()
+  ).apply(instance, WaxedPlatformBlock::new));
+
   private final WeatherState age;
   public WaxedPlatformBlock(WeatherState age, Properties prop) {
     super(prop);
     this.age = age;
+  }
+
+  @Override
+  public MapCodec<? extends WaxedPlatformBlock> codec() {
+    return CODEC;
   }
 
   @Override

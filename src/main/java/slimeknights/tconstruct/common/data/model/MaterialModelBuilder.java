@@ -10,7 +10,8 @@ import slimeknights.tconstruct.TConstruct;
 public class MaterialModelBuilder<T extends ModelBuilder<T>> extends CustomLoaderBuilder<T> {
   private JsonArray offset = null;
   public MaterialModelBuilder(T parent, ExistingFileHelper existingFileHelper) {
-    super(TConstruct.getResource("material"), parent, existingFileHelper);
+    // no inline elements: the material model builds its quads from the layer textures, there is no vanilla geometry
+    super(TConstruct.getResource("material"), parent, existingFileHelper, false);
   }
 
   /** Sets the offset */

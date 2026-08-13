@@ -2,9 +2,10 @@ package slimeknights.tconstruct.test.characterization;
 
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import org.junit.jupiter.api.Test;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
@@ -26,7 +27,7 @@ class TablesNetworkPacketsTest extends BaseMcTest {
   void stationTabPacket_roundTrips() {
     BlockPos pos = new BlockPos(11, 12, 13);
     StationTabPacket packet = new StationTabPacket(pos);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     StationTabPacket decoded = new StationTabPacket(buffer);
 
@@ -36,7 +37,7 @@ class TablesNetworkPacketsTest extends BaseMcTest {
   @Test
   void tinkerStationRenamePacket_roundTrips() {
     TinkerStationRenamePacket packet = new TinkerStationRenamePacket("My Favorite Hammer");
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     TinkerStationRenamePacket decoded = new TinkerStationRenamePacket(buffer);
 
@@ -47,13 +48,12 @@ class TablesNetworkPacketsTest extends BaseMcTest {
   void updateCraftingRecipePacket_roundTrips() {
     BlockPos pos = new BlockPos(1, 1, 1);
     ResourceLocation recipeId = TConstruct.getResource("scorched_anvil_material");
-    // only recipe.getId() is ever read by the constructor - a mock stubbing that one method is enough,
-    // avoiding needing a live RecipeManager/real CraftingRecipe instance
-    CraftingRecipe recipe = mock(CraftingRecipe.class);
-    when(recipe.getId()).thenReturn(recipeId);
+    // 1.21 took the id off Recipe and put it on RecipeHolder, so the packet takes a holder; the recipe inside it
+    // is never read, which is why a bare mock does
+    RecipeHolder<CraftingRecipe> recipe = new RecipeHolder<>(recipeId, mock(CraftingRecipe.class));
 
     UpdateCraftingRecipePacket packet = new UpdateCraftingRecipePacket(pos, recipe);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     UpdateCraftingRecipePacket decoded = new UpdateCraftingRecipePacket(buffer);
 
@@ -65,7 +65,7 @@ class TablesNetworkPacketsTest extends BaseMcTest {
   void tinkerStationSelectionPacket_roundTrips() {
     ResourceLocation layoutName = TConstruct.getResource("tinker_station");
     TinkerStationSelectionPacket packet = new TinkerStationSelectionPacket(layoutName);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     TinkerStationSelectionPacket decoded = new TinkerStationSelectionPacket(buffer);
 
@@ -74,7 +74,7 @@ class TablesNetworkPacketsTest extends BaseMcTest {
 
   @Test
   void updateStationScreenPacket_isASingletonWithNoPayload() {
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     UpdateStationScreenPacket.INSTANCE.encode(buffer);
     assertThat(buffer.readableBytes()).as("encode writes nothing").isZero();
     // registered in TinkerNetwork as `buf -> UpdateStationScreenPacket.INSTANCE` - decode always yields the
@@ -86,12 +86,11 @@ class TablesNetworkPacketsTest extends BaseMcTest {
   void updateTinkerStationRecipePacket_roundTrips() {
     BlockPos pos = new BlockPos(2, 2, 2);
     ResourceLocation recipeId = TConstruct.getResource("part_builder");
-    // only recipe.getId() is ever read by the constructor
-    ITinkerStationRecipe recipe = mock(ITinkerStationRecipe.class);
-    when(recipe.getId()).thenReturn(recipeId);
+    // same holder change as above; the recipe inside is never read
+    RecipeHolder<ITinkerStationRecipe> recipe = new RecipeHolder<>(recipeId, mock(ITinkerStationRecipe.class));
 
     UpdateTinkerStationRecipePacket packet = new UpdateTinkerStationRecipePacket(pos, recipe);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     UpdateTinkerStationRecipePacket decoded = new UpdateTinkerStationRecipePacket(buffer);
 

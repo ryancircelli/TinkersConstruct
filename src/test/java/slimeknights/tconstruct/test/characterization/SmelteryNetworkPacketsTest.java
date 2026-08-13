@@ -3,7 +3,7 @@ package slimeknights.tconstruct.test.characterization;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ class SmelteryNetworkPacketsTest extends BaseMcTest {
     BlockPos pos = new BlockPos(1, 2, 3);
     FluidStack fluid = new FluidStack(Fluids.LAVA, 500);
     FluidUpdatePacket packet = new FluidUpdatePacket(pos, fluid);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     FluidUpdatePacket decoded = new FluidUpdatePacket(buffer);
 
@@ -40,7 +40,7 @@ class SmelteryNetworkPacketsTest extends BaseMcTest {
     BlockPos pos = new BlockPos(4, 5, 6);
     FluidStack fluid = new FluidStack(Fluids.WATER, 250);
     FaucetActivationPacket packet = new FaucetActivationPacket(pos, fluid, true);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     FaucetActivationPacket decoded = new FaucetActivationPacket(buffer);
 
@@ -53,7 +53,7 @@ class SmelteryNetworkPacketsTest extends BaseMcTest {
   void channelFlowPacket_roundTrips() {
     BlockPos pos = new BlockPos(7, 8, 9);
     ChannelFlowPacket packet = new ChannelFlowPacket(pos, Direction.SOUTH, true);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     ChannelFlowPacket decoded = new ChannelFlowPacket(buffer);
 
@@ -67,7 +67,7 @@ class SmelteryNetworkPacketsTest extends BaseMcTest {
     BlockPos pos = new BlockPos(10, 11, 12);
     List<FluidStack> fluids = List.of(new FluidStack(Fluids.LAVA, 1000), new FluidStack(Fluids.WATER, 500));
     SmelteryTankUpdatePacket packet = new SmelteryTankUpdatePacket(pos, fluids);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     SmelteryTankUpdatePacket decoded = new SmelteryTankUpdatePacket(buffer);
 
@@ -82,7 +82,7 @@ class SmelteryNetworkPacketsTest extends BaseMcTest {
     BlockPos max = new BlockPos(1, 1, 1);
     List<BlockPos> tanks = List.of(new BlockPos(1, 0, 0), new BlockPos(0, 1, 0));
     StructureUpdatePacket packet = new StructureUpdatePacket(pos, min, max, tanks);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     StructureUpdatePacket decoded = new StructureUpdatePacket(buffer);
 
@@ -95,7 +95,7 @@ class SmelteryNetworkPacketsTest extends BaseMcTest {
   @Test
   void smelteryFluidClickedPacket_roundTrips() {
     SmelteryFluidClickedPacket packet = new SmelteryFluidClickedPacket(4);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     SmelteryFluidClickedPacket decoded = new SmelteryFluidClickedPacket(buffer);
 
@@ -107,7 +107,7 @@ class SmelteryNetworkPacketsTest extends BaseMcTest {
     BlockPos controller = new BlockPos(2, 2, 2);
     BlockPos error = new BlockPos(3, 3, 3);
     StructureErrorPositionPacket packet = new StructureErrorPositionPacket(controller, error);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     StructureErrorPositionPacket decoded = new StructureErrorPositionPacket(buffer);
 
@@ -119,7 +119,7 @@ class SmelteryNetworkPacketsTest extends BaseMcTest {
   void structureErrorPositionPacket_roundTrips_withNullErrorPos() {
     BlockPos controller = new BlockPos(5, 5, 5);
     StructureErrorPositionPacket packet = new StructureErrorPositionPacket(controller, null);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     StructureErrorPositionPacket decoded = new StructureErrorPositionPacket(buffer);
 

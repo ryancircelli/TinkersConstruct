@@ -1,16 +1,13 @@
 package slimeknights.tconstruct.test.characterization;
 
-import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.junit.jupiter.api.Test;
 import slimeknights.tconstruct.common.network.InventorySlotSyncPacket;
-import slimeknights.tconstruct.common.network.SyncPersistentDataPacket;
 import slimeknights.tconstruct.common.network.UpdateNeighborsPacket;
 import slimeknights.tconstruct.shared.network.GeneratePartTexturesPacket;
 import slimeknights.tconstruct.test.BaseMcTest;
@@ -18,8 +15,9 @@ import slimeknights.tconstruct.test.BaseMcTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Object -> {@code toNetwork}/encode -> {@code fromNetwork}/decode -> object field round trips for every packet
- * registered under {@code common}/{@code shared} in {@code TinkerNetwork}. Fields are compared via AssertJ's
+ * Object -> encode -> decode -> object field round trips for every packet registered under {@code common} and
+ * {@code shared} in {@code TinkerNetwork}. {@code SyncPersistentDataPacket}'s round trip went with the packet:
+ * a synced data attachment needs none (T10 SS1.2). Fields are compared via AssertJ's
  * reflection-based {@code extracting} (works on private fields with no getters) against the literal values used
  * to build the original packet, rather than reading the original packet's own fields back - avoids needing any
  * production-code changes (no test-only getters) to verify private state.
@@ -32,7 +30,7 @@ class CommonNetworkPacketsTest extends BaseMcTest {
     BlockPos pos = new BlockPos(1, 2, 3);
 
     InventorySlotSyncPacket packet = new InventorySlotSyncPacket(stack, slot, pos);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     InventorySlotSyncPacket decoded = new InventorySlotSyncPacket(buffer);
 
@@ -48,35 +46,20 @@ class CommonNetworkPacketsTest extends BaseMcTest {
     BlockPos pos = new BlockPos(4, 5, 6);
 
     UpdateNeighborsPacket packet = new UpdateNeighborsPacket(state, pos);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     UpdateNeighborsPacket decoded = new UpdateNeighborsPacket(buffer);
 
-    // the block state itself round trips via Forge's GameData block-state <-> id map, which this headless test
-    // environment (see BaseMcTest - no live game/registry-freeze lifecycle) does not populate the same way
-    // Block.getId(state) resolves it during encode, so it decodes back as null here rather than failing loudly;
-    // pos is unaffected and still round trips correctly.
+    // 1.21 reads the state back through vanilla's Block.stateById rather than Forge's GameData id map, and
+    // vanilla's is populated by Bootstrap - so unlike the 1.20 test, the state itself round trips here.
     assertThat(decoded).extracting("pos").isEqualTo(pos);
-  }
-
-  @Test
-  void syncPersistentDataPacket_roundTrips() {
-    CompoundTag data = new CompoundTag();
-    data.putString("modifier", "tconstruct:test");
-    data.putInt("level", 3);
-
-    SyncPersistentDataPacket packet = new SyncPersistentDataPacket(data);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
-    packet.encode(buffer);
-    SyncPersistentDataPacket decoded = new SyncPersistentDataPacket(buffer);
-
-    assertThat(decoded).extracting("data").isEqualTo(data);
+    assertThat(decoded).extracting("state").isEqualTo(state);
   }
 
   @Test
   void generatePartTexturesPacket_roundTrips() {
     GeneratePartTexturesPacket packet = new GeneratePartTexturesPacket(GeneratePartTexturesPacket.Operation.MISSING, "tconstruct", "cobalt");
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     GeneratePartTexturesPacket decoded = new GeneratePartTexturesPacket(buffer);
 

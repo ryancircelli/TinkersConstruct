@@ -1,22 +1,24 @@
 package slimeknights.tconstruct.fluids.util;
 
 import lombok.Getter;
-import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
-/** Represents a capability handler for a container with a constant fluid */
-public class ConstantFluidContainerWrapper implements IFluidHandlerItem, ICapabilityProvider {
-  private final LazyOptional<IFluidHandlerItem> holder = LazyOptional.of(() -> this);
-
+/**
+ * Represents a capability handler for a container with a constant fluid.
+ * <p>
+ * 1.20 had this class also implement {@code ICapabilityProvider} and hand back a {@code LazyOptional} of itself, since
+ * a provider was attached to a stack and asked for any capability. Both types are gone in 1.21: a provider is
+ * registered per item against {@link RegisterCapabilitiesEvent} and returns the handler directly, so this is now just
+ * the handler. The registrations live in {@code TinkerFluids#registerCapabilities}.
+ * @see Capabilities.FluidHandler#ITEM
+ */
+public class ConstantFluidContainerWrapper implements IFluidHandlerItem {
   /** Contained fluid */
   private final FluidStack fluid;
   /** If true, the container is now empty */
@@ -90,11 +92,5 @@ public class ConstantFluidContainerWrapper implements IFluidHandlerItem, ICapabi
       empty = true;
     }
     return fluid.copy();
-  }
-
-  @Nonnull
-  @Override
-  public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> capability, @Nullable Direction side) {
-    return ForgeCapabilities.FLUID_HANDLER_ITEM.orEmpty(capability, holder);
   }
 }
