@@ -1,6 +1,5 @@
 package slimeknights.tconstruct.gadgets.block;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.stats.Stats;
@@ -61,12 +60,12 @@ public class FoodCakeBlock extends CakeBlock {
 
   /** Checks if the given player has all potion effects from the food */
   private boolean hasAllEffects(Player player) {
-    for (Pair<MobEffectInstance,Float> pair : food.getEffects()) {
-      if (pair.getFirst() != null) {
-        MobEffectInstance current = player.getEffect(pair.getFirst().getEffect());
-        if (current == null || current.getDuration() < 100) {
-          return false;
-        }
+    // getEffects() returning Pair<MobEffectInstance,Float> is gone; FoodProperties.PossibleEffect replaces it,
+    // one per configured effect, its own MobEffectInstance always present (no null sentinel any more)
+    for (FoodProperties.PossibleEffect possibleEffect : food.effects()) {
+      MobEffectInstance current = player.getEffect(possibleEffect.effect().getEffect());
+      if (current == null || current.getDuration() < 100) {
+        return false;
       }
     }
     return true;
@@ -82,11 +81,13 @@ public class FoodCakeBlock extends CakeBlock {
       return InteractionResult.PASS;
     }
     player.awardStat(Stats.EAT_CAKE_SLICE);
-    // apply food stats
-    player.getFoodData().eat(food.getNutrition(), food.getSaturationModifier());
-    for (Pair<MobEffectInstance,Float> pair : food.getEffects()) {
-      if (!world.isClientSide() && pair.getFirst() != null && world.getRandom().nextFloat() < pair.getSecond()) {
-        MobEffectInstance effect = new MobEffectInstance(pair.getFirst());
+    // apply food stats; eat(FoodProperties) is the direct 1.21 replacement, and unlike the two-arg overload it
+    // takes saturation as an absolute value rather than a nutrition-scaled modifier, which is what this food's
+    // saturation field means now
+    player.getFoodData().eat(food);
+    for (FoodProperties.PossibleEffect possibleEffect : food.effects()) {
+      if (!world.isClientSide() && world.getRandom().nextFloat() < possibleEffect.probability()) {
+        MobEffectInstance effect = new MobEffectInstance(possibleEffect.effect());
         // if adding, increase duration by current duration, provided its an exact level match
         if (combination == EffectCombination.ADD) {
           MobEffectInstance current = player.getEffect(effect.getEffect());
