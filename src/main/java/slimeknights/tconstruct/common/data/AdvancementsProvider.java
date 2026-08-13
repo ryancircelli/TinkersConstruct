@@ -112,7 +112,10 @@ public class AdvancementsProvider extends GenericDataProvider {
   protected BiConsumer<ResourceLocation, WithConditions<Advancement>> conditionalConsumer;
 
   public AdvancementsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-    super(output, Target.DATA_PACK, "advancements");
+    // "advancement", singular, since 1.21 - the folder name is asked for rather than spelled out so this cannot drift
+    // from what the loader reads again. Vanilla's own AdvancementProvider takes the same route through
+    // PackOutput#createRegistryElementsPathProvider; this provider predates that helper and only needs the name.
+    super(output, Target.DATA_PACK, Registries.elementsDirPath(Registries.ADVANCEMENT));
     this.registries = registries;
   }
 

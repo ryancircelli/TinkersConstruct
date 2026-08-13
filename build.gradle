@@ -35,11 +35,23 @@ repositories {
     flatDir {
         dir "${rootDir}/../libs"
     }
-    // Gone with their dependencies, all pending T20 (compat/integration):
-    //   maven.blamejared.com   - CraftTweaker, Immersive Engineering, JEI
-    //   maven.tterrag.com      - The One Probe
-    //   dogforce-games.com     - JSON Things
-    //   cursemaven.com         - Diet, Balm, Crafting Tweaks, Moonlight, Mmm Mmm Mmm Mmm
+    maven { // Immersive Engineering, JEI
+        name = 'BlameJared Maven'
+        url = 'https://maven.blamejared.com'
+    }
+    maven { // JSON Things
+        name = 'Dogforce Games'
+        url = 'https://www.dogforce-games.com/maven/'
+    }
+    maven { // Crafting Tweaks
+        url = 'https://www.cursemaven.com'
+        content {
+            includeGroup 'curse.maven'
+        }
+    }
+    // Still gone, and staying gone until the mods behind them ship for 1.21.1:
+    //   maven.tterrag.com - The One Probe. The 1.20 build already had its dependency
+    //                       commented out and no source referenced it.
 }
 
 group = 'slimeknights.tconstruct'
@@ -758,13 +770,38 @@ dependencies {
     // configs' runtime classpath, where NeoForge's classpath mod locator picks it up as a mod.
     implementation "slimeknights.mantle:Mantle:${mantle_version}"
 
-    // pending, T20: JEI (compileOnly common+forge api, runtimeOnly full jar)
-    // pending, T20: Immersive Engineering
-    // pending, T20: JSON Things
-    // pending, T20: the CurseMaven compat/runtime mods - Diet, Balm, Crafting Tweaks,
-    //               Moonlight Lib, Mmm Mmm Mmm Mmm, The One Probe
-    // None of the source that references them has been ported, so nothing on the compiled
-    // source set needs them and none of them is published in a shape this build can consume.
+    // Compat. Every one of these is compileOnly: the plugin classes behind them are guarded by a
+    // ModList.isLoaded check in TConstruct's constructor and never touched when the mod is absent.
+    // JEI is the exception, because a JEI plugin is only worth anything with JEI actually running.
+    //
+    // compile against the JEI API but do not include it at runtime
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    // at runtime, use the full JEI jar
+    runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+
+    compileOnly "blusunrize.immersiveengineering:ImmersiveEngineering:${ie_version}"
+    compileOnly "dev.gigaherz.jsonthings:JsonThings-${minecraft_version}:${json_things_version}"
+    compileOnly "curse.maven:crafting-tweaks-233071:${crafting_tweaks_file}"
+
+    compileOnly "curse.maven:MmmMmmMmmMmm-225738:${dummy_file}"
+
+    // Dropped for 1.21.1, checked against the mod's own distribution on 2026-08-13:
+    //
+    //   Diet (curse.maven:diet-443570) - none of its 86 CurseForge files lists 1.21.1; the mod
+    //     stopped at 1.20.1 on Forge and 1.20.4 on Fabric, and it publishes nowhere else. There is
+    //     no artifact to compile against, so slimeknights/tconstruct/plugin/DietPlugin and its
+    //     isLoaded("diet") registration in TConstruct are deleted rather than kept compiling
+    //     against a stub of somebody else's API. ModifierUtil.foodConsumer keeps its no-op default
+    //     and simply has no setter call left in the tree.
+    //     Watch: a "diet" release listing 1.21.1. The plugin was eight lines over one method,
+    //     DietCapability.get(player).ifPresent(cap -> cap.consume(...)), and 1.21 would need that
+    //     method re-read anyway since Forge capabilities are gone; restoring it is one file, one
+    //     dependency line and one if.
+    //
+    //   Ceramics - not a dependency here (the compat is data-only, gated by mod_loaded conditions)
+    //     but in the same position: none of its 34 CurseForge files lists 1.21.1. See
+    //     SmelteryRecipeProvider's ceramics block for the two recipes that costs.
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
