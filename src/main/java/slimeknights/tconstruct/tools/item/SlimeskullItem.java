@@ -3,7 +3,6 @@ package slimeknights.tconstruct.tools.item;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
@@ -12,12 +11,10 @@ import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.client.armor.ArmorModelManager.ArmorModelDispatcher;
 import slimeknights.tconstruct.library.tools.definition.ModifiableArmorMaterial;
-import slimeknights.tconstruct.library.tools.helper.ArmorUtil;
 import slimeknights.tconstruct.library.tools.item.armor.ModifiableArmorItem;
 import slimeknights.tconstruct.tools.client.SlimeskullArmorModel;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 /** This item is mainly to return the proper model for a slimeskull */
@@ -36,11 +33,11 @@ public class SlimeskullItem extends ModifiableArmorItem {
     this(material, material.getId(), properties);
   }
 
-  @Nullable
-  @Override
-  public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
-    return ArmorUtil.getDummyArmorTexture(slot);
-  }
+  /*
+   * The getArmorTexture override is gone, for the reason MultilayerArmorItem's javadoc gives: it returned a blank
+   * dummy texture to stop vanilla's armor layer drawing over Tinkers' own model, and a 1.21 material with no
+   * ArmorMaterial#layers never reaches a texture lookup for vanilla's layer to make.
+   */
 
   @Override
   public void initializeClient(Consumer<IClientItemExtensions> consumer) {
@@ -53,7 +50,7 @@ public class SlimeskullItem extends ModifiableArmorItem {
       @Nonnull
       @Override
       public Model getGenericArmorModel(LivingEntity living, ItemStack stack, EquipmentSlot slot, HumanoidModel<?> original) {
-        return SlimeskullArmorModel.INSTANCE.setup(living, stack, original, getModel(stack));
+        return SlimeskullArmorModel.INSTANCE.setup(living, stack, slot, original, getModel(stack));
       }
     });
   }
