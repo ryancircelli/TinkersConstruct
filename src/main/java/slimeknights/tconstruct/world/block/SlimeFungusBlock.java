@@ -13,7 +13,8 @@ import slimeknights.tconstruct.world.TinkerWorld;
 /** Update of fungus that grows on slime soil instead */
 public class SlimeFungusBlock extends FungusBlock {
   public SlimeFungusBlock(Properties properties, ResourceKey<ConfiguredFeature<?,?>> fungusFeature) {
-    super(properties, fungusFeature, TinkerWorld.slimeDirt.get(DirtType.ICHOR));
+    // FungusBlock's constructor argument order changed to (feature, requiredBlock, properties)
+    super(fungusFeature, TinkerWorld.slimeDirt.get(DirtType.ICHOR), properties);
   }
 
   @Override

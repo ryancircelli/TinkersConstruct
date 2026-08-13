@@ -27,7 +27,8 @@ public class SlimeColorReloadListener extends SimplePreparableReloadListener<int
    */
   @Override
   protected int[] prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
-    if (!ModLoader.isLoadingStateValid()) {
+    // isLoadingStateValid is gone; hasErrors is its 1.21 equivalent - both guard "don't touch resources if mod loading itself is broken"
+    if (ModLoader.hasErrors()) {
       return new int[0];
     }
     try {

@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.world.entity;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
@@ -76,7 +78,7 @@ public abstract class ArmoredSlimeEntity extends Slime {
   }
 
   /** Adds an attribute if possible */
-  private void tryAddAttribute(Attribute attribute, AttributeModifier modifier) {
+  private void tryAddAttribute(Holder<Attribute> attribute, AttributeModifier modifier) {
     AttributeInstance instance = getAttribute(attribute);
     if (instance != null) {
       instance.addTransientModifier(modifier);
@@ -132,7 +134,10 @@ public abstract class ArmoredSlimeEntity extends Slime {
       slotChance = 0.25f;
     }
     boolean alwaysDrop = slotChance > 1.0F;
-    if (!stack.isEmpty() && !EnchantmentHelper.hasVanishingCurse(stack) && (recentlyHit || alwaysDrop)) {
+    // Vanishing Curse itself is gone as a named check: 1.21 expresses "does not drop" as the generic
+    // prevent-equipment-drop enchantment effect, which is what Vanishing Curse's own enchantment JSON now grants
+    // (verified against Enchantments.java's bootstrap: VANISHING_CURSE withEffect(PREVENT_EQUIPMENT_DROP)).
+    if (!stack.isEmpty() && !EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP) && (recentlyHit || alwaysDrop)) {
       // 1.21 delivers looting to loot tables directly; a hand-rolled drop like this one has to look the killer's level up itself
       int looting = this.lastHurtByPlayer != null
         ? EnchantmentHelper.getEnchantmentLevel(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.LOOTING), this.lastHurtByPlayer)
@@ -202,7 +207,7 @@ public abstract class ArmoredSlimeEntity extends Slime {
     if (reason == Entity.RemovalReason.KILLED) {
       this.gameEvent(GameEvent.ENTITY_DIE);
     }
-    this.invalidateCaps();
+    // no invalidateCaps: gone in 1.21 with the LazyOptional capability system (M9 §2), nothing to invalidate
   }
 
   @Override
