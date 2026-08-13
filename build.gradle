@@ -583,7 +583,7 @@ tasks.register('errorBudgetUpdate', Copy) {
 tasks.register('errorBudgetTest') {
     group = 'verification'
     description = 'Compiles porting/island-test.txt alongside the island and counts the errors in the test files.'
-    dependsOn 'classes'
+    dependsOn 'classes', 'testClasses'
 
     def islandEntries = readFrontier(islandLedger)
     def testIsland = frontiers.find { it.name == 'test' }
@@ -592,9 +592,12 @@ tasks.register('errorBudgetTest') {
     def projectDirectory = projectDir
     def sources = files((islandEntries + testIslandEntries).collect { file(it) })
     // Both, and the union is the point: the test classpath carries JUnit, Mockito and AssertJ,
-    // the island's own carries Minecraft, NeoForge and Mantle. sourceSets.main.output joins them
-    // since T13, for the reason errorBudget states: the island is no longer closed.
-    def compileClasspath = sourceSets.main.output + sourceSets.main.compileClasspath + sourceSets.test.compileClasspath
+    // the island's own carries Minecraft, NeoForge and Mantle. Both source sets' *output* joins
+    // them since T13, for the reason errorBudget states - neither island is closed any more.
+    // The test output matters as much as the main one: BaseMcTest, RoundTripAssertions and
+    // FixtureFiles left the test island in T13 and are what the 39 files still on it extend.
+    def compileClasspath = sourceSets.main.output + sourceSets.test.output +
+            sourceSets.main.compileClasspath + sourceSets.test.compileClasspath
     def processorPath = sourceSets.main.annotationProcessorPath + sourceSets.test.annotationProcessorPath
     def javac = javaToolchains.compilerFor(java.toolchain).map { it.executablePath.asFile.absolutePath }
     def outputDir = layout.buildDirectory.dir('errorBudgetTest')
