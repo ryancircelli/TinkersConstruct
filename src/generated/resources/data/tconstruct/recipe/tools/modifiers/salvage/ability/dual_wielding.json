@@ -5,9 +5,9 @@
     "abilities": 1
   },
   "tools": {
-    "type": "forge:difference",
+    "type": "neoforge:difference",
     "base": {
-      "type": "forge:intersection",
+      "type": "neoforge:intersection",
       "children": [
         {
           "tag": "tconstruct:modifiable/melee/weapon"

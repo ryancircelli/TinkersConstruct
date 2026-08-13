@@ -12,7 +12,6 @@
   ],
   "result": {
     "count": 5,
-    "item": "tconstruct:scorched_channel"
-  },
-  "show_notification": true
+    "id": "tconstruct:scorched_channel"
+  }
 }

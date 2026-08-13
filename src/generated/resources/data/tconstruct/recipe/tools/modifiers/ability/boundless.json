@@ -3,22 +3,23 @@
   "allow_crystal": true,
   "inputs": [
     {
-      "amount_needed": 4,
+      "count": 4,
       "item": "tconstruct:obsidian_pane"
     },
     {
+      "count": 1,
       "item": "minecraft:writable_book"
     },
     {
-      "amount_needed": 4,
+      "count": 4,
       "item": "tconstruct:obsidian_pane"
     },
     {
-      "amount_needed": 2,
+      "count": 2,
       "item": "tconstruct:ichor_slime_crystal"
     },
     {
-      "amount_needed": 2,
+      "count": 2,
       "item": "tconstruct:ichor_slime_crystal"
     }
   ],

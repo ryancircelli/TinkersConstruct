@@ -1,20 +1,20 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:gears/copper"
+    }
+  ],
   "type": "tconstruct:casting_table",
   "cast": {
     "tag": "tconstruct:casts/multi_use/gear"
   },
-  "conditions": [
-    {
-      "type": "mantle:tag_filled",
-      "tag": "forge:gears/copper"
-    }
-  ],
   "cooling_time": 100,
   "fluid": {
     "amount": 360,
-    "tag": "forge:molten_copper"
+    "tag": "c:molten_copper"
   },
   "result": {
-    "tag": "forge:gears/copper"
+    "tag": "c:gears/copper"
   }
 }

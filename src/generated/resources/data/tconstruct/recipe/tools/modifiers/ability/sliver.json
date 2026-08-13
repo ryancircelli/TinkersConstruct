@@ -3,18 +3,23 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "tconstruct:silky_cloth"
     },
     {
+      "count": 1,
       "item": "tconstruct:sky_slime_vine"
     },
     {
+      "count": 1,
       "item": "tconstruct:silky_cloth"
     },
     {
+      "count": 1,
       "item": "tconstruct:sky_slime_vine"
     },
     {
+      "count": 1,
       "item": "tconstruct:sky_slime_vine"
     }
   ],

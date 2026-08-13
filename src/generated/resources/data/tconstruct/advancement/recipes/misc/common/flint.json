@@ -1,13 +1,17 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "tconstruct:config",
+      "prop": "gravel_to_flint"
+    }
+  ],
   "parent": "minecraft:recipes/root",
   "criteria": {
     "has_item": {
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:gravel"
-            ]
+            "items": "minecraft:gravel"
           }
         ]
       },
@@ -22,14 +26,13 @@
   },
   "requirements": [
     [
-      "has_item",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_item"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:common/flint"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

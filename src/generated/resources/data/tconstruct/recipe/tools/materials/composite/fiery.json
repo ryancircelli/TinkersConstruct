@@ -1,11 +1,11 @@
 {
-  "type": "tconstruct:material_fluid",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_filled",
-      "tag": "forge:ingots/fiery"
+      "tag": "c:ingots/fiery"
     }
   ],
+  "type": "tconstruct:material_fluid",
   "fluid": {
     "amount": 250,
     "tag": "tconstruct:fiery_liquid"

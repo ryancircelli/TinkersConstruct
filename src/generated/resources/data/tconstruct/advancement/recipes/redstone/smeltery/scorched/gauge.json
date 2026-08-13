@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:obsidian_pane"
-            ]
+            "items": "tconstruct:obsidian_pane"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_item",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_item"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:smeltery/scorched/gauge"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

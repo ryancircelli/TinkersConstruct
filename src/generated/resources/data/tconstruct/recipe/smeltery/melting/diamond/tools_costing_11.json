@@ -1,11 +1,11 @@
 {
-  "type": "tconstruct:damagable_melting",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_filled",
       "tag": "tconstruct:melting/diamond/tools_costing_11"
     }
   ],
+  "type": "tconstruct:damagable_melting",
   "ingredient": {
     "tag": "tconstruct:melting/diamond/tools_costing_11"
   },

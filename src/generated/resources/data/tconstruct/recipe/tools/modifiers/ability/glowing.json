@@ -4,12 +4,15 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:glowstone"
     },
     {
+      "count": 1,
       "item": "minecraft:daylight_detector"
     },
     {
+      "count": 1,
       "item": "minecraft:shroomlight"
     }
   ],
@@ -19,19 +22,22 @@
     "abilities": 1
   },
   "tools": {
-    "type": "forge:intersection",
+    "type": "neoforge:intersection",
     "children": [
       {
         "tag": "tconstruct:modifiable/durability"
       },
-      [
-        {
-          "tag": "tconstruct:modifiable/interactable"
-        },
-        {
-          "tag": "tconstruct:modifiable/armor/boots"
-        }
-      ]
+      {
+        "type": "neoforge:compound",
+        "children": [
+          {
+            "tag": "tconstruct:modifiable/interactable"
+          },
+          {
+            "tag": "tconstruct:modifiable/armor/boots"
+          }
+        ]
+      }
     ]
   }
 }

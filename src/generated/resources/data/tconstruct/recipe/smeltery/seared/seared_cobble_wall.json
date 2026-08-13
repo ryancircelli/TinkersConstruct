@@ -13,7 +13,6 @@
   ],
   "result": {
     "count": 6,
-    "item": "tconstruct:seared_cobble_wall"
-  },
-  "show_notification": true
+    "id": "tconstruct:seared_cobble_wall"
+  }
 }

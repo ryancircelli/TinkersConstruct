@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "forge:ingots/gold"
+            "items": "#c:ingots/gold"
           }
         ]
       },
@@ -20,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_gold",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_gold"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:common/gold_platform"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -1,11 +1,17 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "tconstruct:config",
+      "prop": "slime_recipe_fix"
+    }
+  ],
   "parent": "minecraft:recipes/root",
   "criteria": {
     "has_slime_ball": {
       "conditions": {
         "items": [
           {
-            "tag": "forge:slimeballs"
+            "items": "#c:slimeballs"
           }
         ]
       },
@@ -20,14 +26,13 @@
   },
   "requirements": [
     [
-      "has_slime_ball",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_slime_ball"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:common/slime/lead"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

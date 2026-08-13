@@ -5,7 +5,9 @@
   },
   "pattern": {
     "type": "tconstruct:material",
-    "item": "tconstruct:hammer_head"
+    "match": {
+      "item": "tconstruct:hammer_head"
+    }
   },
   "result": "tconstruct:hammer_head_red_sand_cast"
 }

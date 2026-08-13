@@ -1,79 +1,40 @@
 {
-  "type": "forge:conditional",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_combination_filled",
       "ignore": "tconstruct:non_singular_ore_rates",
-      "match": "forge:ores/tin"
-    }
-  ],
-  "recipes": [
-    {
-      "conditions": [
-        {
-          "type": "mantle:tag_filled",
-          "tag": "forge:ingots/nickel"
-        }
-      ],
-      "recipe": {
-        "type": "tconstruct:ore_melting",
-        "byproducts": [
-          {
-            "amount": 180,
-            "rate": "metal",
-            "tag": "forge:molten_nickel"
-          }
-        ],
-        "ingredient": {
-          "type": "forge:difference",
-          "base": {
-            "tag": "forge:ores/tin"
-          },
-          "subtracted": {
-            "tag": "tconstruct:non_singular_ore_rates"
-          }
-        },
-        "rate": "metal",
-        "result": {
-          "amount": 180,
-          "tag": "forge:molten_tin"
-        },
-        "temperature": 225,
-        "time": 98
-      }
+      "match": "c:ores/tin"
     },
     {
-      "conditions": [
-        {
-          "type": "neoforge:true"
-        }
-      ],
-      "recipe": {
-        "type": "tconstruct:ore_melting",
-        "byproducts": [
-          {
-            "amount": 180,
-            "rate": "metal",
-            "tag": "forge:molten_copper"
-          }
-        ],
-        "ingredient": {
-          "type": "forge:difference",
-          "base": {
-            "tag": "forge:ores/tin"
-          },
-          "subtracted": {
-            "tag": "tconstruct:non_singular_ore_rates"
-          }
-        },
-        "rate": "metal",
-        "result": {
-          "amount": 180,
-          "tag": "forge:molten_tin"
-        },
-        "temperature": 225,
-        "time": 98
+      "type": "neoforge:not",
+      "value": {
+        "type": "mantle:tag_filled",
+        "tag": "c:ingots/nickel"
       }
     }
-  ]
+  ],
+  "type": "tconstruct:ore_melting",
+  "byproducts": [
+    {
+      "amount": 180,
+      "rate": "metal",
+      "tag": "c:molten_copper"
+    }
+  ],
+  "ingredient": {
+    "type": "neoforge:difference",
+    "base": {
+      "tag": "c:ores/tin"
+    },
+    "subtracted": {
+      "tag": "tconstruct:non_singular_ore_rates"
+    }
+  },
+  "rate": "metal",
+  "result": {
+    "amount": 180,
+    "tag": "c:molten_tin"
+  },
+  "temperature": 225,
+  "time": 98
 }

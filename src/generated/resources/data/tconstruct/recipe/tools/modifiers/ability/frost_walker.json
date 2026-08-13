@@ -3,18 +3,23 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:blue_ice"
     },
     {
+      "count": 1,
       "item": "tconstruct:stray_head"
     },
     {
+      "count": 1,
       "item": "minecraft:blue_ice"
     },
     {
+      "count": 1,
       "item": "minecraft:blue_ice"
     },
     {
+      "count": 1,
       "item": "minecraft:blue_ice"
     }
   ],

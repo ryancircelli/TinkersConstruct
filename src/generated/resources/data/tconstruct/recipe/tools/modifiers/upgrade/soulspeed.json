@@ -3,12 +3,15 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:magma_block"
     },
     {
+      "count": 1,
       "item": "minecraft:crying_obsidian"
     },
     {
+      "count": 1,
       "item": "minecraft:magma_block"
     }
   ],

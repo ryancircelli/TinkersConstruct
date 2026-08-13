@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "tconstruct:foundry_bricks"
+            "items": "#tconstruct:foundry_bricks"
           }
         ]
       },
@@ -20,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_item",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_item"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:smeltery/scorched/drain_retextured"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

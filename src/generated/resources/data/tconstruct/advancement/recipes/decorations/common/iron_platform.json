@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "forge:ingots/iron"
+            "items": "#c:ingots/iron"
           }
         ]
       },
@@ -20,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_bars",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_bars"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:common/iron_platform"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

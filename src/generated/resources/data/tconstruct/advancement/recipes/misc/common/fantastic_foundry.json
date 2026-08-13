@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:nether_grout"
-            ]
+            "items": "tconstruct:nether_grout"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_item",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_item"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:common/fantastic_foundry"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

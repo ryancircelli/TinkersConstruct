@@ -4,18 +4,23 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "tag": "minecraft:planks"
     },
     {
-      "tag": "forge:ingots/steel"
+      "count": 1,
+      "tag": "c:ingots/steel"
     },
     {
+      "count": 1,
       "tag": "minecraft:planks"
     },
     {
+      "count": 1,
       "tag": "minecraft:planks"
     },
     {
+      "count": 1,
       "tag": "minecraft:planks"
     }
   ],
@@ -25,9 +30,9 @@
     "abilities": 1
   },
   "tools": {
-    "type": "forge:difference",
+    "type": "neoforge:difference",
     "base": {
-      "type": "forge:intersection",
+      "type": "neoforge:intersection",
       "children": [
         {
           "tag": "tconstruct:modifiable/interactable/charge"

@@ -1,79 +1,40 @@
 {
-  "type": "forge:conditional",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_combination_filled",
       "ignore": "tconstruct:non_singular_ore_rates",
-      "match": "forge:ores/zinc"
-    }
-  ],
-  "recipes": [
-    {
-      "conditions": [
-        {
-          "type": "mantle:tag_filled",
-          "tag": "forge:ingots/tin"
-        }
-      ],
-      "recipe": {
-        "type": "tconstruct:ore_melting",
-        "byproducts": [
-          {
-            "amount": 180,
-            "rate": "metal",
-            "tag": "forge:molten_tin"
-          }
-        ],
-        "ingredient": {
-          "type": "forge:difference",
-          "base": {
-            "tag": "forge:ores/zinc"
-          },
-          "subtracted": {
-            "tag": "tconstruct:non_singular_ore_rates"
-          }
-        },
-        "rate": "metal",
-        "result": {
-          "amount": 180,
-          "tag": "forge:molten_zinc"
-        },
-        "temperature": 420,
-        "time": 117
-      }
+      "match": "c:ores/zinc"
     },
     {
-      "conditions": [
-        {
-          "type": "neoforge:true"
-        }
-      ],
-      "recipe": {
-        "type": "tconstruct:ore_melting",
-        "byproducts": [
-          {
-            "amount": 180,
-            "rate": "metal",
-            "tag": "forge:molten_copper"
-          }
-        ],
-        "ingredient": {
-          "type": "forge:difference",
-          "base": {
-            "tag": "forge:ores/zinc"
-          },
-          "subtracted": {
-            "tag": "tconstruct:non_singular_ore_rates"
-          }
-        },
-        "rate": "metal",
-        "result": {
-          "amount": 180,
-          "tag": "forge:molten_zinc"
-        },
-        "temperature": 420,
-        "time": 117
+      "type": "neoforge:not",
+      "value": {
+        "type": "mantle:tag_filled",
+        "tag": "c:ingots/tin"
       }
     }
-  ]
+  ],
+  "type": "tconstruct:ore_melting",
+  "byproducts": [
+    {
+      "amount": 180,
+      "rate": "metal",
+      "tag": "c:molten_copper"
+    }
+  ],
+  "ingredient": {
+    "type": "neoforge:difference",
+    "base": {
+      "tag": "c:ores/zinc"
+    },
+    "subtracted": {
+      "tag": "tconstruct:non_singular_ore_rates"
+    }
+  },
+  "rate": "metal",
+  "result": {
+    "amount": 180,
+    "tag": "c:molten_zinc"
+  },
+  "temperature": 420,
+  "time": 117
 }

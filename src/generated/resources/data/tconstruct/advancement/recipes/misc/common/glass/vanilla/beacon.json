@@ -1,13 +1,17 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "tconstruct:config",
+      "prop": "glass_recipe_fix"
+    }
+  ],
   "parent": "minecraft:recipes/root",
   "criteria": {
     "has_nether_star": {
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:nether_star"
-            ]
+            "items": "minecraft:nether_star"
           }
         ]
       },
@@ -22,14 +26,13 @@
   },
   "requirements": [
     [
-      "has_nether_star",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_nether_star"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:common/glass/vanilla/beacon"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

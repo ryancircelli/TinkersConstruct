@@ -4,12 +4,15 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:leather"
     },
     {
+      "count": 1,
       "item": "minecraft:crafting_table"
     },
     {
+      "count": 1,
       "item": "minecraft:leather"
     }
   ],

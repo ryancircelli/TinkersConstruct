@@ -11,5 +11,8 @@
       "item": "tconstruct:cobalt_ore"
     }
   ],
-  "result": "tconstruct:cobalt_ingot"
+  "result": {
+    "count": 1,
+    "id": "tconstruct:cobalt_ingot"
+  }
 }

@@ -5,7 +5,9 @@
   },
   "pattern": {
     "type": "tconstruct:material",
-    "item": "tconstruct:repair_kit"
+    "match": {
+      "item": "tconstruct:repair_kit"
+    }
   },
   "result": "tconstruct:repair_kit_sand_cast"
 }

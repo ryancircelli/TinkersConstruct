@@ -3,8 +3,5 @@
   "ingredient": {
     "item": "tconstruct:ender_slime_bottle"
   },
-  "restore_amount": 80,
-  "tools": {
-    "tag": "tconstruct:modifiable/durability"
-  }
+  "restore_amount": 80
 }

@@ -1,16 +1,16 @@
 {
-  "type": "tconstruct:molding_table",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_filled",
-      "tag": "forge:plates"
+      "tag": "c:plates"
     }
   ],
+  "type": "tconstruct:molding_table",
   "material": {
     "tag": "tconstruct:casts/sand"
   },
   "pattern": {
-    "tag": "forge:plates"
+    "tag": "c:plates"
   },
   "result": "tconstruct:plate_sand_cast"
 }

@@ -21,7 +21,7 @@
     "WWW"
   ],
   "result": {
-    "item": "tconstruct:earth_cake"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "tconstruct:earth_cake"
+  }
 }

@@ -3,19 +3,24 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:piston"
     },
     {
-      "tag": "forge:ingots/queens_slime"
+      "count": 1,
+      "tag": "c:ingots/queens_slime"
     },
     {
+      "count": 1,
       "item": "minecraft:piston"
     },
     {
-      "tag": "forge:slimeball/ender"
+      "count": 1,
+      "tag": "c:slimeball/ender"
     },
     {
-      "tag": "forge:slimeball/ender"
+      "count": 1,
+      "tag": "c:slimeball/ender"
     }
   ],
   "level": {

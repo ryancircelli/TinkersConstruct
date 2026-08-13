@@ -21,7 +21,7 @@
     "WWW"
   ],
   "result": {
-    "item": "tconstruct:sky_cake"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "tconstruct:sky_cake"
+  }
 }

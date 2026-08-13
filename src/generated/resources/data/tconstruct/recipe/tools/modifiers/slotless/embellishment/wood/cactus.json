@@ -3,12 +3,15 @@
   "allow_crystal": false,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:cactus"
     },
     {
+      "count": 1,
       "item": "tconstruct:pattern"
     },
     {
+      "count": 1,
       "item": "minecraft:cactus"
     }
   ],

@@ -2,10 +2,12 @@
   "type": "tconstruct:enchantment_converting",
   "inputs": [
     {
+      "count": 1,
       "item": "tconstruct:earth_slime_crystal"
     },
     {
-      "tag": "forge:ingots/gold"
+      "count": 1,
+      "tag": "c:ingots/gold"
     }
   ],
   "match_book": true,

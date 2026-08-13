@@ -21,7 +21,8 @@
         "feet",
         "legs",
         "chest",
-        "head"
+        "head",
+        "body"
       ],
       "tool": {
         "type": "mantle:tag",

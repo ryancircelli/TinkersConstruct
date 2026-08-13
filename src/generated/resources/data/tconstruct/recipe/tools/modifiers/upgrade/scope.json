@@ -4,12 +4,15 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:sugar"
     },
     {
+      "count": 1,
       "item": "minecraft:spyglass"
     },
     {
+      "count": 1,
       "item": "minecraft:sugar"
     }
   ],

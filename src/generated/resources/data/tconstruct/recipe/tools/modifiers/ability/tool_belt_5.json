@@ -3,12 +3,15 @@
   "allow_crystal": false,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:leather"
     },
     {
-      "tag": "forge:ingots/hepatizon"
+      "count": 1,
+      "tag": "c:ingots/hepatizon"
     },
     {
+      "count": 1,
       "item": "minecraft:leather"
     }
   ],

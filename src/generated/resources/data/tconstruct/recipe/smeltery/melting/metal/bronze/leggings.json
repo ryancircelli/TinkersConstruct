@@ -1,17 +1,17 @@
 {
-  "type": "tconstruct:damagable_melting",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_filled",
       "tag": "tconstruct:melting/bronze/tools_costing_7"
     }
   ],
+  "type": "tconstruct:damagable_melting",
   "ingredient": {
     "tag": "tconstruct:melting/bronze/tools_costing_7"
   },
   "result": {
     "amount": 630,
-    "tag": "forge:molten_bronze",
+    "tag": "c:molten_bronze",
     "unit_size": 10
   },
   "temperature": 700,

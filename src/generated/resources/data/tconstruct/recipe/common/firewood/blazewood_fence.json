@@ -12,7 +12,6 @@
   ],
   "result": {
     "count": 6,
-    "item": "tconstruct:blazewood_fence"
-  },
-  "show_notification": true
+    "id": "tconstruct:blazewood_fence"
+  }
 }

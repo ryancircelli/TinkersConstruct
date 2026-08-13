@@ -4,18 +4,23 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "item": "tconstruct:silky_cloth"
     },
     {
+      "count": 1,
       "item": "tconstruct:silky_cloth"
     },
     {
+      "count": 1,
       "item": "tconstruct:silky_cloth"
     },
     {
+      "count": 1,
       "item": "tconstruct:silky_cloth"
     },
     {
+      "count": 1,
       "item": "tconstruct:silky_cloth"
     }
   ],

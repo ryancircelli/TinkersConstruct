@@ -3,11 +3,11 @@
   "byproducts": [
     {
       "amount": 30,
-      "tag": "forge:molten_netherite"
+      "tag": "c:molten_netherite"
     }
   ],
   "ingredient": {
-    "tag": "forge:ores/netherite_scrap"
+    "tag": "c:ores/netherite_scrap"
   },
   "rate": "metal",
   "result": {

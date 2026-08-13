@@ -5,7 +5,9 @@
   },
   "pattern": {
     "type": "tconstruct:material",
-    "item": "tconstruct:pick_head"
+    "match": {
+      "item": "tconstruct:pick_head"
+    }
   },
   "result": "tconstruct:pick_head_sand_cast"
 }

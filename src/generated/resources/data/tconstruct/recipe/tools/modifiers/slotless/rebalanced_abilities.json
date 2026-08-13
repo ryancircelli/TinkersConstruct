@@ -3,18 +3,23 @@
   "allow_crystal": false,
   "inputs": [
     {
-      "tag": "forge:nuggets/queens_slime"
+      "count": 1,
+      "tag": "c:nuggets/queens_slime"
     },
     {
+      "count": 1,
       "item": "minecraft:end_crystal"
     },
     {
-      "tag": "forge:nuggets/queens_slime"
+      "count": 1,
+      "tag": "c:nuggets/queens_slime"
     },
     {
+      "count": 1,
       "item": "tconstruct:ichor_slime_crystal_block"
     },
     {
+      "count": 1,
       "item": "tconstruct:ichor_slime_crystal_block"
     }
   ],

@@ -12,7 +12,8 @@
         "feet",
         "legs",
         "chest",
-        "head"
+        "head",
+        "body"
       ],
       "tooltip_style": "percent"
     },
@@ -27,7 +28,8 @@
         "feet",
         "legs",
         "chest",
-        "head"
+        "head",
+        "body"
       ],
       "tooltip_style": "percent"
     },

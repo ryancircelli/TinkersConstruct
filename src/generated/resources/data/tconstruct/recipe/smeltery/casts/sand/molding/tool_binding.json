@@ -5,7 +5,9 @@
   },
   "pattern": {
     "type": "tconstruct:material",
-    "item": "tconstruct:tool_binding"
+    "match": {
+      "item": "tconstruct:tool_binding"
+    }
   },
   "result": "tconstruct:tool_binding_sand_cast"
 }

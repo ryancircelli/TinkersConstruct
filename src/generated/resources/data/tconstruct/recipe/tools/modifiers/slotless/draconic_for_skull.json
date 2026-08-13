@@ -3,16 +3,18 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:dragon_head"
     },
     {
-      "tag": "forge:slimeballs"
+      "count": 1,
+      "tag": "c:slimeballs"
     }
   ],
   "level": 1,
   "result": "tconstruct:draconic",
   "tools": {
-    "type": "forge:intersection",
+    "type": "neoforge:intersection",
     "children": [
       {
         "tag": "tconstruct:modifiable/bonus_slots"

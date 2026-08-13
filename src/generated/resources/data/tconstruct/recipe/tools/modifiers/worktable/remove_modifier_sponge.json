@@ -2,6 +2,7 @@
   "type": "tconstruct:remove_modifier",
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:wet_sponge"
     }
   ],
@@ -15,6 +16,7 @@
   },
   "name": "modifiers",
   "tools": {
+    "count": 1,
     "tag": "tconstruct:modifiable"
   }
 }

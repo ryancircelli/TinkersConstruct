@@ -9,13 +9,12 @@
       "item": "tconstruct:obsidian_pane"
     }
   },
-  "match_all": false,
   "pattern": [
     "C#C"
   ],
   "result": {
-    "item": "tconstruct:scorched_drain"
+    "count": 1,
+    "id": "tconstruct:scorched_drain"
   },
-  "show_notification": true,
   "texture": "#"
 }

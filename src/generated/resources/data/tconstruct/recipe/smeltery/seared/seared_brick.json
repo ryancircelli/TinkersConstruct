@@ -6,5 +6,8 @@
   "ingredient": {
     "item": "tconstruct:grout"
   },
-  "result": "tconstruct:seared_brick"
+  "result": {
+    "count": 1,
+    "id": "tconstruct:seared_brick"
+  }
 }

@@ -8,7 +8,9 @@
   ],
   "ingredient": {
     "type": "tconstruct:no_container",
-    "item": "tconstruct:scorched_fuel_tank"
+    "match": {
+      "item": "tconstruct:scorched_fuel_tank"
+    }
   },
   "result": {
     "amount": 2000,

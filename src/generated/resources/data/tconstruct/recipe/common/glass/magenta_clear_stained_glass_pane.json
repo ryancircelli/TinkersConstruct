@@ -13,7 +13,6 @@
   ],
   "result": {
     "count": 16,
-    "item": "tconstruct:magenta_clear_stained_glass_pane"
-  },
-  "show_notification": true
+    "id": "tconstruct:magenta_clear_stained_glass_pane"
+  }
 }

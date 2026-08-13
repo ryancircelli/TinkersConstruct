@@ -1,13 +1,13 @@
 {
-  "type": "tconstruct:melting",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_filled",
-      "tag": "forge:raw_materials/knightmetal"
+      "tag": "c:raw_materials/knightmetal"
     }
   ],
+  "type": "tconstruct:melting",
   "ingredient": {
-    "tag": "forge:raw_materials/knightmetal"
+    "tag": "c:raw_materials/knightmetal"
   },
   "result": {
     "amount": 90,

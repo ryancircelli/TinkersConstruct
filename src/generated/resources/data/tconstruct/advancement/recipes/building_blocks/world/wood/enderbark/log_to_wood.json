@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:enderbark_log"
-            ]
+            "items": "tconstruct:enderbark_log"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_log",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_log"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:world/wood/enderbark/log_to_wood"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

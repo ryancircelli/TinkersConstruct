@@ -3,9 +3,11 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:piston"
     },
     {
+      "count": 1,
       "item": "tconstruct:sky_slime"
     }
   ],

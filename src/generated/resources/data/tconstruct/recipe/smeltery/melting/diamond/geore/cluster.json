@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:geore_clusters/diamond"
+    }
+  ],
   "type": "tconstruct:ore_melting",
   "byproducts": [
     {
@@ -7,14 +13,8 @@
       "rate": "metal"
     }
   ],
-  "conditions": [
-    {
-      "type": "mantle:tag_filled",
-      "tag": "forge:geore_clusters/diamond"
-    }
-  ],
   "ingredient": {
-    "tag": "forge:geore_clusters/diamond"
+    "tag": "c:geore_clusters/diamond"
   },
   "rate": "gem",
   "result": {

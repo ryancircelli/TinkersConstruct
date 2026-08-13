@@ -4,7 +4,9 @@
   "key": {
     "m": {
       "type": "tconstruct:material",
-      "item": "tconstruct:fake_storage_block",
+      "match": {
+        "item": "tconstruct:fake_storage_block"
+      },
       "material": {
         "type": "mantle:tag",
         "tag": "tconstruct:compatibility_metals/alloys"
@@ -21,7 +23,7 @@
     "sss"
   ],
   "result": {
-    "item": "tconstruct:scorched_anvil"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "tconstruct:scorched_anvil"
+  }
 }

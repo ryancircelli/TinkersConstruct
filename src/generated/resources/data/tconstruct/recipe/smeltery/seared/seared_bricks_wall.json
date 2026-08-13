@@ -13,7 +13,6 @@
   ],
   "result": {
     "count": 6,
-    "item": "tconstruct:seared_bricks_wall"
-  },
-  "show_notification": true
+    "id": "tconstruct:seared_bricks_wall"
+  }
 }

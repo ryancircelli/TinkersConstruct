@@ -4,13 +4,16 @@
   "check_trait_level": true,
   "inputs": [
     {
-      "tag": "forge:ingots/hepatizon"
+      "count": 1,
+      "tag": "c:ingots/hepatizon"
     },
     {
+      "count": 1,
       "item": "minecraft:chain"
     },
     {
-      "tag": "forge:ingots/hepatizon"
+      "count": 1,
+      "tag": "c:ingots/hepatizon"
     }
   ],
   "level": 1,

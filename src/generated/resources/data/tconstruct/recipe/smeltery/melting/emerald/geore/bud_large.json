@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:geore_large_buds/emerald"
+    }
+  ],
   "type": "tconstruct:ore_melting",
   "byproducts": [
     {
@@ -7,14 +13,8 @@
       "rate": "gem"
     }
   ],
-  "conditions": [
-    {
-      "type": "mantle:tag_filled",
-      "tag": "forge:geore_large_buds/emerald"
-    }
-  ],
   "ingredient": {
-    "tag": "forge:geore_large_buds/emerald"
+    "tag": "c:geore_large_buds/emerald"
   },
   "rate": "gem",
   "result": {

@@ -3,10 +3,11 @@
   "allow_crystal": true,
   "inputs": [
     {
-      "type": "forge:difference",
+      "type": "neoforge:difference",
       "base": {
-        "tag": "forge:heads"
+        "tag": "minecraft:skulls"
       },
+      "count": 1,
       "subtracted": {
         "item": "minecraft:dragon_head"
       }
@@ -15,7 +16,7 @@
   "level": 1,
   "result": "tconstruct:recapitated",
   "tools": {
-    "type": "forge:difference",
+    "type": "neoforge:difference",
     "base": {
       "tag": "tconstruct:modifiable/bonus_slots"
     },

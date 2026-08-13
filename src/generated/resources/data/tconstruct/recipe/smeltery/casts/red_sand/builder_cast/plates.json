@@ -1,11 +1,11 @@
 {
-  "type": "tconstruct:item_part_builder",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_filled",
-      "tag": "forge:plates"
+      "tag": "c:plates"
     }
   ],
+  "type": "tconstruct:item_part_builder",
   "pattern": "tconstruct:plate",
   "pattern_item": {
     "tag": "tconstruct:casts/red_sand"

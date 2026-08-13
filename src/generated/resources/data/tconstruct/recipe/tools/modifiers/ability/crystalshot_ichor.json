@@ -3,19 +3,24 @@
   "allow_crystal": false,
   "inputs": [
     {
+      "count": 1,
       "item": "tconstruct:ichor_slime_crystal_cluster"
     },
     {
+      "count": 1,
       "item": "minecraft:blaze_rod"
     },
     {
+      "count": 1,
       "item": "tconstruct:ichor_slime_crystal_cluster"
     },
     {
-      "tag": "forge:ingots/manyullyn"
+      "count": 1,
+      "tag": "c:ingots/manyullyn"
     },
     {
-      "tag": "forge:ingots/manyullyn"
+      "count": 1,
+      "tag": "c:ingots/manyullyn"
     }
   ],
   "result": {

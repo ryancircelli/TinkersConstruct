@@ -1,12 +1,12 @@
 {
-  "type": "minecraft:crafting_shapeless",
-  "category": "misc",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "tconstruct:config",
       "prop": "gravel_to_flint"
     }
   ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
   "ingredients": [
     {
       "item": "minecraft:gravel"
@@ -19,6 +19,7 @@
     }
   ],
   "result": {
-    "item": "minecraft:flint"
+    "count": 1,
+    "id": "minecraft:flint"
   }
 }

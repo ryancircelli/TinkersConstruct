@@ -3,7 +3,7 @@
   "allow_crystal": false,
   "amount_per_item": 9,
   "input": {
-    "tag": "forge:storage_blocks/lapis"
+    "tag": "c:storage_blocks/lapis"
   },
   "level": {
     "max": 5

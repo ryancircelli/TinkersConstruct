@@ -16,7 +16,6 @@
   ],
   "result": {
     "count": 4,
-    "item": "tconstruct:seared_ladder"
-  },
-  "show_notification": true
+    "id": "tconstruct:seared_ladder"
+  }
 }

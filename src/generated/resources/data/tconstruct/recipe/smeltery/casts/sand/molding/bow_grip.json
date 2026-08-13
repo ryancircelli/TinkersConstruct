@@ -5,7 +5,9 @@
   },
   "pattern": {
     "type": "tconstruct:material",
-    "item": "tconstruct:bow_grip"
+    "match": {
+      "item": "tconstruct:bow_grip"
+    }
   },
   "result": "tconstruct:bow_grip_sand_cast"
 }

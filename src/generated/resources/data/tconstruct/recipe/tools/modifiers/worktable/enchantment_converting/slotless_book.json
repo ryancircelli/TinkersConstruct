@@ -2,6 +2,7 @@
   "type": "tconstruct:enchantment_converting",
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:amethyst_shard"
     }
   ],

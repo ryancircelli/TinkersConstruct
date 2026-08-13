@@ -2,18 +2,20 @@
   "type": "tconstruct:casting_table",
   "cast": [
     {
-      "type": "tconstruct:material",
-      "item": "tconstruct:leggings_plating"
+      "item": "tconstruct:leggings_plating_dummy"
     },
     {
-      "item": "tconstruct:leggings_plating_dummy"
+      "type": "tconstruct:material",
+      "match": {
+        "item": "tconstruct:leggings_plating"
+      }
     }
   ],
   "cast_consumed": true,
   "cooling_time": 57,
   "fluid": {
     "amount": 90,
-    "tag": "forge:molten_gold"
+    "tag": "c:molten_gold"
   },
   "result": "tconstruct:leggings_plating_cast",
   "switch_slots": true

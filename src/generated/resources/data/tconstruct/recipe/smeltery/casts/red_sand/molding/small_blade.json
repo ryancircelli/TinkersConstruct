@@ -5,7 +5,9 @@
   },
   "pattern": {
     "type": "tconstruct:material",
-    "item": "tconstruct:small_blade"
+    "match": {
+      "item": "tconstruct:small_blade"
+    }
   },
   "result": "tconstruct:small_blade_red_sand_cast"
 }

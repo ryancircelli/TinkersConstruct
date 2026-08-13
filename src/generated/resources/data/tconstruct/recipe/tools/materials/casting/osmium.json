@@ -1,14 +1,14 @@
 {
-  "type": "tconstruct:material_fluid",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_filled",
-      "tag": "forge:ingots/osmium"
+      "tag": "c:ingots/osmium"
     }
   ],
+  "type": "tconstruct:material_fluid",
   "fluid": {
     "amount": 90,
-    "tag": "forge:molten_osmium"
+    "tag": "c:molten_osmium"
   },
   "output": "tconstruct:osmium",
   "temperature": 975

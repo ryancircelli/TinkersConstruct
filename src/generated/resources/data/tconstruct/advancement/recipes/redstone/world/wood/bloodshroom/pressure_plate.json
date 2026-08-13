@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:bloodshroom_planks"
-            ]
+            "items": "tconstruct:bloodshroom_planks"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_planks",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_planks"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:world/wood/bloodshroom/pressure_plate"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

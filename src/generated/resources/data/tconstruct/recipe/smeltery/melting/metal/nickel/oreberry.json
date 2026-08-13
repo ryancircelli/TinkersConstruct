@@ -1,17 +1,18 @@
 {
-  "type": "tconstruct:melting",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",
       "item": "oreberriesreplanted:nickel_oreberry"
     }
   ],
+  "type": "tconstruct:melting",
   "ingredient": {
+    "type": "mantle:item_name",
     "item": "oreberriesreplanted:nickel_oreberry"
   },
   "result": {
     "amount": 10,
-    "tag": "forge:molten_nickel"
+    "tag": "c:molten_nickel"
   },
   "temperature": 950,
   "time": 22

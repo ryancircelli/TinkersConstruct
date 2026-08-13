@@ -3,19 +3,24 @@
   "allow_crystal": false,
   "inputs": [
     {
-      "tag": "forge:ingots/gold"
+      "count": 1,
+      "tag": "c:ingots/gold"
     },
     {
+      "count": 1,
       "item": "minecraft:golden_carrot"
     },
     {
-      "tag": "forge:ingots/gold"
+      "count": 1,
+      "tag": "c:ingots/gold"
     },
     {
-      "tag": "forge:ender_pearls"
+      "count": 1,
+      "tag": "c:ender_pearls"
     },
     {
-      "tag": "forge:ender_pearls"
+      "count": 1,
+      "tag": "c:ender_pearls"
     }
   ],
   "level": 2,

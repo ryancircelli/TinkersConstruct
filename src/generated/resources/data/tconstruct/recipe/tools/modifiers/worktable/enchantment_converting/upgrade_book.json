@@ -2,11 +2,12 @@
   "type": "tconstruct:enchantment_converting",
   "inputs": [
     {
+      "count": 1,
       "item": "tconstruct:sky_slime_crystal"
     },
     {
-      "amount_needed": 3,
-      "tag": "forge:gems/lapis"
+      "count": 3,
+      "tag": "c:gems/lapis"
     }
   ],
   "match_book": true,

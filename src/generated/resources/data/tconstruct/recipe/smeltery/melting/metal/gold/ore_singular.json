@@ -1,23 +1,23 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "mantle:tag_combination_filled",
+      "ignore": "tconstruct:non_singular_ore_rates",
+      "match": "c:ores/gold"
+    }
+  ],
   "type": "tconstruct:ore_melting",
   "byproducts": [
     {
       "amount": 180,
       "rate": "metal",
-      "tag": "forge:molten_cobalt"
-    }
-  ],
-  "conditions": [
-    {
-      "type": "mantle:tag_combination_filled",
-      "ignore": "tconstruct:non_singular_ore_rates",
-      "match": "forge:ores/gold"
+      "tag": "c:molten_cobalt"
     }
   ],
   "ingredient": {
-    "type": "forge:difference",
+    "type": "neoforge:difference",
     "base": {
-      "tag": "forge:ores/gold"
+      "tag": "c:ores/gold"
     },
     "subtracted": {
       "tag": "tconstruct:non_singular_ore_rates"
@@ -26,7 +26,7 @@
   "rate": "metal",
   "result": {
     "amount": 180,
-    "tag": "forge:molten_gold"
+    "tag": "c:molten_gold"
   },
   "temperature": 700,
   "time": 142

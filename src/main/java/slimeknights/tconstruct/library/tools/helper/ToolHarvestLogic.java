@@ -268,6 +268,27 @@ public class ToolHarvestLogic {
   }
 
   /**
+   * True while the extra blocks of an area of effect harvest are being broken.
+   * <p>
+   * Those breaks fire {@code BlockEvent.BreakEvent} individually and deliberately, so another mod's protection can
+   * veto each position. On 1.20 that was harmless, because Tinkers entered block breaking through the separate
+   * {@code IForgeItem#onBlockStartBreak} hook and never saw its own extra-block events. NeoForge deleted that hook
+   * and {@code BreakEvent} is now the only pre-break entry point, so without this flag
+   * {@link slimeknights.tconstruct.tools.logic.ToolEvents#startBlockBreak} takes each extra block as a fresh player
+   * swing, runs a whole nested area of effect harvest for it, and cancels the event - which
+   * {@link #breakBlock} reads as "the break was vetoed", so every extra block reported as unbroken and an AoE hammer
+   * harvested exactly its centre block.
+   * <p>
+   * Server thread only, which is where every caller of {@link #runBlockBreak} already is.
+   */
+  private static boolean breakingExtraBlocks = false;
+
+  /** @see #breakingExtraBlocks */
+  public static boolean isBreakingExtraBlocks() {
+    return breakingExtraBlocks;
+  }
+
+  /**
    * Called serverside to break a block and run all relevant hooks
    * @param stack    Stack used for breaking
    * @param tool     Tool for the stack
@@ -300,16 +321,22 @@ public class ToolHarvestLogic {
     int harvested = 0;
     if (breakBlock(tool, stack, context, true)) {
       harvested += 1;
-      for (BlockPos extraPos : extraBlocks) {
-        BlockState extraState = world.getBlockState(extraPos);
-        // prevent calling that stuff for air blocks, could lead to unexpected behaviour since it fires events
-        // this should never actually happen, but just in case some AOE is odd
-        if (!extraState.isAir()) {
-          // prevent mutable position leak, breakBlock has a few places wanting immutable
-          if (breakExtraBlock(tool, stack, context.forPosition(extraPos.immutable(), extraState))) {
-            harvested += 1;
+      boolean wasBreakingExtra = breakingExtraBlocks;
+      breakingExtraBlocks = true;
+      try {
+        for (BlockPos extraPos : extraBlocks) {
+          BlockState extraState = world.getBlockState(extraPos);
+          // prevent calling that stuff for air blocks, could lead to unexpected behaviour since it fires events
+          // this should never actually happen, but just in case some AOE is odd
+          if (!extraState.isAir()) {
+            // prevent mutable position leak, breakBlock has a few places wanting immutable
+            if (breakExtraBlock(tool, stack, context.forPosition(extraPos.immutable(), extraState))) {
+              harvested += 1;
+            }
           }
         }
+      } finally {
+        breakingExtraBlocks = wasBreakingExtra;
       }
     }
     // restore the enchantments harvest changed

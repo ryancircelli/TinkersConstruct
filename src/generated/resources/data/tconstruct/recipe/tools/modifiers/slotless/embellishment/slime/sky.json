@@ -3,12 +3,15 @@
   "allow_crystal": false,
   "inputs": [
     {
+      "count": 1,
       "item": "tconstruct:sky_congealed_slime"
     },
     {
+      "count": 1,
       "item": "tconstruct:sky_slime_ball"
     },
     {
+      "count": 1,
       "item": "tconstruct:sky_congealed_slime"
     }
   ],

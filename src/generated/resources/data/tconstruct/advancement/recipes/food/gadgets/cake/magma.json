@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:magma_bucket"
-            ]
+            "items": "tconstruct:magma_bucket"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_slime",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_slime"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:gadgets/cake/magma"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

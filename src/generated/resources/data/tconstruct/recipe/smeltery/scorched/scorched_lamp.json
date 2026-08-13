@@ -15,7 +15,7 @@
     " b "
   ],
   "result": {
-    "item": "tconstruct:scorched_lamp"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "tconstruct:scorched_lamp"
+  }
 }

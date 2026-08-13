@@ -14,7 +14,6 @@
   ],
   "result": {
     "count": 4,
-    "item": "tconstruct:blazewood_stairs"
-  },
-  "show_notification": true
+    "id": "tconstruct:blazewood_stairs"
+  }
 }

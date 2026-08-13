@@ -5,11 +5,13 @@
   },
   "pattern": [
     {
-      "type": "tconstruct:material",
-      "item": "tconstruct:helmet_plating"
+      "item": "tconstruct:helmet_plating_dummy"
     },
     {
-      "item": "tconstruct:helmet_plating_dummy"
+      "type": "tconstruct:material",
+      "match": {
+        "item": "tconstruct:helmet_plating"
+      }
     }
   ],
   "result": "tconstruct:helmet_plating_sand_cast"

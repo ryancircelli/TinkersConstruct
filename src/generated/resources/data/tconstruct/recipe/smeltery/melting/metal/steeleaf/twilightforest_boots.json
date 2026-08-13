@@ -1,12 +1,13 @@
 {
-  "type": "tconstruct:damagable_melting",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",
       "item": "twilightforest:steeleaf_boots"
     }
   ],
+  "type": "tconstruct:damagable_melting",
   "ingredient": {
+    "type": "mantle:item_name",
     "item": "twilightforest:steeleaf_boots"
   },
   "result": {

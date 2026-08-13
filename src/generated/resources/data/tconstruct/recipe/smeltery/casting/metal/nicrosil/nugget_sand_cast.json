@@ -1,21 +1,21 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:nuggets/nicrosil"
+    }
+  ],
   "type": "tconstruct:casting_table",
   "cast": {
     "tag": "tconstruct:casts/single_use/nugget"
   },
   "cast_consumed": true,
-  "conditions": [
-    {
-      "type": "mantle:tag_filled",
-      "tag": "forge:nuggets/nicrosil"
-    }
-  ],
   "cooling_time": 23,
   "fluid": {
     "amount": 10,
-    "tag": "forge:molten_nicrosil"
+    "tag": "c:molten_nicrosil"
   },
   "result": {
-    "tag": "forge:nuggets/nicrosil"
+    "tag": "c:nuggets/nicrosil"
   }
 }

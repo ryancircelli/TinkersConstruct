@@ -3,7 +3,7 @@
   "category": "building",
   "key": {
     "G": {
-      "tag": "forge:glass/colorless"
+      "tag": "c:glass_blocks/colorless"
     },
     "b": {
       "item": "tconstruct:seared_brick"
@@ -15,7 +15,7 @@
     " b "
   ],
   "result": {
-    "item": "tconstruct:seared_glass"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "tconstruct:seared_glass"
+  }
 }

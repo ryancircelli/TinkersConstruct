@@ -3,12 +3,15 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:leather"
     },
     {
+      "count": 1,
       "item": "minecraft:recovery_compass"
     },
     {
+      "count": 1,
       "item": "minecraft:leather"
     }
   ],

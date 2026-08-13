@@ -60,7 +60,8 @@
         "feet",
         "legs",
         "chest",
-        "head"
+        "head",
+        "body"
       ],
       "tooltip_style": "percent"
     }

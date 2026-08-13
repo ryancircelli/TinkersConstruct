@@ -3,18 +3,23 @@
   "allow_crystal": false,
   "inputs": [
     {
-      "tag": "forge:nuggets/rose_gold"
+      "count": 1,
+      "tag": "c:nuggets/rose_gold"
     },
     {
+      "count": 1,
       "item": "minecraft:end_crystal"
     },
     {
-      "tag": "forge:nuggets/rose_gold"
+      "count": 1,
+      "tag": "c:nuggets/rose_gold"
     },
     {
+      "count": 1,
       "item": "tconstruct:sky_slime_crystal_block"
     },
     {
+      "count": 1,
       "item": "tconstruct:sky_slime_crystal_block"
     }
   ],

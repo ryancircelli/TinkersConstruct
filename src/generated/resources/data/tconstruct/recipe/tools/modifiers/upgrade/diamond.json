@@ -3,7 +3,8 @@
   "allow_crystal": true,
   "inputs": [
     {
-      "tag": "forge:gems/diamond"
+      "count": 1,
+      "tag": "c:gems/diamond"
     }
   ],
   "level": 1,

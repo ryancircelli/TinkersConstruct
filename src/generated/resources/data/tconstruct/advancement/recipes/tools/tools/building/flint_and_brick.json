@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:scorched_brick"
-            ]
+            "items": "tconstruct:scorched_brick"
           }
         ]
       },
@@ -17,9 +15,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:seared_brick"
-            ]
+            "items": "tconstruct:seared_brick"
           }
         ]
       },
@@ -34,15 +30,14 @@
   },
   "requirements": [
     [
+      "has_the_recipe",
       "has_seared",
-      "has_scorched",
-      "has_the_recipe"
+      "has_scorched"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:tools/building/flint_and_brick"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

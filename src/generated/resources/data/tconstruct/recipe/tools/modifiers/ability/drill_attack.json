@@ -4,12 +4,15 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "item": "tconstruct:blazing_bone"
     },
     {
+      "count": 1,
       "item": "minecraft:pointed_dripstone"
     },
     {
+      "count": 1,
       "item": "tconstruct:blazing_bone"
     }
   ],

@@ -4,7 +4,10 @@
   "inputs": [
     {
       "type": "tconstruct:no_container",
-      "tag": "tconstruct:tanks"
+      "count": 1,
+      "match": {
+        "tag": "tconstruct:tanks"
+      }
     }
   ],
   "result": "tconstruct:tank",

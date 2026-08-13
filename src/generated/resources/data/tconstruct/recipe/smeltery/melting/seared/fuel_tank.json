@@ -8,7 +8,9 @@
   ],
   "ingredient": {
     "type": "tconstruct:no_container",
-    "item": "tconstruct:seared_fuel_tank"
+    "match": {
+      "item": "tconstruct:seared_fuel_tank"
+    }
   },
   "result": {
     "amount": 2000,

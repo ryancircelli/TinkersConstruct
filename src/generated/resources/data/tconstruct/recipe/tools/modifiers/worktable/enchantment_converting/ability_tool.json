@@ -2,10 +2,12 @@
   "type": "tconstruct:enchantment_converting",
   "inputs": [
     {
+      "count": 1,
       "item": "tconstruct:ichor_slime_crystal"
     },
     {
-      "tag": "forge:gems/diamond"
+      "count": 1,
+      "tag": "c:gems/diamond"
     }
   ],
   "match_book": false,

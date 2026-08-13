@@ -2,9 +2,11 @@
   "type": "tconstruct:extract_modifier",
   "inputs": [
     {
+      "count": 1,
       "item": "tconstruct:ender_slime_crystal"
     },
     {
+      "count": 1,
       "item": "minecraft:wet_sponge"
     }
   ],
@@ -18,7 +20,7 @@
   },
   "name": "modifiers",
   "tools": {
-    "amount_needed": 2,
+    "count": 2,
     "item": "tconstruct:dagger"
   }
 }

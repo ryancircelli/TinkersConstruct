@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:knightmetal_nugget"
-            ]
+            "items": "tconstruct:knightmetal_nugget"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_item",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_item"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:common/materials/knightmetal_ingot_from_nuggets"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

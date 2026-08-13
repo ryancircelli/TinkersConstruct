@@ -1,4 +1,13 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "mantle:tag_combination_filled",
+      "match": [
+        "c:ores/cobalt",
+        "c:ore_rates/dense"
+      ]
+    }
+  ],
   "type": "tconstruct:ore_melting",
   "byproducts": [
     {
@@ -7,30 +16,21 @@
       "rate": "gem"
     }
   ],
-  "conditions": [
-    {
-      "type": "mantle:tag_combination_filled",
-      "match": [
-        "forge:ores/cobalt",
-        "forge:ore_rates/dense"
-      ]
-    }
-  ],
   "ingredient": {
-    "type": "forge:intersection",
+    "type": "neoforge:intersection",
     "children": [
       {
-        "tag": "forge:ores/cobalt"
+        "tag": "c:ores/cobalt"
       },
       {
-        "tag": "forge:ore_rates/dense"
+        "tag": "c:ore_rates/dense"
       }
     ]
   },
   "rate": "metal",
   "result": {
     "amount": 540,
-    "tag": "forge:molten_cobalt"
+    "tag": "c:molten_cobalt"
   },
   "temperature": 950,
   "time": 292

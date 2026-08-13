@@ -11,7 +11,7 @@
     "##"
   ],
   "result": {
-    "item": "tconstruct:cheese_block"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "tconstruct:cheese_block"
+  }
 }

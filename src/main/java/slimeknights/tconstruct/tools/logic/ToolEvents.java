@@ -161,6 +161,12 @@ public class ToolEvents {
     if (event.isCanceled()) {
       return;
     }
+    // one of our own area of effect blocks, which ToolHarvestLogic fires this event for so other mods can veto each
+    // position. It is not a fresh swing and must not start a second harvest - see the flag's javadoc; taking it as
+    // one nested a whole AoE run per extra block and cancelled every one of them
+    if (ToolHarvestLogic.isBreakingExtraBlocks()) {
+      return;
+    }
     Player player = event.getPlayer();
     ItemStack stack = player.getMainHandItem();
     // guard on exactly the two item classes that carried the 1.20 override. A tag would be wider: modifiable armor,

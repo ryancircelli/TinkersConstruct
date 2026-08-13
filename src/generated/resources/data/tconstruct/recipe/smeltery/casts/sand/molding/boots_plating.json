@@ -5,11 +5,13 @@
   },
   "pattern": [
     {
-      "type": "tconstruct:material",
-      "item": "tconstruct:boots_plating"
+      "item": "tconstruct:boots_plating_dummy"
     },
     {
-      "item": "tconstruct:boots_plating_dummy"
+      "type": "tconstruct:material",
+      "match": {
+        "item": "tconstruct:boots_plating"
+      }
     }
   ],
   "result": "tconstruct:boots_plating_sand_cast"

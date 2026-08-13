@@ -1,17 +1,17 @@
 {
-  "type": "tconstruct:damagable_melting",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_filled",
       "tag": "tconstruct:melting/nickel/tools_costing_1"
     }
   ],
+  "type": "tconstruct:damagable_melting",
   "ingredient": {
     "tag": "tconstruct:melting/nickel/tools_costing_1"
   },
   "result": {
     "amount": 90,
-    "tag": "forge:molten_nickel",
+    "tag": "c:molten_nickel",
     "unit_size": 10
   },
   "temperature": 950,

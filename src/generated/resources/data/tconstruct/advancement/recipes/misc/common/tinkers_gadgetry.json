@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "forge:slimeball/sky"
+            "items": "#c:slimeball/sky"
           }
         ]
       },
@@ -20,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_item",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_item"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:common/tinkers_gadgetry"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

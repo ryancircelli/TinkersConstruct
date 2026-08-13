@@ -3,12 +3,15 @@
   "allow_crystal": false,
   "inputs": [
     {
+      "count": 1,
       "item": "tconstruct:skyroot_planks"
     },
     {
+      "count": 1,
       "item": "tconstruct:sky_slime_sapling"
     },
     {
+      "count": 1,
       "item": "tconstruct:skyroot_planks"
     }
   ],

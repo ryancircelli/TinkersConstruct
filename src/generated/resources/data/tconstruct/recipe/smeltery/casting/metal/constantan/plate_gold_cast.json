@@ -1,20 +1,20 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:plates/constantan"
+    }
+  ],
   "type": "tconstruct:casting_table",
   "cast": {
     "tag": "tconstruct:casts/multi_use/plate"
   },
-  "conditions": [
-    {
-      "type": "mantle:tag_filled",
-      "tag": "forge:plates/constantan"
-    }
-  ],
   "cooling_time": 64,
   "fluid": {
     "amount": 90,
-    "tag": "forge:molten_constantan"
+    "tag": "c:molten_constantan"
   },
   "result": {
-    "tag": "forge:plates/constantan"
+    "tag": "c:plates/constantan"
   }
 }

@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "tconstruct:scorched_blocks"
+            "items": "#tconstruct:scorched_blocks"
           }
         ]
       },
@@ -20,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_block",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_block"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:smeltery/scorched/scorched_bricks_stonecutting"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -10,9 +10,11 @@
     "tag": "mantle:water"
   },
   "result": {
-    "item": "minecraft:potion",
-    "nbt": {
-      "Potion": "minecraft:water"
-    }
+    "components": {
+      "minecraft:potion_contents": {
+        "potion": "minecraft:water"
+      }
+    },
+    "item": "minecraft:potion"
   }
 }

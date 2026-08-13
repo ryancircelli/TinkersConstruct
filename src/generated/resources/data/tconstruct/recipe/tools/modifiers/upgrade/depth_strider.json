@@ -3,12 +3,15 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "tag": "minecraft:fishes"
     },
     {
+      "count": 1,
       "item": "minecraft:prismarine_bricks"
     },
     {
+      "count": 1,
       "tag": "minecraft:fishes"
     }
   ],

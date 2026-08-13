@@ -3,12 +3,15 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:pointed_dripstone"
     },
     {
+      "count": 1,
       "item": "minecraft:pointed_dripstone"
     },
     {
+      "count": 1,
       "item": "minecraft:pointed_dripstone"
     }
   ],

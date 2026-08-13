@@ -10,9 +10,9 @@
     "tag": "tconstruct:molten_debris"
   },
   "result": {
-    "item": "tconstruct:repair_kit",
-    "nbt": {
-      "Material": "tconstruct:ancient"
-    }
+    "components": {
+      "tconstruct:material": "tconstruct:ancient"
+    },
+    "item": "tconstruct:repair_kit"
   }
 }

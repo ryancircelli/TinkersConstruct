@@ -3,18 +3,23 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:snow_block"
     },
     {
+      "count": 1,
       "item": "minecraft:carved_pumpkin"
     },
     {
+      "count": 1,
       "item": "minecraft:snow_block"
     },
     {
+      "count": 1,
       "item": "minecraft:snow_block"
     },
     {
+      "count": 1,
       "item": "minecraft:snow_block"
     }
   ],

@@ -3,7 +3,8 @@
   "allow_crystal": true,
   "inputs": [
     {
-      "tag": "minecraft:music_discs"
+      "count": 1,
+      "tag": "c:music_discs"
     }
   ],
   "level": 1,

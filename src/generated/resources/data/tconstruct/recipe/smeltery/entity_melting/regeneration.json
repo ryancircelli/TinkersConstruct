@@ -9,9 +9,11 @@
   },
   "result": {
     "amount": 50,
-    "nbt": {
-      "Potion": "minecraft:regeneration"
+    "components": {
+      "minecraft:potion_contents": {
+        "potion": "minecraft:regeneration"
+      }
     },
-    "tag": "forge:potion"
+    "tag": "c:potion"
   }
 }

@@ -3,18 +3,23 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:leather"
     },
     {
+      "count": 1,
       "item": "minecraft:golden_carrot"
     },
     {
+      "count": 1,
       "item": "minecraft:leather"
     },
     {
+      "count": 1,
       "item": "minecraft:scaffolding"
     },
     {
+      "count": 1,
       "item": "minecraft:scaffolding"
     }
   ],

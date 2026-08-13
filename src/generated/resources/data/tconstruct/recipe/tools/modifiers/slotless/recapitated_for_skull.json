@@ -3,22 +3,24 @@
   "allow_crystal": true,
   "inputs": [
     {
-      "type": "forge:difference",
+      "type": "neoforge:difference",
       "base": {
-        "tag": "forge:heads"
+        "tag": "minecraft:skulls"
       },
+      "count": 1,
       "subtracted": {
         "item": "minecraft:dragon_head"
       }
     },
     {
-      "tag": "forge:slimeballs"
+      "count": 1,
+      "tag": "c:slimeballs"
     }
   ],
   "level": 1,
   "result": "tconstruct:recapitated",
   "tools": {
-    "type": "forge:intersection",
+    "type": "neoforge:intersection",
     "children": [
       {
         "tag": "tconstruct:modifiable/bonus_slots"

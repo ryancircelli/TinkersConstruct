@@ -6,18 +6,17 @@
       "tag": "tconstruct:smeltery_bricks"
     },
     "C": {
-      "tag": "forge:ingots/copper"
+      "tag": "c:ingots/copper"
     }
   },
-  "match_all": false,
   "pattern": [
     "C",
     "#",
     "C"
   ],
   "result": {
-    "item": "tconstruct:seared_chute"
+    "count": 1,
+    "id": "tconstruct:seared_chute"
   },
-  "show_notification": true,
   "texture": "#"
 }

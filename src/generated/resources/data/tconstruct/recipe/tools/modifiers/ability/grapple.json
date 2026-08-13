@@ -4,13 +4,16 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:chain"
     },
     {
+      "count": 1,
       "item": "minecraft:chain"
     },
     {
-      "tag": "forge:ingots/slimesteel"
+      "count": 1,
+      "tag": "c:ingots/slimesteel"
     }
   ],
   "level": 1,

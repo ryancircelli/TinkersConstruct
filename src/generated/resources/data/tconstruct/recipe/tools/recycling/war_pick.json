@@ -9,6 +9,7 @@
     "item": "tconstruct:venom_bottle"
   },
   "tools": {
+    "count": 1,
     "item": "tconstruct:war_pick"
   }
 }

@@ -5,7 +5,9 @@
   },
   "pattern": {
     "type": "tconstruct:material",
-    "item": "tconstruct:maille"
+    "match": {
+      "item": "tconstruct:maille"
+    }
   },
   "result": "tconstruct:maille_sand_cast"
 }

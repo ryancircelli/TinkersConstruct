@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:earth_slime_dirt"
-            ]
+            "items": "tconstruct:earth_slime_dirt"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_dirt",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_dirt"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:common/slime/earth/crystal_growing"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -11,9 +11,11 @@
   },
   "result": {
     "amount": 50,
-    "nbt": {
-      "Potion": "minecraft:strength"
+    "components": {
+      "minecraft:potion_contents": {
+        "potion": "minecraft:strength"
+      }
     },
-    "tag": "forge:potion"
+    "tag": "c:potion"
   }
 }

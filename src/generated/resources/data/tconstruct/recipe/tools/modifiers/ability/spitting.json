@@ -5,14 +5,21 @@
   "inputs": [
     {
       "type": "tconstruct:material",
-      "item": "tconstruct:bow_limb"
+      "count": 1,
+      "match": {
+        "item": "tconstruct:bow_limb"
+      }
     },
     {
+      "count": 1,
       "item": "tconstruct:seared_fluid_cannon"
     },
     {
       "type": "tconstruct:material",
-      "item": "tconstruct:bow_limb"
+      "count": 1,
+      "match": {
+        "item": "tconstruct:bow_limb"
+      }
     }
   ],
   "level": {
@@ -23,7 +30,7 @@
     "abilities": 1
   },
   "tools": {
-    "type": "forge:intersection",
+    "type": "neoforge:intersection",
     "children": [
       {
         "tag": "tconstruct:modifiable/durability"

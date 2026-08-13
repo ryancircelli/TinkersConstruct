@@ -4,9 +4,11 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:blaze_rod"
     },
     {
+      "count": 1,
       "ingredient": [
         {
           "item": "tconstruct:seared_melter"
@@ -20,12 +22,15 @@
       ]
     },
     {
+      "count": 1,
       "item": "minecraft:blaze_rod"
     },
     {
+      "count": 1,
       "item": "minecraft:lava_bucket"
     },
     {
+      "count": 1,
       "item": "minecraft:lava_bucket"
     }
   ],

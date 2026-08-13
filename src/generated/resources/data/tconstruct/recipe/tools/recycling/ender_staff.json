@@ -14,7 +14,7 @@
     },
     "tconstruct:ingot": {
       "count": 1,
-      "tag": "forge:ingots/netherite"
+      "tag": "c:ingots/netherite"
     }
   },
   "tool": {

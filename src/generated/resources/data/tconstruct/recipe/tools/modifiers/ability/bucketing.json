@@ -3,6 +3,7 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "ingredient": [
         {
           "item": "tconstruct:seared_faucet"
@@ -13,9 +14,11 @@
       ]
     },
     {
+      "count": 1,
       "item": "minecraft:bucket"
     },
     {
+      "count": 1,
       "ingredient": [
         {
           "item": "tconstruct:seared_faucet"
@@ -26,10 +29,12 @@
       ]
     },
     {
-      "tag": "forge:ingots/steel"
+      "count": 1,
+      "tag": "c:ingots/steel"
     },
     {
-      "tag": "forge:ingots/steel"
+      "count": 1,
+      "tag": "c:ingots/steel"
     }
   ],
   "level": 1,

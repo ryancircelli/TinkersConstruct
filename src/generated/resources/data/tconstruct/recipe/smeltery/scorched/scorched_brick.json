@@ -6,5 +6,8 @@
   "ingredient": {
     "item": "tconstruct:nether_grout"
   },
-  "result": "tconstruct:scorched_brick"
+  "result": {
+    "count": 1,
+    "id": "tconstruct:scorched_brick"
+  }
 }

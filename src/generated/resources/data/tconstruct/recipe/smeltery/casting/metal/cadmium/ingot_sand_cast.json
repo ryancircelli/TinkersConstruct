@@ -1,21 +1,21 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:ingots/cadmium"
+    }
+  ],
   "type": "tconstruct:casting_table",
   "cast": {
     "tag": "tconstruct:casts/single_use/ingot"
   },
   "cast_consumed": true,
-  "conditions": [
-    {
-      "type": "mantle:tag_filled",
-      "tag": "forge:ingots/cadmium"
-    }
-  ],
   "cooling_time": 42,
   "fluid": {
     "amount": 90,
-    "tag": "forge:molten_cadmium"
+    "tag": "c:molten_cadmium"
   },
   "result": {
-    "tag": "forge:ingots/cadmium"
+    "tag": "c:ingots/cadmium"
   }
 }

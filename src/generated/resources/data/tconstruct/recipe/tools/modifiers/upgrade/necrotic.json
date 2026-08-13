@@ -3,12 +3,15 @@
   "allow_crystal": true,
   "inputs": [
     {
-      "tag": "forge:wither_bones"
+      "count": 1,
+      "tag": "c:wither_bones"
     },
     {
+      "count": 1,
       "item": "tconstruct:ichor_congealed_slime"
     },
     {
+      "count": 1,
       "item": "minecraft:ghast_tear"
     }
   ],

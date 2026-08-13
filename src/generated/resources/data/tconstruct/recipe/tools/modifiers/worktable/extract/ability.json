@@ -2,9 +2,11 @@
   "type": "tconstruct:extract_modifier",
   "inputs": [
     {
+      "count": 1,
       "item": "tconstruct:ichor_slime_crystal"
     },
     {
+      "count": 1,
       "item": "minecraft:wet_sponge"
     }
   ],
@@ -27,10 +29,11 @@
   },
   "name": "abilities",
   "tools": {
-    "type": "forge:difference",
+    "type": "neoforge:difference",
     "base": {
       "tag": "tconstruct:modifiable"
     },
+    "count": 1,
     "subtracted": {
       "tag": "tconstruct:modifiable/unsalvageable"
     }

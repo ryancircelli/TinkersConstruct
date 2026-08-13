@@ -2,9 +2,6 @@
   "type": "tconstruct:part_builder",
   "cost": 2,
   "pattern": "tconstruct:shell",
-  "pattern_item": {
-    "tag": "tconstruct:patterns/default"
-  },
   "result": {
     "item": "tconstruct:shell"
   }

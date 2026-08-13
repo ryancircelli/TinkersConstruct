@@ -4,18 +4,23 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:piston"
     },
     {
+      "count": 1,
       "item": "minecraft:phantom_membrane"
     },
     {
+      "count": 1,
       "item": "minecraft:piston"
     },
     {
+      "count": 1,
       "item": "tconstruct:ichor_slime"
     },
     {
+      "count": 1,
       "item": "tconstruct:ichor_slime"
     }
   ],

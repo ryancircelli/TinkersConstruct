@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "tconstruct:greenheart_logs"
+            "items": "#tconstruct:greenheart_logs"
           }
         ]
       },
@@ -20,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_log",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_log"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:world/wood/greenheart/planks"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

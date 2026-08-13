@@ -3,13 +3,14 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:dragon_head"
     }
   ],
   "level": 1,
   "result": "tconstruct:draconic",
   "tools": {
-    "type": "forge:difference",
+    "type": "neoforge:difference",
     "base": {
       "tag": "tconstruct:modifiable/bonus_slots"
     },

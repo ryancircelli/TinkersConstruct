@@ -4,19 +4,24 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:leather"
     },
     {
-      "tag": "forge:gems/diamond"
+      "count": 1,
+      "tag": "c:gems/diamond"
     },
     {
+      "count": 1,
       "item": "minecraft:leather"
     },
     {
-      "tag": "forge:string"
+      "count": 1,
+      "tag": "c:strings"
     },
     {
-      "tag": "forge:string"
+      "count": 1,
+      "tag": "c:strings"
     }
   ],
   "level": 1,

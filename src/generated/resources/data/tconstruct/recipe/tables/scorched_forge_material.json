@@ -4,7 +4,9 @@
   "key": {
     "m": {
       "type": "tconstruct:material",
-      "item": "tconstruct:fake_storage_block",
+      "match": {
+        "item": "tconstruct:fake_storage_block"
+      },
       "material": {
         "type": "mantle:tag",
         "tag": "tconstruct:compatibility_metals/alloys"
@@ -24,12 +26,10 @@
     "m m"
   ],
   "result": {
-    "item": "tconstruct:scorched_anvil",
-    "nbt": {
-      "display": {
-        "Name": "{\"translate\":\"block.tconstruct.tool_forge\"}"
-      }
-    }
-  },
-  "show_notification": true
+    "components": {
+      "minecraft:custom_name": "{\"translate\":\"block.tconstruct.tool_forge\"}"
+    },
+    "count": 1,
+    "id": "tconstruct:scorched_anvil"
+  }
 }

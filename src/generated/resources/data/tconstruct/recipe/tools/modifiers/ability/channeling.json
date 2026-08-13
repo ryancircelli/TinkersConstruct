@@ -4,18 +4,23 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:lightning_rod"
     },
     {
+      "count": 1,
       "item": "minecraft:creeper_head"
     },
     {
+      "count": 1,
       "item": "minecraft:lightning_rod"
     },
     {
+      "count": 1,
       "item": "minecraft:lightning_rod"
     },
     {
+      "count": 1,
       "item": "minecraft:lightning_rod"
     }
   ],

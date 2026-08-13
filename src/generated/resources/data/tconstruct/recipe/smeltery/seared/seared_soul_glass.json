@@ -15,7 +15,7 @@
     " b "
   ],
   "result": {
-    "item": "tconstruct:seared_soul_glass"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "tconstruct:seared_soul_glass"
+  }
 }

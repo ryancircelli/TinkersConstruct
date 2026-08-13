@@ -3,18 +3,23 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:flint"
     },
     {
-      "tag": "forge:ingots/netherite_scrap"
+      "count": 1,
+      "tag": "c:ingots/netherite_scrap"
     },
     {
+      "count": 1,
       "item": "minecraft:flint"
     },
     {
+      "count": 1,
       "item": "minecraft:flint"
     },
     {
+      "count": 1,
       "item": "minecraft:flint"
     }
   ],
@@ -24,7 +29,7 @@
     "abilities": 1
   },
   "tools": {
-    "type": "forge:intersection",
+    "type": "neoforge:intersection",
     "children": [
       {
         "tag": "tconstruct:modifiable/armor/boots"

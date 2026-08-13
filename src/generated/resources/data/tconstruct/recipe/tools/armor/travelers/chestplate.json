@@ -24,11 +24,13 @@
             }
           ]
         },
-        "value": 1.0
+        "value": 1
       },
       {
         "type": "tconstruct:material",
-        "item": "tconstruct:fake_ingot",
+        "match": {
+          "item": "tconstruct:fake_ingot"
+        },
         "material": {
           "type": "tconstruct:stat_type",
           "stat_type": "tconstruct:plating_chestplate"
@@ -36,7 +38,7 @@
       }
     ],
     "l": {
-      "tag": "forge:leather"
+      "tag": "c:leathers"
     }
   },
   "parts": "c",
@@ -46,7 +48,7 @@
     "lcl"
   ],
   "result": {
-    "item": "tconstruct:travelers_chestplate"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "tconstruct:travelers_chestplate"
+  }
 }

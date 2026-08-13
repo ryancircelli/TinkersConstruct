@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:blood_slime_tall_grass"
-            ]
+            "items": "tconstruct:blood_slime_tall_grass"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_slime",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_slime"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:gadgets/cake/blood"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

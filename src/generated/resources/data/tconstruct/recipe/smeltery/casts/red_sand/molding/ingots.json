@@ -5,9 +5,9 @@
   },
   "pattern": [
     {
-      "type": "forge:difference",
+      "type": "neoforge:difference",
       "base": {
-        "tag": "forge:ingots"
+        "tag": "c:ingots"
       },
       "subtracted": {
         "item": "tconstruct:fake_ingot"
@@ -15,7 +15,9 @@
     },
     {
       "type": "tconstruct:material",
-      "item": "tconstruct:fake_ingot"
+      "match": {
+        "item": "tconstruct:fake_ingot"
+      }
     }
   ],
   "result": "tconstruct:ingot_red_sand_cast"

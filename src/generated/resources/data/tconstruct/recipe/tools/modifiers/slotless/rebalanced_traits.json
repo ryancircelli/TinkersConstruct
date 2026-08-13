@@ -3,18 +3,23 @@
   "allow_crystal": false,
   "inputs": [
     {
-      "tag": "forge:nuggets/manyullyn"
+      "count": 1,
+      "tag": "c:nuggets/manyullyn"
     },
     {
+      "count": 1,
       "item": "minecraft:end_crystal"
     },
     {
-      "tag": "forge:nuggets/manyullyn"
+      "count": 1,
+      "tag": "c:nuggets/manyullyn"
     },
     {
+      "count": 1,
       "item": "tconstruct:ender_slime_crystal_block"
     },
     {
+      "count": 1,
       "item": "tconstruct:ender_slime_crystal_block"
     }
   ],

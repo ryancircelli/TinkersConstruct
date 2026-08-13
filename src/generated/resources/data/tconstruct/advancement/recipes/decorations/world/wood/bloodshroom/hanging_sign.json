@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:stripped_bloodshroom_log"
-            ]
+            "items": "tconstruct:stripped_bloodshroom_log"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_stripped_logs",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_stripped_logs"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:world/wood/bloodshroom/hanging_sign"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

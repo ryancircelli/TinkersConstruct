@@ -3,19 +3,24 @@
   "allow_crystal": true,
   "inputs": [
     {
-      "tag": "forge:raw_materials"
+      "count": 1,
+      "tag": "c:raw_materials"
     },
     {
+      "count": 1,
       "item": "minecraft:blast_furnace"
     },
     {
-      "tag": "forge:ingots"
+      "count": 1,
+      "tag": "c:ingots"
     },
     {
-      "tag": "forge:storage_blocks/coal"
+      "count": 1,
+      "tag": "c:storage_blocks/coal"
     },
     {
-      "tag": "forge:storage_blocks/coal"
+      "count": 1,
+      "tag": "c:storage_blocks/coal"
     }
   ],
   "level": 1,

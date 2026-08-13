@@ -3,18 +3,23 @@
   "allow_crystal": false,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:dragon_breath"
     },
     {
+      "count": 1,
       "item": "tconstruct:dragon_scale"
     },
     {
+      "count": 1,
       "item": "minecraft:dragon_breath"
     },
     {
+      "count": 1,
       "item": "tconstruct:dragon_scale"
     },
     {
+      "count": 1,
       "item": "tconstruct:dragon_scale"
     }
   ],

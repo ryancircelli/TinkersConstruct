@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:scorched_road"
-            ]
+            "items": "tconstruct:scorched_road"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_item",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_item"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:smeltery/scorched/scorched_road_stairs"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

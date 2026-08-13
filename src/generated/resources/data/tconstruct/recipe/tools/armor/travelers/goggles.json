@@ -24,11 +24,13 @@
             }
           ]
         },
-        "value": 1.0
+        "value": 1
       },
       {
         "type": "tconstruct:material",
-        "item": "tconstruct:fake_ingot",
+        "match": {
+          "item": "tconstruct:fake_ingot"
+        },
         "material": {
           "type": "tconstruct:stat_type",
           "stat_type": "tconstruct:plating_helmet"
@@ -36,10 +38,10 @@
       }
     ],
     "g": {
-      "tag": "forge:glass_panes/colorless"
+      "tag": "c:glass_panes/colorless"
     },
     "l": {
-      "tag": "forge:leather"
+      "tag": "c:leathers"
     }
   },
   "parts": "c",
@@ -49,7 +51,7 @@
     "c c"
   ],
   "result": {
-    "item": "tconstruct:travelers_helmet"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "tconstruct:travelers_helmet"
+  }
 }

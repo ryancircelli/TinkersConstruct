@@ -1,11 +1,11 @@
 {
-  "type": "tconstruct:item_part_builder",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_filled",
-      "tag": "forge:wires"
+      "tag": "c:wires"
     }
   ],
+  "type": "tconstruct:item_part_builder",
   "pattern": "tconstruct:wire",
   "pattern_item": {
     "tag": "tconstruct:casts/red_sand"

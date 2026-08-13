@@ -3,12 +3,15 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:compass"
     },
     {
-      "tag": "forge:slimeballs"
+      "count": 1,
+      "tag": "c:slimeballs"
     },
     {
+      "count": 1,
       "item": "minecraft:paper"
     }
   ],

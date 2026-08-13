@@ -4,19 +4,24 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:sticky_piston"
     },
     {
-      "tag": "forge:ingots/hepatizon"
+      "count": 1,
+      "tag": "c:ingots/hepatizon"
     },
     {
+      "count": 1,
       "item": "minecraft:sticky_piston"
     },
     {
-      "tag": "forge:ender_pearls"
+      "count": 1,
+      "tag": "c:ender_pearls"
     },
     {
-      "tag": "forge:ender_pearls"
+      "count": 1,
+      "tag": "c:ender_pearls"
     }
   ],
   "level": 1,

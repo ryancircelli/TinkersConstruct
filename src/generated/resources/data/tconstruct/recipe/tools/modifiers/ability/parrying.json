@@ -4,12 +4,15 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "tag": "minecraft:planks"
     },
     {
-      "tag": "forge:ingots/steel"
+      "count": 1,
+      "tag": "c:ingots/steel"
     },
     {
+      "count": 1,
       "tag": "minecraft:planks"
     }
   ],

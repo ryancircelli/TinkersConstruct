@@ -1,21 +1,21 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:plates/rose_gold"
+    }
+  ],
   "type": "tconstruct:casting_table",
   "cast": {
     "tag": "tconstruct:casts/single_use/plate"
   },
   "cast_consumed": true,
-  "conditions": [
-    {
-      "type": "mantle:tag_filled",
-      "tag": "forge:plates/rose_gold"
-    }
-  ],
   "cooling_time": 52,
   "fluid": {
     "amount": 90,
-    "tag": "forge:molten_rose_gold"
+    "tag": "c:molten_rose_gold"
   },
   "result": {
-    "tag": "forge:plates/rose_gold"
+    "tag": "c:plates/rose_gold"
   }
 }

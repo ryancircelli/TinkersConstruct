@@ -4,7 +4,9 @@
   "ingredients": [
     {
       "type": "tconstruct:material",
-      "item": "tconstruct:fake_storage_block",
+      "match": {
+        "item": "tconstruct:fake_storage_block"
+      },
       "material": {
         "type": "tconstruct:has_part",
         "part": "tconstruct:fake_ingot"
@@ -14,6 +16,6 @@
   "parts": 1,
   "result": {
     "count": 9,
-    "item": "tconstruct:fake_ingot"
+    "id": "tconstruct:fake_ingot"
   }
 }

@@ -1,21 +1,21 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:nuggets/chromium"
+    }
+  ],
   "type": "tconstruct:casting_table",
   "cast": {
     "tag": "tconstruct:casts/single_use/nugget"
   },
   "cast_consumed": true,
-  "conditions": [
-    {
-      "type": "mantle:tag_filled",
-      "tag": "forge:nuggets/chromium"
-    }
-  ],
   "cooling_time": 21,
   "fluid": {
     "amount": 10,
-    "tag": "forge:molten_chromium"
+    "tag": "c:molten_chromium"
   },
   "result": {
-    "tag": "forge:nuggets/chromium"
+    "tag": "c:nuggets/chromium"
   }
 }

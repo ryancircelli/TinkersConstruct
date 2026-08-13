@@ -3,18 +3,23 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:shulker_shell"
     },
     {
-      "tag": "forge:ingots/iron"
+      "count": 1,
+      "tag": "c:ingots/iron"
     },
     {
+      "count": 1,
       "item": "minecraft:shulker_shell"
     },
     {
+      "count": 1,
       "item": "minecraft:leather"
     },
     {
+      "count": 1,
       "item": "minecraft:leather"
     }
   ],

@@ -3,13 +3,16 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:leather"
     },
     {
+      "count": 1,
       "item": "minecraft:fire_charge"
     },
     {
-      "tag": "forge:slimeball/ichor"
+      "count": 1,
+      "tag": "c:slimeball/ichor"
     }
   ],
   "level": {

@@ -7,7 +7,7 @@
       "percent": false,
       "target": {
         "type": "mantle:mob_type",
-        "mobs": "minecraft:water"
+        "mobs": "minecraft:aquatic"
       }
     }
   ],

@@ -3,7 +3,7 @@
   "allow_crystal": true,
   "amount_per_item": 1,
   "input": {
-    "tag": "forge:crops/carrot"
+    "tag": "c:crops/carrot"
   },
   "needed_per_level": 45,
   "result": "tconstruct:farsighted",

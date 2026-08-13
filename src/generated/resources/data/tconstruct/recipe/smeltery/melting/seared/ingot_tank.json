@@ -8,7 +8,9 @@
   ],
   "ingredient": {
     "type": "tconstruct:no_container",
-    "item": "tconstruct:seared_ingot_tank"
+    "match": {
+      "item": "tconstruct:seared_ingot_tank"
+    }
   },
   "result": {
     "amount": 1500,

@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "tconstruct:anvil_metal"
+            "items": "#tconstruct:anvil_metal"
           }
         ]
       },
@@ -20,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_item",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_item"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:tables/tinkers_anvil"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -2,6 +2,7 @@
   "type": "tconstruct:fixed_material_swapping",
   "index": 0,
   "ingredient": {
+    "count": 1,
     "item": "tconstruct:blaze_head"
   },
   "material": "tconstruct:blaze",

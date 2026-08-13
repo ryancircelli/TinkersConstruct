@@ -1,13 +1,17 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "tconstruct:config",
+      "prop": "glass_recipe_fix"
+    }
+  ],
   "parent": "minecraft:recipes/root",
   "criteria": {
     "has_quartz": {
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:quartz"
-            ]
+            "items": "minecraft:quartz"
           }
         ]
       },
@@ -22,14 +26,13 @@
   },
   "requirements": [
     [
-      "has_quartz",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_quartz"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:common/glass/vanilla/daylight_detector"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

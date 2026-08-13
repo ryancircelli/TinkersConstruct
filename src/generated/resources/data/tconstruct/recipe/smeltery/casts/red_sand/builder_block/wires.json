@@ -1,14 +1,14 @@
 {
-  "type": "tconstruct:item_part_builder",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_filled",
-      "tag": "forge:wires"
+      "tag": "c:wires"
     }
   ],
+  "type": "tconstruct:item_part_builder",
   "pattern": "tconstruct:wire",
   "pattern_item": {
-    "tag": "forge:sand/red"
+    "tag": "c:sands/red"
   },
   "result": {
     "count": 4,

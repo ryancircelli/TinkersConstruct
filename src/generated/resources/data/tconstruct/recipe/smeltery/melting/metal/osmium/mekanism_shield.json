@@ -1,17 +1,18 @@
 {
-  "type": "tconstruct:damagable_melting",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",
       "item": "mekanism:osmium_shield"
     }
   ],
+  "type": "tconstruct:damagable_melting",
   "ingredient": {
+    "type": "mantle:item_name",
     "item": "mekanism:osmium_shield"
   },
   "result": {
     "amount": 540,
-    "tag": "forge:molten_osmium",
+    "tag": "c:molten_osmium",
     "unit_size": 10
   },
   "temperature": 975,

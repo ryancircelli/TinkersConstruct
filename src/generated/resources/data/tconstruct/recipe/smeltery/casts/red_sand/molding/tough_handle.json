@@ -5,7 +5,9 @@
   },
   "pattern": {
     "type": "tconstruct:material",
-    "item": "tconstruct:tough_handle"
+    "match": {
+      "item": "tconstruct:tough_handle"
+    }
   },
   "result": "tconstruct:tough_handle_red_sand_cast"
 }

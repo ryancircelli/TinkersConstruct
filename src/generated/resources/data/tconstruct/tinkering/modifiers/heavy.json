@@ -30,7 +30,8 @@
         "feet",
         "legs",
         "chest",
-        "head"
+        "head",
+        "body"
       ],
       "tool": {
         "type": "mantle:inverted",
@@ -49,7 +50,8 @@
         "feet",
         "legs",
         "chest",
-        "head"
+        "head",
+        "body"
       ]
     },
     {
@@ -63,7 +65,8 @@
         "feet",
         "legs",
         "chest",
-        "head"
+        "head",
+        "body"
       ],
       "tooltip_style": "percent"
     }

@@ -7,12 +7,14 @@
     },
     {
       "amount": 30,
-      "tag": "forge:molten_iron"
+      "tag": "c:molten_iron"
     }
   ],
   "ingredient": {
     "type": "tconstruct:no_container",
-    "item": "tconstruct:scorched_lantern"
+    "match": {
+      "item": "tconstruct:scorched_lantern"
+    }
   },
   "result": {
     "amount": 500,

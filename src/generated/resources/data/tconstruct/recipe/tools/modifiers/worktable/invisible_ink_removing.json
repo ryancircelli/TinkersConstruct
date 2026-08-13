@@ -6,11 +6,14 @@
   "inputs": [
     {
       "type": "mantle:fluid_container",
-      "amount": 1000,
+      "count": 1,
       "display": {
         "item": "minecraft:milk_bucket"
       },
-      "tag": "forge:milk"
+      "fluid": {
+        "amount": 1000,
+        "tag": "c:milk"
+      }
     }
   ],
   "modifier_predicate": {

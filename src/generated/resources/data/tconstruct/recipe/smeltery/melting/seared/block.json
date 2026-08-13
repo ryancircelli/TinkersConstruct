@@ -5,28 +5,33 @@
       "tag": "tconstruct:seared_blocks"
     },
     {
-      "item": "tconstruct:seared_ladder"
-    },
-    {
-      "item": "tconstruct:seared_lamp"
-    },
-    {
-      "item": "tconstruct:seared_cobble_wall"
-    },
-    {
-      "item": "tconstruct:seared_bricks_wall"
-    },
-    {
-      "item": "tconstruct:seared_cobble_stairs"
-    },
-    {
-      "item": "tconstruct:seared_stone_stairs"
-    },
-    {
-      "item": "tconstruct:seared_bricks_stairs"
-    },
-    {
-      "item": "tconstruct:seared_paver_stairs"
+      "type": "neoforge:compound",
+      "children": [
+        {
+          "item": "tconstruct:seared_ladder"
+        },
+        {
+          "item": "tconstruct:seared_lamp"
+        },
+        {
+          "item": "tconstruct:seared_cobble_wall"
+        },
+        {
+          "item": "tconstruct:seared_bricks_wall"
+        },
+        {
+          "item": "tconstruct:seared_cobble_stairs"
+        },
+        {
+          "item": "tconstruct:seared_stone_stairs"
+        },
+        {
+          "item": "tconstruct:seared_bricks_stairs"
+        },
+        {
+          "item": "tconstruct:seared_paver_stairs"
+        }
+      ]
     }
   ],
   "result": {

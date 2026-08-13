@@ -3,9 +3,11 @@
   "allow_crystal": true,
   "inputs": [
     {
-      "tag": "forge:ingots/copper"
+      "count": 1,
+      "tag": "c:ingots/copper"
     },
     {
+      "count": 1,
       "ingredient": [
         {
           "item": "minecraft:cornflower"
@@ -16,13 +18,16 @@
       ]
     },
     {
-      "tag": "forge:ingots/copper"
+      "count": 1,
+      "tag": "c:ingots/copper"
     },
     {
-      "tag": "forge:storage_blocks/lapis"
+      "count": 1,
+      "tag": "c:storage_blocks/lapis"
     },
     {
-      "tag": "forge:storage_blocks/lapis"
+      "count": 1,
+      "tag": "c:storage_blocks/lapis"
     }
   ],
   "level": 1,

@@ -4,12 +4,15 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:honeycomb"
     },
     {
+      "count": 1,
       "item": "minecraft:feather"
     },
     {
+      "count": 1,
       "item": "minecraft:honeycomb"
     }
   ],

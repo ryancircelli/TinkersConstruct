@@ -2,9 +2,11 @@
   "type": "tconstruct:extract_modifier",
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:amethyst_shard"
     },
     {
+      "count": 1,
       "item": "minecraft:wet_sponge"
     }
   ],
@@ -29,7 +31,7 @@
   },
   "name": "slotless",
   "tools": {
-    "amount_needed": 2,
+    "count": 2,
     "item": "tconstruct:dagger"
   }
 }

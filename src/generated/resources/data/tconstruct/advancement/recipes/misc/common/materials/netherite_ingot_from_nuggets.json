@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:netherite_nugget"
-            ]
+            "items": "tconstruct:netherite_nugget"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_item",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_item"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:common/materials/netherite_ingot_from_nuggets"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

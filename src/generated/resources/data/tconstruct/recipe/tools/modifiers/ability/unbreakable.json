@@ -4,19 +4,24 @@
   "check_trait_level": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:shulker_shell"
     },
     {
+      "count": 1,
       "item": "minecraft:dragon_breath"
     },
     {
+      "count": 1,
       "item": "minecraft:shulker_shell"
     },
     {
-      "tag": "forge:ingots/netherite"
+      "count": 1,
+      "tag": "c:ingots/netherite"
     },
     {
-      "tag": "forge:ingots/netherite"
+      "count": 1,
+      "tag": "c:ingots/netherite"
     }
   ],
   "level": 1,

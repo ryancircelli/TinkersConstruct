@@ -3,6 +3,7 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "ingredient": [
         {
           "item": "tconstruct:earth_slime_crystal_cluster"
@@ -13,6 +14,7 @@
       ]
     },
     {
+      "count": 1,
       "ingredient": [
         {
           "item": "minecraft:amethyst_cluster"
@@ -23,6 +25,7 @@
       ]
     },
     {
+      "count": 1,
       "ingredient": [
         {
           "item": "tconstruct:ichor_slime_crystal_cluster"
@@ -33,10 +36,12 @@
       ]
     },
     {
-      "tag": "forge:ingots/manyullyn"
+      "count": 1,
+      "tag": "c:ingots/manyullyn"
     },
     {
-      "tag": "forge:ingots/manyullyn"
+      "count": 1,
+      "tag": "c:ingots/manyullyn"
     }
   ],
   "result": {

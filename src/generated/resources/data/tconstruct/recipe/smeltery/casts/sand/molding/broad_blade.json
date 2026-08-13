@@ -5,7 +5,9 @@
   },
   "pattern": {
     "type": "tconstruct:material",
-    "item": "tconstruct:broad_blade"
+    "match": {
+      "item": "tconstruct:broad_blade"
+    }
   },
   "result": "tconstruct:broad_blade_sand_cast"
 }

@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:light_gray_clear_stained_glass"
-            ]
+            "items": "tconstruct:light_gray_clear_stained_glass"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_block",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_block"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:common/glass/light_gray_clear_stained_glass_pane"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

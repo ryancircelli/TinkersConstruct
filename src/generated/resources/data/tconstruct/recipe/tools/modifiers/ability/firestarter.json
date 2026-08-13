@@ -4,9 +4,11 @@
   "check_trait_level": true,
   "inputs": [
     {
-      "tag": "forge:ingots/steel"
+      "count": 1,
+      "tag": "c:ingots/steel"
     },
     {
+      "count": 1,
       "item": "minecraft:flint"
     }
   ],
@@ -16,7 +18,7 @@
     "abilities": 1
   },
   "tools": {
-    "type": "forge:intersection",
+    "type": "neoforge:intersection",
     "children": [
       {
         "tag": "tconstruct:modifiable/durability"

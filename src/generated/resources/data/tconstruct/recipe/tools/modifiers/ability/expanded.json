@@ -3,19 +3,24 @@
   "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "item": "minecraft:piston"
     },
     {
-      "tag": "forge:ingots/amethyst_bronze"
+      "count": 1,
+      "tag": "c:ingots/amethyst_bronze"
     },
     {
+      "count": 1,
       "item": "minecraft:piston"
     },
     {
-      "tag": "forge:slimeball/ichor"
+      "count": 1,
+      "tag": "c:slimeball/ichor"
     },
     {
-      "tag": "forge:slimeball/ichor"
+      "count": 1,
+      "tag": "c:slimeball/ichor"
     }
   ],
   "result": "tconstruct:expanded",

@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:cheese_ingot"
-            ]
+            "items": "tconstruct:cheese_ingot"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_cheese",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_cheese"
     ]
   ],
   "rewards": {
     "recipes": [
       "tconstruct:common/cheese_block_from_ingot"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

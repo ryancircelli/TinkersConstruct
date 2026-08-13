@@ -14,7 +14,6 @@
   ],
   "result": {
     "count": 4,
-    "item": "tconstruct:seared_cobble_stairs"
-  },
-  "show_notification": true
+    "id": "tconstruct:seared_cobble_stairs"
+  }
 }

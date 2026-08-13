@@ -12,7 +12,8 @@
         "feet",
         "legs",
         "chest",
-        "head"
+        "head",
+        "body"
       ]
     },
     {
@@ -26,7 +27,8 @@
         "feet",
         "legs",
         "chest",
-        "head"
+        "head",
+        "body"
       ]
     }
   ],

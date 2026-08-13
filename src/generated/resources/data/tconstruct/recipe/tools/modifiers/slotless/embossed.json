@@ -1,14 +1,15 @@
 {
-  "type": "tconstruct:modifier",
-  "allow_crystal": true,
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_filled",
       "tag": "tconstruct:boss_trophies"
     }
   ],
+  "type": "tconstruct:modifier",
+  "allow_crystal": true,
   "inputs": [
     {
+      "count": 1,
       "tag": "tconstruct:boss_trophies"
     }
   ],

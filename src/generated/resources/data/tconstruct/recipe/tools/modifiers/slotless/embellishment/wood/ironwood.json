@@ -1,21 +1,24 @@
 {
-  "type": "tconstruct:swappable_modifier",
-  "allow_crystal": false,
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_filled",
-      "tag": "forge:ingots/ironwood"
+      "tag": "c:ingots/ironwood"
     }
   ],
+  "type": "tconstruct:swappable_modifier",
+  "allow_crystal": false,
   "inputs": [
     {
-      "tag": "forge:ingots/ironwood"
+      "count": 1,
+      "tag": "c:ingots/ironwood"
     },
     {
+      "count": 1,
       "item": "tconstruct:pattern"
     },
     {
-      "tag": "forge:ingots/ironwood"
+      "count": 1,
+      "tag": "c:ingots/ironwood"
     }
   ],
   "result": {

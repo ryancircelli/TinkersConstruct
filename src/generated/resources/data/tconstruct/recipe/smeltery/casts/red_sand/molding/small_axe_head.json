@@ -5,7 +5,9 @@
   },
   "pattern": {
     "type": "tconstruct:material",
-    "item": "tconstruct:small_axe_head"
+    "match": {
+      "item": "tconstruct:small_axe_head"
+    }
   },
   "result": "tconstruct:small_axe_head_red_sand_cast"
 }
