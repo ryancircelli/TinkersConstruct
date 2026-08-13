@@ -812,6 +812,8 @@ src/main/java/slimeknights/tconstruct/shared/item/CheeseBlockItem.java
 src/main/java/slimeknights/tconstruct/shared/item/CheeseItem.java
 src/main/java/slimeknights/tconstruct/shared/item/TinkerBookItem.java
 src/main/java/slimeknights/tconstruct/shared/network/GeneratePartTexturesPacket.java
+src/main/java/slimeknights/tconstruct/smeltery/SmelteryClientEvents.java
+src/main/java/slimeknights/tconstruct/smeltery/TinkerSmeltery.java
 src/main/java/slimeknights/tconstruct/smeltery/block/AbstractCastingBlock.java
 src/main/java/slimeknights/tconstruct/smeltery/block/CastingBasinBlock.java
 src/main/java/slimeknights/tconstruct/smeltery/block/CastingTableBlock.java
@@ -933,6 +935,11 @@ src/main/java/slimeknights/tconstruct/smeltery/client/screen/package-info.java
 src/main/java/slimeknights/tconstruct/smeltery/client/util/CastingItemRenderTypeBuffer.java
 src/main/java/slimeknights/tconstruct/smeltery/client/util/TintedVertexBuilder.java
 src/main/java/slimeknights/tconstruct/smeltery/client/util/package-info.java
+src/main/java/slimeknights/tconstruct/smeltery/data/Byproduct.java
+src/main/java/slimeknights/tconstruct/smeltery/data/FluidContainerTransferProvider.java
+src/main/java/slimeknights/tconstruct/smeltery/data/SmelteryCompat.java
+src/main/java/slimeknights/tconstruct/smeltery/data/SmelteryRecipeProvider.java
+src/main/java/slimeknights/tconstruct/smeltery/data/package-info.java
 src/main/java/slimeknights/tconstruct/smeltery/item/CopperCanFluidHandler.java
 src/main/java/slimeknights/tconstruct/smeltery/item/CopperCanItem.java
 src/main/java/slimeknights/tconstruct/smeltery/item/DummyMaterialItem.java
@@ -952,6 +959,7 @@ src/main/java/slimeknights/tconstruct/smeltery/network/SmelteryFluidClickedPacke
 src/main/java/slimeknights/tconstruct/smeltery/network/SmelteryTankUpdatePacket.java
 src/main/java/slimeknights/tconstruct/smeltery/network/StructureErrorPositionPacket.java
 src/main/java/slimeknights/tconstruct/smeltery/network/StructureUpdatePacket.java
+src/main/java/slimeknights/tconstruct/smeltery/package-info.java
 src/main/java/slimeknights/tconstruct/tables/network/StationTabPacket.java
 src/main/java/slimeknights/tconstruct/tables/network/TinkerStationRenamePacket.java
 src/main/java/slimeknights/tconstruct/tables/network/TinkerStationSelectionPacket.java

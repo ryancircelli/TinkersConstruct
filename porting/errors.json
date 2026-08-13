@@ -1,14 +1,13 @@
 {
-    "total": 347,
-    "islandFiles": 1009,
+    "total": 282,
+    "islandFiles": 1017,
     "categories": {
         "other: static import only from classes and interfaces": 11,
-        "package slimeknights.tconstruct.gadgets": 6,
+        "package slimeknights.tconstruct.gadgets": 7,
         "package slimeknights.tconstruct.gadgets.entity": 2,
         "package slimeknights.tconstruct.library.client.model": 11,
-        "package slimeknights.tconstruct.library.client.model.tools": 1,
-        "package slimeknights.tconstruct.smeltery.data": 3,
-        "package slimeknights.tconstruct.smeltery.data.SmelteryCompat": 2,
+        "package slimeknights.tconstruct.library.client.model.block": 2,
+        "package slimeknights.tconstruct.library.client.model.tools": 2,
         "package slimeknights.tconstruct.tables.block": 1,
         "package slimeknights.tconstruct.tables.block.entity.chest": 1,
         "package slimeknights.tconstruct.tables.block.entity.table": 3,
@@ -20,7 +19,7 @@
         "package slimeknights.tconstruct.tools.client": 2,
         "package slimeknights.tconstruct.tools.client.material": 1,
         "package slimeknights.tconstruct.tools.data": 9,
-        "package slimeknights.tconstruct.tools.data.material": 11,
+        "package slimeknights.tconstruct.tools.data.material": 13,
         "package slimeknights.tconstruct.tools.data.sprite": 1,
         "package slimeknights.tconstruct.tools.entity": 4,
         "package slimeknights.tconstruct.tools.item": 1,
@@ -49,12 +48,11 @@
         "symbol class SideInventoryContainer": 4,
         "symbol class SideInventoryScreen": 1,
         "symbol class StatOverrideModifier": 1,
-        "symbol class TinkerModifiers": 31,
-        "symbol class TinkerSmeltery": 69,
+        "symbol class TinkerModifiers": 32,
         "symbol class TinkerStationRepairRecipe": 1,
         "symbol class TinkerTables": 22,
         "symbol class TinkerToolActions": 9,
-        "symbol class TinkerToolParts": 11,
+        "symbol class TinkerToolParts": 13,
         "symbol class TinkerTools": 15
     }
 }

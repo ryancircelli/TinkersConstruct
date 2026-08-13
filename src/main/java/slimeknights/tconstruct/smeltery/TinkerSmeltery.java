@@ -1,6 +1,7 @@
 package slimeknights.tconstruct.smeltery;
 
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -27,6 +28,8 @@ import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.fluids.FluidType;
@@ -124,7 +127,9 @@ import slimeknights.tconstruct.smeltery.block.entity.controller.MelterBlockEntit
 import slimeknights.tconstruct.smeltery.block.entity.controller.SmelteryBlockEntity;
 import slimeknights.tconstruct.smeltery.data.FluidContainerTransferProvider;
 import slimeknights.tconstruct.smeltery.data.SmelteryRecipeProvider;
+import slimeknights.tconstruct.smeltery.item.CopperCanFluidHandler;
 import slimeknights.tconstruct.smeltery.item.CopperCanItem;
+import slimeknights.tconstruct.smeltery.item.TankItemFluidHandler;
 import slimeknights.tconstruct.smeltery.item.ScaledFluidTank;
 import slimeknights.tconstruct.smeltery.item.DummyMaterialItem;
 import slimeknights.tconstruct.smeltery.item.TankItem;
@@ -494,6 +499,55 @@ public final class TinkerSmeltery extends TinkerModule {
   }
 
   @SuppressWarnings("removal")
+  /**
+   * Grants every block entity and item in this module the capabilities it used to answer for itself.
+   * <p>
+   * 1.20 overrode {@code BlockEntity#getCapability} on a dozen classes and {@code Item#initCapabilities} on three
+   * items. Neither hook exists: a block capability is granted per {@link net.minecraft.world.level.block.entity.BlockEntityType}
+   * and an item capability per {@link net.minecraft.world.item.Item}, both once, here (M9 §2 and §7). The handler
+   * getters this reads are what is left of those overrides.
+   */
+  @SubscribeEvent
+  void registerCapabilities(RegisterCapabilitiesEvent event) {
+    // tanks: the block entity is the fluid handler
+    event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, tank.get(), (be, side) -> be.getTank());
+    event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, lantern.get(), (be, side) -> be.getTank());
+    event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, melter.get(), (be, side) -> be.getTank());
+    event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, alloyer.get(), (be, side) -> be.getTank());
+    event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, basin.get(), (be, side) -> be.getTank());
+    event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, table.get(), (be, side) -> be.getTank());
+    event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, castingTank.get(), (be, side) -> be.getTank());
+    event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, fluidCannon.get(), (be, side) -> be.getTank());
+    // the proxy tank is both handlers at once, backed by the item inside it
+    event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, proxyTank.get(), (be, side) -> be.getItemTank());
+    event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, proxyTank.get(), (be, side) -> be.getItemTank());
+    // the channel answers a different handler per side, which is why it is a method rather than a field
+    event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, channel.get(), ChannelBlockEntity::getFluidHandler);
+    // drains and ducts hand out their master's handler; a chute does the same for items
+    event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, drain.get(), (be, side) -> be.getHandler());
+    event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, duct.get(), (be, side) -> be.getHandler());
+    event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, chute.get(), (be, side) -> be.getHandler());
+
+    // item handlers
+    event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, heater.get(), (be, side) -> be.getItemHandler());
+    event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, duct.get(), (be, side) -> be.getItemHandler());
+    event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, fluidCannon.get(), (be, side) -> be.getItemHandler());
+    event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, melter.get(), (be, side) -> be.getItemHandler());
+    event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, smeltery.get(), (be, side) -> be.getMeltingInventory());
+    event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, foundry.get(), (be, side) -> be.getMeltingInventory());
+    // the two casting types restrict their inventory to the down face, hence their own getItemHandler override
+    event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, basin.get(), (be, side) -> be.getItemHandler());
+    event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, table.get(), (be, side) -> be.getItemHandler());
+    event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, castingTank.get(), (be, side) -> be.getItemHandler());
+
+    // items
+    event.registerItem(Capabilities.FluidHandler.ITEM, (stack, context) -> new CopperCanFluidHandler(stack), copperCan);
+    ItemLike[] tanks = BuiltInRegistries.ITEM.stream().filter(TankItem.class::isInstance).toArray(ItemLike[]::new);
+    if (tanks.length > 0) {
+      event.registerItem(Capabilities.FluidHandler.ITEM, (stack, context) -> new TankItemFluidHandler((TankItem)stack.getItem(), stack), tanks);
+    }
+  }
+
   @SubscribeEvent
   void registerSerializers(RegisterEvent event) {
     if (event.getRegistryKey() == Registries.RECIPE_SERIALIZER) {
@@ -505,7 +559,7 @@ public final class TinkerSmeltery extends TinkerModule {
     boolean server = event.includeServer();
     DataGenerator generator = event.getGenerator();
     PackOutput packOutput = generator.getPackOutput();
-    generator.addProvider(server, new SmelteryRecipeProvider(packOutput));
+    generator.addProvider(server, new SmelteryRecipeProvider(packOutput, event.getLookupProvider()));
     generator.addProvider(server, new FluidContainerTransferProvider(packOutput));
   }
 
