@@ -913,6 +913,12 @@ src/main/java/slimeknights/tconstruct/smeltery/item/ScaledFluidTank.java
 src/main/java/slimeknights/tconstruct/smeltery/item/TankItem.java
 src/main/java/slimeknights/tconstruct/smeltery/item/TankItemFluidHandler.java
 src/main/java/slimeknights/tconstruct/smeltery/item/package-info.java
+src/main/java/slimeknights/tconstruct/smeltery/menu/AlloyerContainerMenu.java
+src/main/java/slimeknights/tconstruct/smeltery/menu/HeatingStructureContainerMenu.java
+src/main/java/slimeknights/tconstruct/smeltery/menu/MelterContainerMenu.java
+src/main/java/slimeknights/tconstruct/smeltery/menu/SingleItemContainerMenu.java
+src/main/java/slimeknights/tconstruct/smeltery/menu/TransferDirectionSupplier.java
+src/main/java/slimeknights/tconstruct/smeltery/menu/package-info.java
 src/main/java/slimeknights/tconstruct/smeltery/network/ChannelFlowPacket.java
 src/main/java/slimeknights/tconstruct/smeltery/network/FaucetActivationPacket.java
 src/main/java/slimeknights/tconstruct/smeltery/network/SmelteryFluidClickedPacket.java

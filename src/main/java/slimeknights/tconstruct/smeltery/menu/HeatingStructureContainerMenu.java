@@ -1,7 +1,7 @@
 package slimeknights.tconstruct.smeltery.menu;
 
 import lombok.Getter;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -68,7 +68,7 @@ public class HeatingStructureContainerMenu extends TriggeringMultiModuleContaine
     addInventorySlots();
   }
 
-  public HeatingStructureContainerMenu(int id, Inventory inv, FriendlyByteBuf buf) {
+  public HeatingStructureContainerMenu(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
     this(id, inv, getTileEntityFromBuf(buf, HeatingStructureBlockEntity.class));
   }
 
