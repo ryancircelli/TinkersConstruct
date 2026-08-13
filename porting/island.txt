@@ -147,6 +147,12 @@ src/main/java/slimeknights/tconstruct/library/client/data/util/package-info.java
 src/main/java/slimeknights/tconstruct/library/client/item/ModifiableCrossbowClientExtension.java
 src/main/java/slimeknights/tconstruct/library/client/item/ModifiableItemClientExtension.java
 src/main/java/slimeknights/tconstruct/library/client/item/package-info.java
+src/main/java/slimeknights/tconstruct/library/client/materials/MaterialGeneratorInfo.java
+src/main/java/slimeknights/tconstruct/library/client/materials/MaterialRenderInfo.java
+src/main/java/slimeknights/tconstruct/library/client/materials/MaterialRenderInfoLoader.java
+src/main/java/slimeknights/tconstruct/library/client/materials/MaterialTextureField.java
+src/main/java/slimeknights/tconstruct/library/client/materials/MaterialTooltipCache.java
+src/main/java/slimeknights/tconstruct/library/client/materials/package-info.java
 src/main/java/slimeknights/tconstruct/library/client/package-info.java
 src/main/java/slimeknights/tconstruct/library/client/particle/AttackParticle.java
 src/main/java/slimeknights/tconstruct/library/client/particle/SlimeParticle.java
