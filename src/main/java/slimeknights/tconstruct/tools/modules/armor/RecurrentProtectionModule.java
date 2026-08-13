@@ -1,5 +1,7 @@
 package slimeknights.tconstruct.tools.modules.armor;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
@@ -62,10 +64,10 @@ public record RecurrentProtectionModule(LevelingValue percent, LevelingInt durat
   @Override
   public float modifyDamageTaken(IToolStackView tool, ModifierEntry modifier, EquipmentContext context, EquipmentSlot slotType, DamageSource source, float amount, boolean isDirectDamage) {
     if (!source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-      int level = SlotInChargeModule.getLevel(context.getTinkerData(), SLOT_KEY, slotType);
+      int level = SlotInChargeModule.getLevel(context.getDataHolder(), SLOT_KEY, slotType);
       if (level > 0) {
         // step 1: reduce damage based on the current effect level
-        MobEffect effect = TinkerModifiers.momentumEffect.get(ToolType.ARMOR);
+        Holder<MobEffect> effect = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(TinkerModifiers.momentumEffect.get(ToolType.ARMOR));
         LivingEntity entity = context.getEntity();
         amount -= TinkerEffect.getLevel(entity, effect);
 
@@ -86,7 +88,7 @@ public record RecurrentProtectionModule(LevelingValue percent, LevelingInt durat
       TooltipModifierHook.addPercentBoost(modifier.getModifier(), PROTECTION, this.percent.compute(modifier.getLevel()), tooltip);
     } else {
       // if we have a player, use the current effect level for reduction display
-      int level = TinkerEffect.getLevel(player, TinkerModifiers.momentumEffect.get(ToolType.ARMOR));
+      int level = TinkerEffect.getLevel(player, BuiltInRegistries.MOB_EFFECT.wrapAsHolder(TinkerModifiers.momentumEffect.get(ToolType.ARMOR)));
       if (level > 0) {
         TooltipModifierHook.addFlatBoost(modifier.getModifier(), PROTECTION, this.percent.compute(modifier.getLevel()), tooltip);
       }

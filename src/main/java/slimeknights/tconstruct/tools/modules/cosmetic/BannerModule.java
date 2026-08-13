@@ -3,15 +3,17 @@ package slimeknights.tconstruct.tools.modules.cosmetic;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.entity.BannerPattern;
+import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.block.entity.BannerPatterns;
 import slimeknights.mantle.client.TooltipKey;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
@@ -32,6 +34,7 @@ import slimeknights.tconstruct.library.utils.Util;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 /** Module for banner pattern tooltips */
 public enum BannerModule implements ModifierModule, DisplayNameModifierHook, TooltipModifierHook {
@@ -43,7 +46,12 @@ public enum BannerModule implements ModifierModule, DisplayNameModifierHook, Too
   public static final String KEY_DYE = "dye";
   /** Key for a pattern color, as a 24 bit integer */
   public static final String KEY_COLOR = "color";
-  /** Key for a pattern hash, from {@link BannerPattern#getHashname()} */
+  /**
+   * Key for the banner pattern, stored as its registry ID.
+   * @apiNote  1.20 stored the short hash {@code BannerPattern#getHashname()} produced. Banner patterns are a datapack
+   * registry in 1.21 and both that method and the hash scheme are gone, so the layer is named by its registry ID.
+   * This is a <b>tool NBT format change</b>: a shield decorated in 1.20 holds hashes this cannot read back.
+   */
   public static final String KEY_PATTERN = "pattern";
   /** Tooltip key saying hold shift for patterns */
   private static final Component HOLD_SHIFT = TConstruct.makeTranslation("modifier", "banner.hold_shift").withStyle(ChatFormatting.GRAY);
@@ -77,13 +85,10 @@ public enum BannerModule implements ModifierModule, DisplayNameModifierHook, Too
         for (int i = 0; i < patterns.size(); i++) {
           CompoundTag tag = patterns.getCompound(i);
           DyeColor dye = DyeColor.byId(tag.getInt(KEY_DYE));
-          Holder<BannerPattern> holder = BannerPattern.byHash(tag.getString(KEY_PATTERN));
-          if (holder != null) {
-            // note that Forge is dumb in BannerItem with their patch - mojang already adds the mod ID to the tooltip key
-            holder.unwrapKey().ifPresent(key ->
-              tooltip.add(Component.translatable("block.minecraft.banner." + key.location().toShortLanguageKey() + '.' + dye.getName()).withStyle(ChatFormatting.GRAY)));
-
-          }
+          // 1.21 keeps the translation key on the pattern itself rather than deriving it from the ID, so the
+          // datapack registry has to be consulted; vanilla patterns produce the same key 1.20 built by hand.
+          getPattern(tag.getString(KEY_PATTERN)).ifPresent(pattern ->
+            tooltip.add(Component.translatable(pattern.translationKey() + '.' + dye.getName()).withStyle(ChatFormatting.GRAY)));
         }
       } else {
         tooltip.add(HOLD_SHIFT);
@@ -101,35 +106,53 @@ public enum BannerModule implements ModifierModule, DisplayNameModifierHook, Too
     return modifier.withSuffix("_patterns");
   }
 
-  /** Copies the given list of patterns from banner format to the tool's NBT */
-  public static void copyPatterns(ModDataNBT data, ModifierId id, DyeColor dye, ListTag banner) {
+  /** Looks up a stored pattern ID in the banner pattern registry, empty if the ID is unparsable or unregistered */
+  private static Optional<BannerPattern> getPattern(String id) {
+    ResourceLocation location = ResourceLocation.tryParse(id);
+    if (location == null) {
+      return Optional.empty();
+    }
+    return Util.registryAccess().lookup(Registries.BANNER_PATTERN)
+      .flatMap(lookup -> lookup.get(ResourceKey.create(Registries.BANNER_PATTERN, location)))
+      .map(Holder::value);
+  }
+
+  /**
+   * Copies the given banner's layers to the tool's NBT.
+   * @apiNote  Takes the {@link BannerPatternLayers} component 1.21 stores on a banner rather than 1.20's {@code
+   * Patterns} list; a layer already carries its pattern holder and dye, so nothing has to be re-parsed here. The base
+   * layer no longer needs a registry lookup either, as {@link BannerPatterns#BASE} is a key and the ID is all that
+   * gets stored.
+   */
+  public static void copyPatterns(ModDataNBT data, ModifierId id, DyeColor dye, BannerPatternLayers banner) {
     int baseColor = Util.getColor(dye);
     ListTag patterns = new ListTag();
 
     // add in the base pattern, it only exists on shields and we copy from banners
-    BannerPattern base = BuiltInRegistries.BANNER_PATTERN.get(BannerPatterns.BASE);
-    if (base != null) {
-      CompoundTag basePattern = new CompoundTag();
-      basePattern.putString(KEY_PATTERN, base.getHashname());
-      basePattern.putInt(KEY_DYE, dye.getId());
-      basePattern.putInt(KEY_COLOR, baseColor);
-      patterns.add(basePattern);
-    }
+    CompoundTag basePattern = new CompoundTag();
+    basePattern.putString(KEY_PATTERN, BannerPatterns.BASE.location().toString());
+    basePattern.putInt(KEY_DYE, dye.getId());
+    basePattern.putInt(KEY_COLOR, baseColor);
+    patterns.add(basePattern);
 
     // need a cache key, but it's just going to get hashed anyway, so store its hash
     int hashCode = baseColor;
 
     // add in all other patterns
-    for (int i = 0; i < banner.size(); i++) {
-      CompoundTag original = banner.getCompound(i);
+    for (BannerPatternLayers.Layer layer : banner.layers()) {
+      // an unregistered pattern has no ID to store and would not render either, so skip it
+      Optional<ResourceKey<BannerPattern>> key = layer.pattern().unwrapKey();
+      if (key.isEmpty()) {
+        continue;
+      }
       CompoundTag copy = new CompoundTag();
-      // copy the pattern as is
-      String pattern = original.getString("Pattern");
+      // the pattern is stored by ID, which is what the model's texture suffix wants
+      String pattern = key.get().location().toString();
       copy.putString(KEY_PATTERN, pattern);
       // convert the color from a dye color to an integer
-      dye = DyeColor.byId(original.getInt("Color"));
-      int color = Util.getColor(dye);
-      copy.putInt(KEY_DYE, dye.getId()); // dye for the tooltip
+      DyeColor layerDye = layer.color();
+      int color = Util.getColor(layerDye);
+      copy.putInt(KEY_DYE, layerDye.getId()); // dye for the tooltip
       copy.putInt(KEY_COLOR, color); // color for the model
       // add the values
       patterns.add(copy);

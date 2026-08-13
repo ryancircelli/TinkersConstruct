@@ -1,6 +1,6 @@
 {
-    "total": 233,
-    "islandFiles": 1282,
+    "total": 160,
+    "islandFiles": 1380,
     "categories": {
         "package slimeknights.tconstruct.library.client.model": 12,
         "package slimeknights.tconstruct.library.client.model.block": 2,
@@ -9,31 +9,13 @@
         "package slimeknights.tconstruct.tools.data.material": 13,
         "package slimeknights.tconstruct.tools.data.sprite": 1,
         "package slimeknights.tconstruct.tools.logic": 6,
-        "package slimeknights.tconstruct.tools.modules": 16,
-        "package slimeknights.tconstruct.tools.modules.ArmorModuleBuilder": 2,
-        "package slimeknights.tconstruct.tools.modules.FovModule": 2,
-        "package slimeknights.tconstruct.tools.modules.armor": 13,
-        "package slimeknights.tconstruct.tools.modules.combat": 6,
-        "package slimeknights.tconstruct.tools.modules.cosmetic": 6,
-        "package slimeknights.tconstruct.tools.modules.interaction": 10,
-        "package slimeknights.tconstruct.tools.modules.interaction.sling": 5,
-        "package slimeknights.tconstruct.tools.modules.ranged.ammo": 1,
-        "package slimeknights.tconstruct.tools.modules.ranged.common": 2,
         "package slimeknights.tconstruct.tools.recipe": 1,
-        "symbol class ArmorModuleBuilder": 11,
-        "symbol class ArmorShieldModuleBuilder": 2,
         "symbol class CombatFishingHookRenderer": 1,
-        "symbol class OvergrowthModule": 1,
-        "symbol class ShearsModule": 2,
         "symbol class ShieldBannerModifierSpriteSource": 1,
         "symbol class SlimeskullArmorModel": 2,
-        "symbol class SlingKnockbackModule": 1,
-        "symbol class SlingLeapModule": 2,
-        "symbol class SlingTeleportModule": 1,
-        "symbol class TinkerModifiers": 46,
-        "symbol class TinkerToolActions": 12,
+        "symbol class TinkerModifiers": 49,
+        "symbol class TinkerToolActions": 19,
         "symbol class TinkerToolParts": 15,
-        "symbol class TinkerTools": 23,
-        "symbol class TrimModule": 1
+        "symbol class TinkerTools": 24
     }
 }

@@ -2,6 +2,7 @@ package slimeknights.tconstruct.tools.modules.armor;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
@@ -28,9 +29,11 @@ import slimeknights.tconstruct.library.modifiers.util.EnchantmentLevels;
 import slimeknights.tconstruct.library.module.HookProvider;
 import slimeknights.tconstruct.library.module.ModuleHook;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
+import slimeknights.tconstruct.library.utils.Util;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 /** Variant of {@link slimeknights.tconstruct.library.modifiers.modules.build.EnchantmentModule} for adding soulspeed with a tooltip. */
 public record SoulSpeedModule(LevelingInt level, ModifierCondition<IToolStackView> condition) implements ModifierModule, TooltipModifierHook, EnchantmentModifierHook, ConditionalModule<IToolStackView> {
@@ -49,16 +52,28 @@ public record SoulSpeedModule(LevelingInt level, ModifierCondition<IToolStackVie
 
   @Override
   public int updateEnchantmentLevel(IToolStackView tool, ModifierEntry modifier, Holder<Enchantment> enchantment, int level) {
-    if (enchantment.value() == Enchantments.SOUL_SPEED && condition.matches(tool, modifier)) {
+    if (enchantment.is(Enchantments.SOUL_SPEED) && condition.matches(tool, modifier)) {
       level += this.level.compute(modifier);
     }
     return level;
   }
 
+  /**
+   * Resolves the soul speed enchantment holder.
+   * @apiNote  Enchantments are a datapack registry in 1.21, so {@link Enchantments#SOUL_SPEED} is a
+   * {@link net.minecraft.resources.ResourceKey} and the accumulator wants the {@link Holder} behind it. The hook is
+   * handed no registry access, hence the fallback lookup; it returns empty only when read outside a world entirely,
+   * where the tool has no enchantments to report anyway.
+   */
+  private static Optional<? extends Holder<Enchantment>> soulSpeed() {
+    return Util.registryAccess().lookup(Registries.ENCHANTMENT).flatMap(lookup -> lookup.get(Enchantments.SOUL_SPEED));
+  }
+
   @Override
   public void updateEnchantments(IToolStackView tool, ModifierEntry modifier, EnchantmentLevels enchantments) {
     if (condition.matches(tool, modifier)) {
-      enchantments.addLevel(Enchantments.SOUL_SPEED, this.level.compute(modifier));
+      int level = this.level.compute(modifier);
+      soulSpeed().ifPresent(enchantment -> enchantments.addLevel(enchantment, level));
     }
   }
 

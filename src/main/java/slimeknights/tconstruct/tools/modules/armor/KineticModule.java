@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.tools.modules.armor;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -57,7 +58,7 @@ public enum KineticModule implements ModifierModule, OnAttackedModifierHook, Too
   public void onAttacked(IToolStackView tool, ModifierEntry modifier, EquipmentContext context, EquipmentSlot slotType, DamageSource source, float amount, boolean isDirectDamage) {
     // require the damage to be entity caused, but does not strictly need to be melee damage
     if (source.getEntity() != null) {
-      int level = SlotInChargeModule.getLevel(context.getTinkerData(), SLOT_IN_CHARGE, slotType);
+      int level = SlotInChargeModule.getLevel(context.getDataHolder(), SLOT_IN_CHARGE, slotType);
       if (level > 0) {
         InsatiableModifier.applyEffect(context.getEntity(), ToolType.ARMOR, 10 * 20, 1, level - 1);
       }
@@ -69,7 +70,7 @@ public enum KineticModule implements ModifierModule, OnAttackedModifierHook, Too
     float bonus = modifier.getLevel();
     if (player != null && tooltipKey == TooltipKey.SHIFT) {
       // armor does not scale the effect level for its bonus
-      bonus = TinkerEffect.getLevel(player, TinkerModifiers.insatiableEffect.get(ToolType.ARMOR));
+      bonus = TinkerEffect.getLevel(player, BuiltInRegistries.MOB_EFFECT.wrapAsHolder(TinkerModifiers.insatiableEffect.get(ToolType.ARMOR)));
     }
     if (bonus > 0) {
       TooltipModifierHook.addFlatBoost(modifier.getModifier(), TooltipModifierHook.statName(modifier.getModifier(), ToolStats.ATTACK_DAMAGE), bonus, tooltip);
