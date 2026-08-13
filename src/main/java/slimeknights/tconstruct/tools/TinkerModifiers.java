@@ -359,20 +359,20 @@ public final class TinkerModifiers extends TinkerModule {
   /*
    * Items
    */
-  public static final ItemObject<Item> silkyCloth = ITEMS.register("silky_cloth", ITEM_PROPS);
+  public static final ItemObject<Item> silkyCloth = ITEMS.register("silky_cloth", itemProps());
   public static final ItemObject<Item> dragonScale = ITEMS.register("dragon_scale", () -> new DragonScaleItem(new Item.Properties().rarity(Rarity.RARE)));
   // durability reinforcements
-  public static final ItemObject<Item> emeraldReinforcement = ITEMS.register("emerald_reinforcement", ITEM_PROPS);
-  public static final ItemObject<Item> slimesteelReinforcement = ITEMS.register("slimesteel_reinforcement", ITEM_PROPS);
+  public static final ItemObject<Item> emeraldReinforcement = ITEMS.register("emerald_reinforcement", itemProps());
+  public static final ItemObject<Item> slimesteelReinforcement = ITEMS.register("slimesteel_reinforcement", itemProps());
   // armor reinforcements
-  public static final ItemObject<Item> ironReinforcement = ITEMS.register("iron_reinforcement", ITEM_PROPS);
-  public static final ItemObject<Item> searedReinforcement = ITEMS.register("seared_reinforcement", ITEM_PROPS);
-  public static final ItemObject<Item> goldReinforcement = ITEMS.register("gold_reinforcement", ITEM_PROPS);
-  public static final ItemObject<Item> cobaltReinforcement = ITEMS.register("cobalt_reinforcement", ITEM_PROPS);
-  public static final ItemObject<Item> obsidianReinforcement = ITEMS.register("obsidian_reinforcement", ITEM_PROPS);
+  public static final ItemObject<Item> ironReinforcement = ITEMS.register("iron_reinforcement", itemProps());
+  public static final ItemObject<Item> searedReinforcement = ITEMS.register("seared_reinforcement", itemProps());
+  public static final ItemObject<Item> goldReinforcement = ITEMS.register("gold_reinforcement", itemProps());
+  public static final ItemObject<Item> cobaltReinforcement = ITEMS.register("cobalt_reinforcement", itemProps());
+  public static final ItemObject<Item> obsidianReinforcement = ITEMS.register("obsidian_reinforcement", itemProps());
   // special
   public static final ItemObject<Item> modifierCrystal = ITEMS.register("modifier_crystal", () -> new ModifierCrystalItem(new Item.Properties().stacksTo(16)));
-  public static final ItemObject<CreativeSlotItem> creativeSlotItem = ITEMS.register("creative_slot", () -> new CreativeSlotItem(ITEM_PROPS));
+  public static final ItemObject<CreativeSlotItem> creativeSlotItem = ITEMS.register("creative_slot", () -> new CreativeSlotItem(itemProps()));
 
   // entity
   public static final DeferredHolder<EntityType<FluidEffectProjectile>> fluidSpitEntity = ENTITIES.register("fluid_spit", () ->

@@ -1,9 +1,8 @@
 {
-    "total": 331,
-    "islandFiles": 812,
+    "total": 317,
+    "islandFiles": 820,
     "categories": {
         "other: static import only from classes and interfaces": 2,
-        "package slimeknights.tconstruct.common": 69,
         "package slimeknights.tconstruct.common.TinkerTags": 2,
         "package slimeknights.tconstruct.common.config": 7,
         "package slimeknights.tconstruct.common.config.Config": 1,
@@ -14,8 +13,8 @@
         "package slimeknights.tconstruct.common.network": 8,
         "package slimeknights.tconstruct.common.recipe": 9,
         "package slimeknights.tconstruct.common.recipe.RecipeCacheInvalidator": 6,
-        "package slimeknights.tconstruct.common.registration": 4,
         "package slimeknights.tconstruct.fluids": 4,
+        "package slimeknights.tconstruct.fluids.fluids": 1,
         "package slimeknights.tconstruct.gadgets": 1,
         "package slimeknights.tconstruct.gadgets.entity": 1,
         "package slimeknights.tconstruct.library.client.armor.ArmorModelManager": 1,
@@ -48,16 +47,20 @@
         "package slimeknights.tconstruct.tools.recipe": 1,
         "package slimeknights.tconstruct.tools.stats": 10,
         "package slimeknights.tconstruct.world": 2,
+        "package slimeknights.tconstruct.world.block": 3,
         "package slimeknights.tconstruct.world.data": 1,
         "package slimeknights.tconstruct.world.entity": 1,
         "symbol class ArmorModuleBuilder": 11,
         "symbol class ArmorShieldModuleBuilder": 1,
-        "symbol class CastItemObject": 13,
         "symbol class CraftingTableRepairKitRecipe": 1,
         "symbol class DuelSidedListener": 6,
         "symbol class EnderSlimeEntity": 3,
         "symbol class ModifierModel": 10,
         "symbol class OvergrowthModule": 1,
-        "symbol class TinkerStationRepairRecipe": 1
+        "symbol class Sounds": 7,
+        "symbol class TinkerDamageTypes": 6,
+        "symbol class TinkerEffect": 1,
+        "symbol class TinkerStationRepairRecipe": 1,
+        "symbol class TinkerTags": 54
     }
 }

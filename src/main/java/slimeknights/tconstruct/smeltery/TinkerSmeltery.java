@@ -265,12 +265,12 @@ public final class TinkerSmeltery extends TinkerModule {
   public static final ItemObject<FluidCannonBlock> searedFluidCannon, scorchedFluidCannon, endFluidCannon;
   public static final ItemObject<SearedLanternBlock> searedLantern, scorchedLantern;
   static {
-    Function<Block, BlockItem> tankItem = b -> new TankItem(b, ITEM_PROPS, true);
-    Function<Block, BlockItem> lanternItem = b -> new TankItem(b, ITEM_PROPS, false);
+    Function<Block, BlockItem> tankItem = b -> new TankItem(b, itemProps(), true);
+    Function<Block, BlockItem> lanternItem = b -> new TankItem(b, itemProps(), false);
     // seared
     Properties seared = searedNonSolidProps(SoundType.METAL).lightLevel(SearedTankBlock.LIGHT_GETTER);
     searedTank = BLOCKS.registerEnum("seared", SearedTankBlock.TankType.values(), type -> new SearedTankBlock(seared, type.getCapacity(), PushReaction.DESTROY), tankItem);
-    searedCastingTank = BLOCKS.register("seared_casting_tank", () -> new CastingTankBlock(seared), b -> new TankItem(b, ITEM_PROPS, true));
+    searedCastingTank = BLOCKS.register("seared_casting_tank", () -> new CastingTankBlock(seared), b -> new TankItem(b, itemProps(), true));
     searedFluidCannon = BLOCKS.register("seared_fluid_cannon", () -> new FluidCannonBlock(seared, FluidType.BUCKET_VOLUME * 2, 1.0f, 1.1f, 6.0f), tankItem);
     searedLantern = BLOCKS.register("seared_lantern", () -> new SearedLanternBlock(searedNonSolidProps(SoundType.LANTERN).lightLevel(SearedTankBlock.LIGHT_GETTER), FluidValues.LANTERN_CAPACITY), lanternItem);
     // scorched
@@ -353,52 +353,52 @@ public final class TinkerSmeltery extends TinkerModule {
   /*
    * Items
    */
-  public static final ItemObject<Item> searedBrick = ITEMS.register("seared_brick", ITEM_PROPS);
-  public static final ItemObject<Item> scorchedBrick = ITEMS.register("scorched_brick", ITEM_PROPS);
+  public static final ItemObject<Item> searedBrick = ITEMS.register("seared_brick", itemProps());
+  public static final ItemObject<Item> scorchedBrick = ITEMS.register("scorched_brick", itemProps());
   public static final ItemObject<Item> copperCan = ITEMS.register("copper_can", () -> new CopperCanItem(new Item.Properties().stacksTo(16)));
 
   // casts
   // basic
-  public static final ItemObject<Item> blankSandCast  = ITEMS.register("blank_sand_cast", ITEM_PROPS);
-  public static final ItemObject<Item> blankRedSandCast  = ITEMS.register("blank_red_sand_cast", ITEM_PROPS);
-  public static final CastItemObject ingotCast  = ITEMS.registerCast("ingot", ITEM_PROPS);
-  public static final CastItemObject nuggetCast = ITEMS.registerCast("nugget", ITEM_PROPS);
-  public static final CastItemObject gemCast    = ITEMS.registerCast("gem", ITEM_PROPS);
-  public static final CastItemObject rodCast    = ITEMS.registerCast("rod", ITEM_PROPS);
-  public static final CastItemObject repairKitCast = ITEMS.registerCast(TinkerToolParts.repairKit, ITEM_PROPS);
+  public static final ItemObject<Item> blankSandCast  = ITEMS.register("blank_sand_cast", itemProps());
+  public static final ItemObject<Item> blankRedSandCast  = ITEMS.register("blank_red_sand_cast", itemProps());
+  public static final CastItemObject ingotCast  = ITEMS.registerCast("ingot", itemProps());
+  public static final CastItemObject nuggetCast = ITEMS.registerCast("nugget", itemProps());
+  public static final CastItemObject gemCast    = ITEMS.registerCast("gem", itemProps());
+  public static final CastItemObject rodCast    = ITEMS.registerCast("rod", itemProps());
+  public static final CastItemObject repairKitCast = ITEMS.registerCast(TinkerToolParts.repairKit, itemProps());
   // compatability
-  public static final CastItemObject plateCast  = ITEMS.registerCast("plate", ITEM_PROPS);
-  public static final CastItemObject gearCast   = ITEMS.registerCast("gear", ITEM_PROPS);
-  public static final CastItemObject coinCast   = ITEMS.registerCast("coin", ITEM_PROPS);
-  public static final CastItemObject wireCast   = ITEMS.registerCast("wire", ITEM_PROPS);
+  public static final CastItemObject plateCast  = ITEMS.registerCast("plate", itemProps());
+  public static final CastItemObject gearCast   = ITEMS.registerCast("gear", itemProps());
+  public static final CastItemObject coinCast   = ITEMS.registerCast("coin", itemProps());
+  public static final CastItemObject wireCast   = ITEMS.registerCast("wire", itemProps());
   // small tool heads
-  public static final CastItemObject pickHeadCast = ITEMS.registerCast(TinkerToolParts.pickHead, ITEM_PROPS);
-  public static final CastItemObject smallAxeHeadCast = ITEMS.registerCast(TinkerToolParts.smallAxeHead, ITEM_PROPS);
-  public static final CastItemObject smallBladeCast = ITEMS.registerCast(TinkerToolParts.smallBlade, ITEM_PROPS);
-  public static final CastItemObject adzeHeadCast = ITEMS.registerCast(TinkerToolParts.adzeHead, ITEM_PROPS);
+  public static final CastItemObject pickHeadCast = ITEMS.registerCast(TinkerToolParts.pickHead, itemProps());
+  public static final CastItemObject smallAxeHeadCast = ITEMS.registerCast(TinkerToolParts.smallAxeHead, itemProps());
+  public static final CastItemObject smallBladeCast = ITEMS.registerCast(TinkerToolParts.smallBlade, itemProps());
+  public static final CastItemObject adzeHeadCast = ITEMS.registerCast(TinkerToolParts.adzeHead, itemProps());
   // large tool heads
-  public static final CastItemObject hammerHeadCast   = ITEMS.registerCast(TinkerToolParts.hammerHead, ITEM_PROPS);
-  public static final CastItemObject broadBladeCast   = ITEMS.registerCast(TinkerToolParts.broadBlade, ITEM_PROPS);
-  public static final CastItemObject broadAxeHeadCast = ITEMS.registerCast(TinkerToolParts.broadAxeHead, ITEM_PROPS);
-  public static final CastItemObject largePlateCast  = ITEMS.registerCast(TinkerToolParts.largePlate, ITEM_PROPS);
+  public static final CastItemObject hammerHeadCast   = ITEMS.registerCast(TinkerToolParts.hammerHead, itemProps());
+  public static final CastItemObject broadBladeCast   = ITEMS.registerCast(TinkerToolParts.broadBlade, itemProps());
+  public static final CastItemObject broadAxeHeadCast = ITEMS.registerCast(TinkerToolParts.broadAxeHead, itemProps());
+  public static final CastItemObject largePlateCast  = ITEMS.registerCast(TinkerToolParts.largePlate, itemProps());
   // bindings
-  public static final CastItemObject toolBindingCast = ITEMS.registerCast(TinkerToolParts.toolBinding, ITEM_PROPS);
-  public static final CastItemObject toughBindingCast = ITEMS.registerCast(TinkerToolParts.toughBinding, ITEM_PROPS);
+  public static final CastItemObject toolBindingCast = ITEMS.registerCast(TinkerToolParts.toolBinding, itemProps());
+  public static final CastItemObject toughBindingCast = ITEMS.registerCast(TinkerToolParts.toughBinding, itemProps());
   // tool rods
-  public static final CastItemObject toolHandleCast  = ITEMS.registerCast(TinkerToolParts.toolHandle, ITEM_PROPS);
-  public static final CastItemObject toughHandleCast = ITEMS.registerCast(TinkerToolParts.toughHandle, ITEM_PROPS);
+  public static final CastItemObject toolHandleCast  = ITEMS.registerCast(TinkerToolParts.toolHandle, itemProps());
+  public static final CastItemObject toughHandleCast = ITEMS.registerCast(TinkerToolParts.toughHandle, itemProps());
   // bow
-  public static final CastItemObject bowLimbCast = ITEMS.registerCast(TinkerToolParts.bowLimb, ITEM_PROPS);
-  public static final CastItemObject bowGripCast = ITEMS.registerCast(TinkerToolParts.bowGrip, ITEM_PROPS);
+  public static final CastItemObject bowLimbCast = ITEMS.registerCast(TinkerToolParts.bowLimb, itemProps());
+  public static final CastItemObject bowGripCast = ITEMS.registerCast(TinkerToolParts.bowGrip, itemProps());
   public static final ItemObject<Item> arrowCast = ITEMS.register("arrow_cast", TOOLTIP_ITEM);
   // armor
-  public static final CastItemObject helmetPlatingCast = ITEMS.registerCast("helmet_plating", () -> new PartCastItem(ITEM_PROPS, () -> TinkerToolParts.plating.get(ArmorItem.Type.HELMET)));
-  public static final CastItemObject chestplatePlatingCast = ITEMS.registerCast("chestplate_plating", () -> new PartCastItem(ITEM_PROPS, () -> TinkerToolParts.plating.get(ArmorItem.Type.CHESTPLATE)));
-  public static final CastItemObject leggingsPlatingCast = ITEMS.registerCast("leggings_plating", () -> new PartCastItem(ITEM_PROPS, () -> TinkerToolParts.plating.get(ArmorItem.Type.LEGGINGS)));
-  public static final CastItemObject bootsPlatingCast = ITEMS.registerCast("boots_plating", () -> new PartCastItem(ITEM_PROPS, () -> TinkerToolParts.plating.get(ArmorItem.Type.BOOTS)));
-  public static final CastItemObject mailleCast = ITEMS.registerCast(TinkerToolParts.maille, ITEM_PROPS);
+  public static final CastItemObject helmetPlatingCast = ITEMS.registerCast("helmet_plating", () -> new PartCastItem(itemProps(), () -> TinkerToolParts.plating.get(ArmorItem.Type.HELMET)));
+  public static final CastItemObject chestplatePlatingCast = ITEMS.registerCast("chestplate_plating", () -> new PartCastItem(itemProps(), () -> TinkerToolParts.plating.get(ArmorItem.Type.CHESTPLATE)));
+  public static final CastItemObject leggingsPlatingCast = ITEMS.registerCast("leggings_plating", () -> new PartCastItem(itemProps(), () -> TinkerToolParts.plating.get(ArmorItem.Type.LEGGINGS)));
+  public static final CastItemObject bootsPlatingCast = ITEMS.registerCast("boots_plating", () -> new PartCastItem(itemProps(), () -> TinkerToolParts.plating.get(ArmorItem.Type.BOOTS)));
+  public static final CastItemObject mailleCast = ITEMS.registerCast(TinkerToolParts.maille, itemProps());
   // dummy cast creation items
-  public static final EnumObject<ArmorItem.Type,DummyMaterialItem> dummyPlating = ITEMS.registerEnum(ArmorItem.Type.values(), "plating_dummy", type -> new DummyMaterialItem(ITEM_PROPS));
+  public static final EnumObject<ArmorItem.Type,DummyMaterialItem> dummyPlating = ITEMS.registerEnum(ArmorItem.Type.values(), "plating_dummy", type -> new DummyMaterialItem(itemProps()));
 
 
   /*

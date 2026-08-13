@@ -73,15 +73,11 @@ src/main/java/slimeknights/tconstruct/common/network/package-info.java
 src/main/java/slimeknights/tconstruct/common/package-info.java
 src/main/java/slimeknights/tconstruct/common/recipe/RecipeCacheInvalidator.java
 src/main/java/slimeknights/tconstruct/common/recipe/package-info.java
-src/main/java/slimeknights/tconstruct/common/registration/ArgumentTypeDeferredRegister.java
-src/main/java/slimeknights/tconstruct/common/registration/AttributeDeferredRegister.java
 src/main/java/slimeknights/tconstruct/common/registration/BlockDeferredRegisterExtension.java
 src/main/java/slimeknights/tconstruct/common/registration/CastItemObject.java
-src/main/java/slimeknights/tconstruct/common/registration/EnumDeferredRegister.java
 src/main/java/slimeknights/tconstruct/common/registration/FluidDeferredRegisterExtension.java
 src/main/java/slimeknights/tconstruct/common/registration/GeodeItemObject.java
 src/main/java/slimeknights/tconstruct/common/registration/ItemDeferredRegisterExtension.java
-src/main/java/slimeknights/tconstruct/common/registration/PotionDeferredRegister.java
 src/main/java/slimeknights/tconstruct/common/registration/package-info.java
 src/main/java/slimeknights/tconstruct/fluids/FluidClientEvents.java
 src/main/java/slimeknights/tconstruct/fluids/FluidEvents.java
