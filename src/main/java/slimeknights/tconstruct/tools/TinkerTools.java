@@ -1,6 +1,7 @@
 package slimeknights.tconstruct.tools;
 
 import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
@@ -169,7 +170,7 @@ public final class TinkerTools extends TinkerModule {
   }
 
   /** Creative tab for complete tools */
-  public static final DeferredHolder<CreativeModeTab> tabTools = CREATIVE_TABS.register(
+  public static final DeferredHolder<CreativeModeTab,CreativeModeTab> tabTools = CREATIVE_TABS.register(
     "tools", () -> CreativeModeTab.builder().title(TConstruct.makeTranslation("itemGroup", "tools"))
                                   .icon(() -> TinkerTools.pickaxe.get().getRenderTool())
                                   .displayItems(TinkerTools::addTabItems)
@@ -178,7 +179,7 @@ public final class TinkerTools extends TinkerModule {
                                   .build());
 
   /** Loot function type for tool add data */
-  public static final DeferredHolder<LootItemFunctionType> lootAddToolData = LOOT_FUNCTIONS.register("add_tool_data", () -> new LootItemFunctionType(AddToolDataFunction.SERIALIZER));
+  public static final DeferredHolder<LootItemFunctionType<?>,LootItemFunctionType<?>> lootAddToolData = LOOT_FUNCTIONS.register("add_tool_data", () -> new LootItemFunctionType(AddToolDataFunction.SERIALIZER));
 
   /*
    * Items
@@ -251,24 +252,24 @@ public final class TinkerTools extends TinkerModule {
   public static final ItemObject<ArrowItem> crystalshotItem = ITEMS.register("crystalshot", () -> new CrystalshotItem(itemProps()));
 
   /* Particles */
-  public static final DeferredHolder<SimpleParticleType> hammerAttackParticle = PARTICLE_TYPES.register("hammer_attack", () -> new SimpleParticleType(true));
-  public static final DeferredHolder<SimpleParticleType> axeAttackParticle = PARTICLE_TYPES.register("axe_attack", () -> new SimpleParticleType(true));
-  public static final DeferredHolder<SimpleParticleType> bonkAttackParticle = PARTICLE_TYPES.register("bonk", () -> new SimpleParticleType(true));
+  public static final DeferredHolder<ParticleType<?>,SimpleParticleType> hammerAttackParticle = PARTICLE_TYPES.register("hammer_attack", () -> new SimpleParticleType(true));
+  public static final DeferredHolder<ParticleType<?>,SimpleParticleType> axeAttackParticle = PARTICLE_TYPES.register("axe_attack", () -> new SimpleParticleType(true));
+  public static final DeferredHolder<ParticleType<?>,SimpleParticleType> bonkAttackParticle = PARTICLE_TYPES.register("bonk", () -> new SimpleParticleType(true));
 
   /* Entities */
-  public static final DeferredHolder<EntityType<IndestructibleItemEntity>> indestructibleItem = ENTITIES.register("indestructible_item", () ->
+  public static final DeferredHolder<EntityType<?>,EntityType<IndestructibleItemEntity>> indestructibleItem = ENTITIES.register("indestructible_item", () ->
     EntityType.Builder.<IndestructibleItemEntity>of(IndestructibleItemEntity::new, MobCategory.MISC)
                       .sized(0.25F, 0.25F)
                       .fireImmune());
-  public static final DeferredHolder<EntityType<CrystalshotEntity>> crystalshotEntity = ENTITIES.register("crystalshot", () ->
+  public static final DeferredHolder<EntityType<?>,EntityType<CrystalshotEntity>> crystalshotEntity = ENTITIES.register("crystalshot", () ->
     EntityType.Builder.<CrystalshotEntity>of(CrystalshotEntity::new, MobCategory.MISC)
                       .sized(0.5F, 0.5F)
                       .clientTrackingRange(4)
                       .updateInterval(20));
-  public static final DeferredHolder<EntityType<CombatFishingHook>> fishingHook = ENTITIES.register("fishing_bobber", () -> EntityType.Builder.<CombatFishingHook>of(CombatFishingHook::new, MobCategory.MISC).noSave().noSummon().sized(0.25F, 0.25F).clientTrackingRange(4).updateInterval(5));
-  public static final DeferredHolder<EntityType<ModifiableArrow>> materialArrow = ENTITIES.register("arrow", () -> EntityType.Builder.<ModifiableArrow>of(ModifiableArrow::new, MobCategory.MISC).sized(0.5F, 0.5F).clientTrackingRange(4).updateInterval(20));
-  public static final DeferredHolder<EntityType<ThrownShuriken>> thrownShuriken = ENTITIES.register("thrown_shuriken", () -> EntityType.Builder.<ThrownShuriken>of(ThrownShuriken::new, MobCategory.MISC).sized(0.25F, 0.25F).clientTrackingRange(4).updateInterval(10));
-  public static final DeferredHolder<EntityType<ThrownTool>> thrownTool = ENTITIES.register("thrown_tool", () -> EntityType.Builder.<ThrownTool>of(ThrownTool::new, MobCategory.MISC).sized(0.5f, 0.5f).clientTrackingRange(4).updateInterval(20));
+  public static final DeferredHolder<EntityType<?>,EntityType<CombatFishingHook>> fishingHook = ENTITIES.register("fishing_bobber", () -> EntityType.Builder.<CombatFishingHook>of(CombatFishingHook::new, MobCategory.MISC).noSave().noSummon().sized(0.25F, 0.25F).clientTrackingRange(4).updateInterval(5));
+  public static final DeferredHolder<EntityType<?>,EntityType<ModifiableArrow>> materialArrow = ENTITIES.register("arrow", () -> EntityType.Builder.<ModifiableArrow>of(ModifiableArrow::new, MobCategory.MISC).sized(0.5F, 0.5F).clientTrackingRange(4).updateInterval(20));
+  public static final DeferredHolder<EntityType<?>,EntityType<ThrownShuriken>> thrownShuriken = ENTITIES.register("thrown_shuriken", () -> EntityType.Builder.<ThrownShuriken>of(ThrownShuriken::new, MobCategory.MISC).sized(0.25F, 0.25F).clientTrackingRange(4).updateInterval(10));
+  public static final DeferredHolder<EntityType<?>,EntityType<ThrownTool>> thrownTool = ENTITIES.register("thrown_tool", () -> EntityType.Builder.<ThrownTool>of(ThrownTool::new, MobCategory.MISC).sized(0.5f, 0.5f).clientTrackingRange(4).updateInterval(20));
   static {
     // used for the fishing bobber
     DATA_SERIALIZERS.register("material_variant", () -> MaterialVariantId.DATA_ACCESSOR);
@@ -276,7 +277,7 @@ public final class TinkerTools extends TinkerModule {
 
 
   /* Containers */
-  public static final DeferredHolder<MenuType<ToolContainerMenu>> toolContainer = MENUS.register("tool_container", ToolContainerMenu::forClient);
+  public static final DeferredHolder<MenuType<?>,MenuType<ToolContainerMenu>> toolContainer = MENUS.register("tool_container", ToolContainerMenu::forClient);
 
 
   /*
