@@ -880,3 +880,5 @@ src/main/java/slimeknights/tconstruct/world/entity/package-info.java
 src/main/java/slimeknights/tconstruct/world/item/EndermanHeadItem.java
 src/main/java/slimeknights/tconstruct/world/item/SlimeGrassSeedItem.java
 src/main/java/slimeknights/tconstruct/world/item/package-info.java
+src/main/java/slimeknights/tconstruct/world/logic/AncientToolItemListing.java
+src/main/java/slimeknights/tconstruct/world/logic/package-info.java
