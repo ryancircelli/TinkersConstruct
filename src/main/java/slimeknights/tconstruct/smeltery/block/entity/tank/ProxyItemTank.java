@@ -55,7 +55,7 @@ public class ProxyItemTank<T extends MantleBlockEntity & IFluidTankUpdater> exte
       itemTank = null;
       if (needsUpdate) {
         // both stacks being empty means our stack shrunk by 1 and is being replaced with ItemStack.EMPTY
-        needsUpdate = (oldStack.isEmpty() && newStack.isEmpty()) || !ItemStack.isSameItemSameTags(oldStack, newStack);
+        needsUpdate = (oldStack.isEmpty() && newStack.isEmpty()) || !ItemStack.isSameItemSameComponents(oldStack, newStack);
       }
     } else if (needsUpdate) {
       needsUpdate = syncSame;
