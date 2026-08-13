@@ -2,6 +2,7 @@ package slimeknights.tconstruct.tools.menu;
 
 import lombok.Getter;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -33,6 +34,7 @@ import slimeknights.tconstruct.library.tools.capability.inventory.ToolInventoryC
 import slimeknights.tconstruct.library.tools.capability.inventory.ToolInventoryCapability.CraftingType;
 import slimeknights.tconstruct.library.tools.helper.ModifierUtil;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
+import slimeknights.tconstruct.library.tools.nbt.ToolComponents;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.tools.TinkerTools;
 import slimeknights.tconstruct.tools.network.ToolContainerFluidUpdatePacket;
@@ -90,13 +92,14 @@ public class ToolContainerMenu extends AbstractContainerMenu {
   }
 
   /** Creates a new instance of this container on the client side */
-  public static ToolContainerMenu forClient(int id, Inventory inventory, FriendlyByteBuf buffer) {
+  public static ToolContainerMenu forClient(int id, Inventory inventory, RegistryFriendlyByteBuf buffer) {
     int slotIndex = buffer.readVarInt();
     ToolSyncType syncType = buffer.readEnum(ToolSyncType.class);
     // when syncing the full stack, overwrite the spot in the inventory
     ItemStack stack;
     if (syncType == ToolSyncType.FULL_STACK) {
-      stack = buffer.readItem();
+      // readItem is gone with item NBT; a stack is a stream codec now, which is why the buffer has to be a registry aware one
+      stack = ItemStack.STREAM_CODEC.decode(buffer);
       inventory.setItem(slotIndex, stack);
     } else {
       stack = inventory.getItem(slotIndex);
@@ -117,7 +120,8 @@ public class ToolContainerMenu extends AbstractContainerMenu {
     }
     // if the stack looks like it could be our tool, fetch the handler from it
     IItemHandler handler;
-    if (stack.hasTag() && stack.is(TinkerTags.Items.MODIFIABLE)) {
+    // hasTag became "carries the tool component": the check is asking whether the stack has anything on it worth reading a handler out of
+    if (stack.has(ToolComponents.TOOL) && stack.is(TinkerTags.Items.MODIFIABLE)) {
       handler = CapabilityHelper.itemHandler(stack);
       if (!(handler instanceof IItemHandlerModifiable)) {
         handler = EmptyItemHandler.INSTANCE;
@@ -275,7 +279,9 @@ public class ToolContainerMenu extends AbstractContainerMenu {
   public void slotsChanged(Container pContainer) {
     super.slotsChanged(pContainer);
     if (craftingContainer != null && resultContainer != null) {
-      CraftingMenu.slotChangedCraftingGrid(this, player.level(), player, craftingContainer, resultContainer);
+      // the trailing recipe is the "last recipe used" hint 1.21 added for the recipe book; null is what vanilla
+      // passes from its own slotsChanged, and this menu has no book to remember one from
+      CraftingMenu.slotChangedCraftingGrid(this, player.level(), player, craftingContainer, resultContainer, null);
     }
   }
 

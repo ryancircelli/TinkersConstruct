@@ -2,14 +2,12 @@ package slimeknights.tconstruct.tables.recipe;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -19,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.data.loadable.common.IngredientLoadable;
 import slimeknights.mantle.data.loadable.common.SizedIngredientLoadable;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.recipe.IMultiRecipe;
 import slimeknights.tconstruct.TConstruct;
@@ -70,25 +67,21 @@ public class PartBuilderToolRecycle implements IPartBuilderRecipe, IMultiRecipe<
   /** Default tool field */
   public static final SizedIngredient DEFAULT_TOOLS = SizedIngredient.of(TinkerTags.Items.MULTIPART_TOOL, 1);
 
-  /** Loader instance */
+  /**
+   * Loader instance.
+   * @apiNote No {@code ContextKey.ID} field: 1.21 keeps a recipe's id on
+   * {@link net.minecraft.world.item.crafting.RecipeHolder}, so {@code LoadableRecipeSerializer} puts none in the parse
+   * context and asking for one failed at load rather than at compile.
+   */
   public static final RecordLoadable<PartBuilderToolRecycle> LOADER = RecordLoadable.create(
-    ContextKey.ID.requiredField(),
     SizedIngredientLoadable.FLAT.defaultField("tools", DEFAULT_TOOLS, true, r -> r.toolRequirement),
     IngredientLoadable.DISALLOW_EMPTY.requiredField("pattern", r -> r.pattern),
     TinkerLoadables.MATERIAL_ITEM.list(0).defaultField("parts", List.of(), r -> r.parts),
     PartBuilderToolRecycle::new);
 
-  @Getter
-  private final ResourceLocation id;
   private final SizedIngredient toolRequirement;
   private final Ingredient pattern;
   private final List<IMaterialItem> parts;
-
-  /** @deprecated use {@link #PartBuilderToolRecycle(ResourceLocation, SizedIngredient, Ingredient, List)} */
-  @Deprecated(forRemoval = true)
-  public PartBuilderToolRecycle(ResourceLocation id, SizedIngredient toolRequirement, Ingredient pattern) {
-    this(id, toolRequirement, pattern, List.of());
-  }
 
   @Override
   public Pattern getPattern() {

@@ -90,7 +90,7 @@ public class ModifierLootingHandler {
   public static int getLootingLevel(LivingEntity target, DamageSource damageSource, int level) {
     // bleeding kills use the level of the effect for looting
     if (damageSource.is(TinkerDamageTypes.BLEEDING)) {
-      return Math.max(0, TinkerEffect.getAmplifier(target, TinkerEffects.bleeding.get()));
+      return Math.max(0, TinkerEffect.getAmplifier(target, TinkerEffects.bleeding));
     }
 
     // otherwise, use the proper tool. Must be an attacker with our tool

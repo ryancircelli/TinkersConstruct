@@ -1,5 +1,7 @@
 package slimeknights.tconstruct.tools.modules.interaction;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -8,11 +10,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.IForgeShearable;
+import net.neoforged.neoforge.common.IShearable;
 import net.neoforged.neoforge.common.ItemAbility;
-import net.minecraftforge.eventbus.api.Event.Result;
+import net.neoforged.neoforge.common.util.TriState;
 import slimeknights.mantle.data.loadable.primitive.FloatLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.tconstruct.library.events.TinkerToolEvent.ToolShearEvent;
@@ -86,19 +89,22 @@ public record ShearsModule(float flatBonus, float perLevelBonus, float expandedB
    * @param world the current world
    * @param player the current player
    * @param entity the entity to try to shear
-   * @param fortune the fortune to apply to the sheared entity
+   * @param fortune the fortune to apply to the sheared entity, passed to the event only
    * @return if the sheering of the entity was performed or not
+   * @apiNote  {@code IForgeShearable} became {@link IShearable} and lost its fortune parameter; 1.21 shears through
+   * the vanilla {@code Shearable} drops, which every implementation of the old interface ignored fortune for anyway.
+   * {@link ToolShearEvent} still receives the number, so a listener that wants to scale drops by it still can.
    */
   private static boolean shearEntity(ItemStack itemStack, IToolStackView tool, Level world, Player player, Entity entity, int fortune) {
     // event to override entity shearing
-    Result result = new ToolShearEvent(itemStack, tool, world, player, entity, fortune).fire();
-    if (result != Result.DEFAULT) {
-      return result == Result.ALLOW;
+    TriState result = new ToolShearEvent(itemStack, tool, world, player, entity, fortune).fire();
+    if (result != TriState.DEFAULT) {
+      return result.isTrue();
     }
-    // fallback to forge shearable
-    if (entity instanceof IForgeShearable target && target.isShearable(itemStack, world, entity.blockPosition())) {
+    // fallback to the shearable interface
+    if (entity instanceof IShearable target && target.isShearable(player, itemStack, world, entity.blockPosition())) {
       if (!world.isClientSide) {
-        target.onSheared(player, itemStack, world, entity.blockPosition(), fortune)
+        target.onSheared(player, itemStack, world, entity.blockPosition())
           .forEach(stack -> ModifierUtil.dropItem(entity, stack));
       }
       return true;
@@ -117,9 +123,11 @@ public record ShearsModule(float flatBonus, float perLevelBonus, float expandedB
     // use looting instead of fortune, as that is our hook with entity access
     // modifier can always use tags or the nullable parameter to distinguish if needed
     LootingContext context = new LootingContext(player, target, null, Util.getSlotType(hand));
-    int looting = LootingModifierHook.getLooting(tool, context, player.getItemInHand(hand).getEnchantmentLevel(Enchantments.MOB_LOOTING));
-    looting = ArmorLootingModifierHook.getLooting(tool, context, looting);
     Level world = player.getCommandSenderWorld();
+    // minecraft:mob_looting was renamed to minecraft:looting and is a datapack registry entry, so it needs a lookup
+    Holder<Enchantment> lootingEnchantment = world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.LOOTING);
+    int looting = LootingModifierHook.getLooting(tool, context, player.getItemInHand(hand).getEnchantmentLevel(lootingEnchantment));
+    looting = ArmorLootingModifierHook.getLooting(tool, context, looting);
     if (shearEntity(stack, tool, world, player, target, looting)) {
       boolean broken = ToolDamageUtil.damageAnimated(tool, 1, player, slotType, modifier.getId());
       player.swing(hand);

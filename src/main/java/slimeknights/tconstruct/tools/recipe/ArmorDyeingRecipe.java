@@ -1,11 +1,13 @@
 package slimeknights.tconstruct.tools.recipe;
 
 import lombok.Getter;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -37,11 +39,7 @@ import java.util.stream.Collectors;
 
 /** Recipe to dye travelers gear */
 public class ArmorDyeingRecipe implements ITinkerStationRecipe, IMultiRecipe<IDisplayModifierRecipe> {
-  @Getter
-  private final ResourceLocation id;
-
-  public ArmorDyeingRecipe(ResourceLocation id) {
-    this.id = id;
+  public ArmorDyeingRecipe() {
     ModifierRecipeLookup.addRecipeModifier(null, TinkerModifiers.dyed);
   }
 
@@ -66,7 +64,7 @@ public class ArmorDyeingRecipe implements ITinkerStationRecipe, IMultiRecipe<IDi
   }
 
   @Override
-  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, RegistryAccess access) {
+  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, HolderLookup.Provider access) {
     ToolStack tool = inv.getTinkerable().copy();
 
     ModDataNBT persistentData = tool.getPersistentData();
@@ -94,10 +92,12 @@ public class ArmorDyeingRecipe implements ITinkerStationRecipe, IMultiRecipe<IDi
       if (!stack.isEmpty()) {
         DyeColor dye = DyeColor.getColor(stack);
         if (dye != null) {
-          float[] color = dye.getTextureDiffuseColors();
-          int r = (int)(color[0] * 255);
-          int g = (int)(color[1] * 255);
-          int b = (int)(color[2] * 255);
+          // 1.21 replaced the three float channels with a single packed opaque ARGB int, which is what vanilla's own
+          // dye mixing in DyedItemColor reads, so unpack the same way rather than scaling floats back up
+          int color = dye.getTextureDiffuseColor();
+          int r = FastColor.ARGB32.red(color);
+          int g = FastColor.ARGB32.green(color);
+          int b = FastColor.ARGB32.blue(color);
           brightness += Math.max(r, Math.max(g, b));
           nr += r;
           ng += g;
@@ -154,8 +154,7 @@ public class ArmorDyeingRecipe implements ITinkerStationRecipe, IMultiRecipe<IDi
           return stack;
         }).toList();
       if (!toolInputs.isEmpty()) {
-        ResourceLocation id = getId();
-        displayRecipes = Arrays.stream(DyeColor.values()).map(dye -> new DisplayRecipe(id, toolInputs, dye)).collect(Collectors.toList());
+        displayRecipes = Arrays.stream(DyeColor.values()).map(dye -> new DisplayRecipe(toolInputs, dye)).collect(Collectors.toList());
       } else {
         displayRecipes = List.of();
       }
@@ -163,12 +162,16 @@ public class ArmorDyeingRecipe implements ITinkerStationRecipe, IMultiRecipe<IDi
     return displayRecipes;
   }
 
+  /**
+   * Display recipe instance.
+   * @apiNote  1.21 moved a recipe's ID onto {@link net.minecraft.world.item.crafting.RecipeHolder}, and
+   *           {@link slimeknights.mantle.recipe.IMultiRecipe#getRecipes} is handed the recipe rather than its holder,
+   *           so a generated display recipe can no longer name its parent and JEI shows it with no registry name.
+   */
   private static class DisplayRecipe implements IDisplayModifierRecipe {
     private static final IntRange LEVELS = new IntRange(1, 1);
     private final ModifierEntry RESULT = new ModifierEntry(TinkerModifiers.dyed, 1);
 
-    @Getter
-    private final ResourceLocation recipeId;
     private final List<ItemStack> dyes;
     @Getter
     private final List<ItemStack> toolWithoutModifier;
@@ -176,8 +179,7 @@ public class ArmorDyeingRecipe implements ITinkerStationRecipe, IMultiRecipe<IDi
     private final List<ItemStack> toolWithModifier;
     @Getter
     private final Component variant;
-    public DisplayRecipe(ResourceLocation recipeId, List<ItemStack> tools, DyeColor color) {
-      this.recipeId = recipeId;
+    public DisplayRecipe(List<ItemStack> tools, DyeColor color) {
       this.toolWithoutModifier = tools;
       this.dyes = RegistryHelper.getTagValueStream(BuiltInRegistries.ITEM, color.getTag()).map(ItemStack::new).toList();
       this.variant = Component.translatable("color.minecraft." + color.getSerializedName());

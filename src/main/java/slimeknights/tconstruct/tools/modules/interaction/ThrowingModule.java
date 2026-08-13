@@ -104,11 +104,11 @@ public enum ThrowingModule implements ModifierModule, GeneralInteractionModifier
         }
 
         // alert modifiers we are leaving, though most of these won't have much impact
-        thrown.onRelease(entity, PersistentDataCapability.getOrWarn(thrown));
+        thrown.onRelease(entity, PersistentDataCapability.getData(thrown));
 
         // don't run projectile hooks, as the projectile has the tool already for that. Throwing runs melee hooks
         level.addFreshEntity(thrown);
-        level.playSound(null, thrown, SoundEvents.TRIDENT_THROW, SoundSource.PLAYERS, 1, 1);
+        level.playSound(null, thrown, SoundEvents.TRIDENT_THROW.value(), SoundSource.PLAYERS, 1, 1);
         if (!player.getAbilities().instabuild) {
           player.getInventory().removeItem(stack);
         }

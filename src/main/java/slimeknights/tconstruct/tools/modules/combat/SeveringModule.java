@@ -1,11 +1,16 @@
 package slimeknights.tconstruct.tools.modules.combat;
 
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.neoforged.neoforge.common.Tags;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.loadable.record.SingletonLoader;
 import slimeknights.tconstruct.common.TinkerTags;
@@ -17,6 +22,7 @@ import slimeknights.tconstruct.library.module.HookProvider;
 import slimeknights.tconstruct.library.module.ModuleHook;
 import slimeknights.tconstruct.library.recipe.modifiers.severing.SeveringRecipe;
 import slimeknights.tconstruct.library.recipe.modifiers.severing.SeveringRecipeCache;
+import slimeknights.tconstruct.library.tools.helper.ModifierLootingHandler;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 
 import java.util.List;
@@ -37,7 +43,25 @@ public enum SeveringModule implements ModifierModule, ProcessLootModifierHook {
     return DEFAULT_HOOKS;
   }
 
-  @SuppressWarnings("removal")
+  /**
+   * Determines the looting level for the kill this loot context describes.
+   * @apiNote  Replaces {@code LootContext#getLootingModifier()}, a Forge addition that cached the result of
+   * {@code LootingLevelEvent}. Neither exists in 1.21: looting is an enchantment value effect, so the base level comes
+   * from the attacker exactly as {@code EnchantedCountIncreaseFunction} reads it for vanilla drops, and Tinkers' own
+   * say over that number is still {@link ModifierLootingHandler#getLootingLevel}, which is the same computation the
+   * 1.20 event listener ran.
+   */
+  private static int getLooting(LootContext context, Entity target, DamageSource source) {
+    if (!(target instanceof LivingEntity living)) {
+      return 0;
+    }
+    int level = 0;
+    if (context.getParamOrNull(LootContextParams.ATTACKING_ENTITY) instanceof LivingEntity attacker) {
+      level = EnchantmentHelper.getEnchantmentLevel(context.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.LOOTING), attacker);
+    }
+    return ModifierLootingHandler.getLootingLevel(living, source, level);
+  }
+
   @Override
   public void processLoot(IToolStackView tool, ModifierEntry modifier, List<ItemStack> generatedLoot, LootContext context) {
     // if no damage source, probably not a mob
@@ -50,13 +74,14 @@ public enum SeveringModule implements ModifierModule, ProcessLootModifierHook {
     Entity entity = context.getParamOrNull(LootContextParams.THIS_ENTITY);
     if (entity != null) {
       // ensure no head so far
-      if (generatedLoot.stream().noneMatch(stack -> stack.is(Tags.Items.HEADS))) {
+      // forge:heads became the vanilla minecraft:skulls tag, same set of heads
+      if (generatedLoot.stream().noneMatch(stack -> stack.is(ItemTags.SKULLS))) {
         // find proper recipe
         Level world = context.getLevel();
         List<SeveringRecipe> recipes = SeveringRecipeCache.findRecipe(world.getRecipeManager(), entity.getType());
         if (!recipes.isEmpty()) {
           float level = modifier.getEffectiveLevel();
-          float looting = context.getLootingModifier();
+          float looting = getLooting(context, entity, context.getParam(LootContextParams.DAMAGE_SOURCE));
           // deprecated method of doubling chances
           float chanceMultiplier = entity.getType().is(TinkerTags.EntityTypes.RARE_MOBS) ? 2 : 1;
           for (SeveringRecipe recipe : recipes) {

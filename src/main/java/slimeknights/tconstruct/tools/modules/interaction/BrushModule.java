@@ -1,6 +1,9 @@
 package slimeknights.tconstruct.tools.modules.interaction;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -8,10 +11,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.BrushItem;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -20,7 +23,7 @@ import net.minecraft.world.level.block.entity.BrushableBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.common.ForgeMod;
+import net.minecraft.world.phys.Vec3;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.loadable.record.SingletonLoader;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
@@ -64,9 +67,14 @@ public enum BrushModule implements ModifierModule, GeneralInteractionModifierHoo
     return InteractionResult.PASS;
   }
 
-  /** Runs an entity raytrace for brushing. See same method on {@link BrushItem} */
+  /**
+   * Runs an entity raytrace for brushing. See same method on {@link BrushItem}
+   * @apiNote  {@code ForgeMod.BLOCK_REACH} became vanilla's {@link Attributes#BLOCK_INTERACTION_RANGE}, which is what
+   * {@code Player#blockInteractionRange()} reads; the attribute is used directly here as the hook is typed to
+   * {@link LivingEntity}.
+   */
   private static HitResult calculateHitResult(LivingEntity living) {
-    return ProjectileUtil.getHitResultOnViewVector(living, entity -> !entity.isSpectator() && entity.isPickable(), living.getAttributeValue(ForgeMod.BLOCK_REACH.get()));
+    return ProjectileUtil.getHitResultOnViewVector(living, entity -> !entity.isSpectator() && entity.isPickable(), living.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE));
   }
 
   @Override
@@ -89,15 +97,45 @@ public enum BrushModule implements ModifierModule, GeneralInteractionModifierHoo
     return 200;
   }
 
+  /**
+   * Spawns the brushing dust particles, cloned from {@code BrushItem#spawnDustParticles}.
+   * @apiNote  1.21 made that method and the {@code DustParticlesDelta} record it uses private, so neither can be
+   * named from here; the logic is copied unchanged so the particles match a vanilla brush exactly.
+   */
+  private static void spawnDustParticles(Level level, BlockHitResult hitResult, BlockState state, Vec3 pos, HumanoidArm arm) {
+    int side = arm == HumanoidArm.RIGHT ? 1 : -1;
+    int count = level.getRandom().nextInt(7, 12);
+    BlockParticleOption particle = new BlockParticleOption(ParticleTypes.BLOCK, state);
+    Direction direction = hitResult.getDirection();
+    // the delta the private record computed, inlined
+    double xd, zd;
+    switch (direction) {
+      case DOWN, UP -> { xd = pos.z();  zd = -pos.x(); }
+      case NORTH    -> { xd = 1.0;      zd = -0.1; }
+      case SOUTH    -> { xd = -1.0;     zd = 0.1; }
+      case WEST     -> { xd = -0.1;     zd = -1.0; }
+      case EAST     -> { xd = 0.1;      zd = 1.0; }
+      default -> throw new IllegalStateException("Unknown direction " + direction);
+    }
+    Vec3 location = hitResult.getLocation();
+    for (int i = 0; i < count; i++) {
+      level.addParticle(
+        particle,
+        location.x - (direction == Direction.WEST ? 1.0E-6F : 0.0F),
+        location.y,
+        location.z - (direction == Direction.NORTH ? 1.0E-6F : 0.0F),
+        xd * side * 3.0 * level.getRandom().nextDouble(),
+        0.0,
+        zd * side * 3.0 * level.getRandom().nextDouble());
+    }
+  }
+
   /** Plays sound and shows particles */
   private static void brushEffects(Player player, BlockHitResult blockHit, BlockState state, HumanoidArm arm, SoundEvent sound) {
     Level level = player.level();
 
     // spawn particles
-    // shouldn't be needed to do the instance of, but might as well be safe
-    if (Items.BRUSH instanceof BrushItem brush) {
-      brush.spawnDustParticles(level, blockHit, state, player.getViewVector(0.0F), arm);
-    }
+    spawnDustParticles(level, blockHit, state, player.getViewVector(0.0F), arm);
 
     // play sound
     level.playSound(player, blockHit.getBlockPos(), sound, SoundSource.BLOCKS);

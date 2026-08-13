@@ -1,6 +1,7 @@
 package slimeknights.tconstruct.tools.modifiers.traits.skull;
 
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import slimeknights.mantle.data.predicate.damage.DamageSourcePredicate;
@@ -30,9 +31,9 @@ public class EnderdodgingModifier extends NoLevelsModifier implements OnAttacked
   public void onAttacked(IToolStackView tool, ModifierEntry modifier, EquipmentContext context, EquipmentSlot slotType, DamageSource source, float amount, boolean isDirectDamage) {
     // teleport randomly from other damage
     LivingEntity self = context.getEntity();
-    if (!self.hasEffect(TinkerEffects.enderference.get()) && source.getEntity() instanceof LivingEntity && RANDOM.nextInt(10) == 0) {
+    if (!self.hasEffect(TinkerEffects.enderference) && source.getEntity() instanceof LivingEntity && RANDOM.nextInt(10) == 0) {
       if (TeleportHelper.randomNearbyTeleport(context.getEntity(), (e, x, y, z) -> new EnderdodgingTeleportEvent(e, x, y, z, modifier))) {
-        TinkerEffects.enderference.get().apply(self, 15 * 20, 1, true);
+        self.addEffect(new MobEffectInstance(TinkerEffects.enderference, 15 * 20, 1, false, false, true));
       }
     }
   }

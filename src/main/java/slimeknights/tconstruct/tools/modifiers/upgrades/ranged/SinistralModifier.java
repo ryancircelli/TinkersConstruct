@@ -1,10 +1,10 @@
 package slimeknights.tconstruct.tools.modifiers.upgrades.ranged;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
@@ -30,9 +30,12 @@ public class SinistralModifier extends Modifier implements GeneralInteractionMod
   @Override
   public InteractionResult onToolUse(IToolStackView tool, ModifierEntry modifier, Player player, InteractionHand hand, InteractionSource source) {
     if (source == InteractionSource.LEFT_CLICK && hand == InteractionHand.MAIN_HAND && !tool.isBroken()) {
-      CompoundTag heldAmmo = tool.getPersistentData().getCompound(ModifiableCrossbowItem.KEY_CROSSBOW_AMMO);
+      // 1.21 keeps the loaded ammo in the crossbow's own charged projectiles component instead of the tool's
+      // persistent data, so the ammo is read off the stack rather than the tool
+      ItemStack bow = player.getItemInHand(hand);
+      ItemStack heldAmmo = ModifiableCrossbowItem.getChargedAmmo(bow);
       if (!heldAmmo.isEmpty()) {
-        ModifiableCrossbowItem.fireCrossbow(tool, player, hand, heldAmmo);
+        ModifiableCrossbowItem.fireCrossbow(tool, bow, player, hand, heldAmmo);
         return InteractionResult.CONSUME;
       }
     }

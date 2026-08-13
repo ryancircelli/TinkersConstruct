@@ -1,11 +1,15 @@
 package slimeknights.tconstruct.tools.modifiers.traits.skull;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.common.EffectCure;
+import net.neoforged.neoforge.common.EffectCures;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import net.neoforged.bus.api.EventPriority;
@@ -39,6 +43,24 @@ public class StrongBonesModifier extends NoLevelsModifier {
     hookBuilder.addModule(CureOnRemovalModule.HELMET);
   }
 
+  /**
+   * Gets the cure that removes effects granted by the given worn item.
+   * @apiNote  Bridges 1.20's per item curative list onto 1.21's {@link EffectCure}. 1.20 let an effect instance name
+   *           the item stacks that cured it and cured with {@code LivingEntity#curePotionEffects(ItemStack)}, which
+   *           compared items; Tinkers used that to tie an effect to the armor piece that granted it, so it went away
+   *           when you took the piece off and milk left it alone. 1.21 deleted curative items outright: an effect
+   *           instance carries a set of {@link EffectCure} tokens instead, and a cure removes every effect carrying
+   *           its token. A token is interned by name, so naming one after an item reproduces the old test exactly,
+   *           item for item, and survives a save since the token set is part of the effect's serialized details.
+   *           <p>
+   *           These tokens replace only {@link EffectCures#MILK} on such an effect; see
+   *           {@link slimeknights.tconstruct.tools.modifiers.effect.NoMilkEffect#fillEffectCures} for why
+   *           {@link EffectCures#PROTECTED_BY_TOTEM} stays.
+   */
+  public static EffectCure curedByItem(Item item) {
+    return ModifierUtil.curedByItem(item);
+  }
+
   private static boolean drinkMilk(LivingEntity living, int duration, FluidAction action) {
     // strong bones has to be the helmet as we use it for curing
     // TODO 1.20: can use the new cure effects to make this work in any slot
@@ -46,8 +68,9 @@ public class StrongBonesModifier extends NoLevelsModifier {
     boolean didSomething = false;
     if (ModifierUtil.getModifierLevel(helmet, TinkerModifiers.strongBones.getId()) > 0) {
       MobEffectInstance effect = new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, duration);
-      effect.getCurativeItems().clear();
-      effect.getCurativeItems().add(new ItemStack(helmet.getItem()));
+      // cured by removing the helmet that granted it rather than by more milk, see curedByItem
+      effect.getCures().remove(EffectCures.MILK);
+      effect.getCures().add(curedByItem(helmet.getItem()));
       // on simulate, don't apply the effect, just ask if we can apply
       didSomething = action.execute() ? living.addEffect(effect) : living.canBeAffected(effect);
       // quick exit on simulate: no more information needed
@@ -56,7 +79,7 @@ public class StrongBonesModifier extends NoLevelsModifier {
       }
     }
     if (ArmorLevelModule.getLevel(living, CALCIFIABLE) > 0) {
-      MobEffectInstance effect = new MobEffectInstance(TinkerModifiers.calcifiedEffect.get(), duration, 0);
+      MobEffectInstance effect = new MobEffectInstance(TinkerModifiers.calcifiedEffect, duration, 0);
       didSomething |= action.execute() ? living.addEffect(effect) : living.canBeAffected(effect);
     }
     return didSomething;

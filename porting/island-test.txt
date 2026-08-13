@@ -41,6 +41,7 @@ src/test/java/slimeknights/tconstruct/library/materials/definition/TestMaterial.
 src/test/java/slimeknights/tconstruct/library/materials/stats/ComplexTestStats.java
 src/test/java/slimeknights/tconstruct/library/modifiers/ModifierFixture.java
 src/test/java/slimeknights/tconstruct/library/modifiers/UpdateModifiersPacketTest.java
+src/test/java/slimeknights/tconstruct/library/modifiers/hook/behavior/EnchantmentProjectionTest.java
 src/test/java/slimeknights/tconstruct/library/tools/capability/EntityModifierCapabilityTest.java
 src/test/java/slimeknights/tconstruct/library/tools/capability/PersistentDataCapabilityTest.java
 src/test/java/slimeknights/tconstruct/library/tools/capability/TinkerDataCapabilityTest.java
