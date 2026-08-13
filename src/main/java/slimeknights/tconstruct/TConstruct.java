@@ -130,7 +130,7 @@ public class TConstruct {
     TinkerTags.init();
     // init client logic
     if (FMLEnvironment.dist == Dist.CLIENT) {
-      TinkerClient.onConstruct();
+      TinkerClient.onConstruct(bus);
     }
 
     // compat: every plugin here names a mod that is not yet on the 1.21 classpath, see the porting frontier.

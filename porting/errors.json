@@ -1,6 +1,6 @@
 {
-    "total": 383,
-    "islandFiles": 1003,
+    "total": 380,
+    "islandFiles": 1015,
     "categories": {
         "other: static import only from classes and interfaces": 1,
         "package slimeknights.tconstruct.gadgets": 6,
@@ -15,7 +15,6 @@
         "package slimeknights.tconstruct.library.client.data.material.GeneratorPartTextureJsonGenerator": 1,
         "package slimeknights.tconstruct.library.client.data.spritetransformer": 11,
         "package slimeknights.tconstruct.library.client.data.util": 3,
-        "package slimeknights.tconstruct.library.client.item": 3,
         "package slimeknights.tconstruct.library.client.materials": 14,
         "package slimeknights.tconstruct.library.client.model": 3,
         "package slimeknights.tconstruct.library.client.modifiers": 9,

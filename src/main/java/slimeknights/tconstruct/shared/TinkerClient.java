@@ -17,6 +17,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.RecipesUpdatedEvent;
 import net.neoforged.neoforge.client.event.RenderBlockScreenEffectEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -70,16 +71,18 @@ import static slimeknights.tconstruct.TConstruct.getResource;
 public class TinkerClient {
   /**
    * Called by TConstruct to handle any client side logic that needs to run during the constructor
+   * @param bus  Mod event bus, handed to the mod constructor by the loader in 1.21. Two of the managers below need
+   *             it to register a listener and there is no static accessor for it any more.
    */
-  public static void onConstruct() {
+  public static void onConstruct(IEventBus bus) {
     // registers the GatherSkippedAttributeTooltipsEvent listener that replaced the 1.20 attribute hide flags
     // (T10 SS6). That event is client only, so this is its only correct caller; without it every tool prints its
     // attributes twice.
     TooltipUtil.init();
     TinkerBook.initBook();
     // needs to register listeners early enough for minecraft to load
-    ModifierIconManager.init();
-    MaterialRenderInfoLoader.init();
+    ModifierIconManager.init(bus);
+    MaterialRenderInfoLoader.init(bus);
 
     // add the recipe cache invalidator to the client
     Consumer<RecipesUpdatedEvent> recipesUpdated = event -> RecipeCacheInvalidator.reload(true);
