@@ -9,9 +9,11 @@ import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.core.MappedRegistry;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraftforge.registries.ForgeRegistry;
-import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraft.resources.ResourceKey;
 import slimeknights.tconstruct.common.TinkerEffect;
 
 import java.util.Objects;
@@ -19,16 +21,20 @@ import java.util.function.Supplier;
 
 /** Handles creating fake registry entries to datagen entries based on other mods */
 public class FakeRegistryEntry {
-  /** Creates a dummy registry entry */
-  @SuppressWarnings("UnstableApiUsage")
-  private static <T> T getOrCreate(IForgeRegistry<T> registry, ResourceLocation id, Supplier<T> constructor) {
+  /**
+   * Creates a dummy registry entry
+   * @apiNote  1.21 dropped the Forge registry wrappers; the builtin registries are plain vanilla
+   *           {@link MappedRegistry} instances, so we unfreeze and register through those directly.
+   */
+  private static <T> T getOrCreate(Registry<T> registry, ResourceLocation id, Supplier<T> constructor) {
     if (!registry.containsKey(id)) {
-      ((ForgeRegistry<T>)registry).unfreeze();
+      MappedRegistry<T> writable = (MappedRegistry<T>)registry;
+      writable.unfreeze();
       T value = constructor.get();
-      registry.register(id, value);
+      writable.register(ResourceKey.create(registry.key(), id), value, RegistrationInfo.BUILT_IN);
       return value;
     }
-    return Objects.requireNonNull(registry.getValue(id));
+    return Objects.requireNonNull(registry.get(id));
   }
 
   /** Gets or creates a fake block with the given ID */

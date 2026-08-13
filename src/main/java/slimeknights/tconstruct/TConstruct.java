@@ -104,11 +104,11 @@ public class TConstruct {
     // the tool data components, registered before anything that builds a tool
     ToolComponents.init(bus);
     // base
-    bus.register(new TinkerCommons());
+    bus.register(new TinkerCommons(bus));
     bus.register(new TinkerMaterials());
-    bus.register(new TinkerEffects());
+    TinkerEffects.init(bus);
     bus.register(new TinkerGadgets());
-    bus.register(new TinkerAttributes());
+    bus.register(new TinkerAttributes(bus));
     // world
     bus.register(new TinkerWorld());
     bus.register(new TinkerStructures());
@@ -174,9 +174,9 @@ public class TConstruct {
 
     // other datagen
     generator.addProvider(server, new TConstructLootTableProvider(packOutput, lookupProvider));
-    generator.addProvider(server, new AdvancementsProvider(packOutput, lookupProvider, existingFileHelper));
+    generator.addProvider(server, new AdvancementsProvider(packOutput, lookupProvider));
     generator.addProvider(server, new GlobalLootModifiersProvider(packOutput, lookupProvider));
-    generator.addProvider(server, new LootTableInjectionProvider(packOutput, lookupProvider));
+    generator.addProvider(server, new LootTableInjectionProvider(packOutput));
     generator.addProvider(server, new ConfigurationDataProvider(packOutput));
   }
 
