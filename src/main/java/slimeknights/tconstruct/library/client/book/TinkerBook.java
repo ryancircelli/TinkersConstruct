@@ -1,6 +1,19 @@
 package slimeknights.tconstruct.library.client.book;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import com.mojang.serialization.JsonOps;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import slimeknights.mantle.client.book.BookLoader;
 import slimeknights.mantle.client.book.data.BookData;
@@ -33,6 +46,7 @@ import slimeknights.tconstruct.tools.stats.LimbMaterialStats;
 import slimeknights.tconstruct.tools.stats.SkullStats;
 import slimeknights.tconstruct.tools.stats.StatlessMaterialStats;
 
+import java.lang.reflect.Type;
 import java.util.Comparator;
 
 import static slimeknights.tconstruct.TConstruct.getResource;
@@ -59,16 +73,51 @@ public class TinkerBook extends BookData {
   private static final BookData[] ALL_BOOKS = {MATERIALS_AND_YOU, PUNY_SMELTING, MIGHTY_SMELTING, TINKERS_GADGETRY, FANTASTIC_FOUNDRY, ENCYCLOPEDIA};
 
   /**
+   * Gson adapter for a text component.
+   * <p>
+   * 1.20's {@code Component.Serializer} was a public Gson adapter with a no-argument constructor. In 1.21 that class
+   * is package private and the public replacement, {@code Component.SerializerAdapter}, takes a
+   * {@link HolderLookup.Provider} at construction, because a component may name registry content. A book is parsed on
+   * resource reload, which happens at the title screen as well as in a world, so there is no provider to hand it
+   * here. This fetches one per call from the connection instead, falling back to {@link RegistryAccess#EMPTY} when
+   * there is no server to ask - a book component naming registry content simply does not resolve at the title screen,
+   * which is better than resolving it against the wrong registries.
+   */
+  private enum ComponentAdapter implements JsonDeserializer<MutableComponent>, JsonSerializer<Component> {
+    INSTANCE;
+
+    /** Gets the best registry lookup available on the client right now */
+    private static HolderLookup.Provider registries() {
+      ClientPacketListener connection = Minecraft.getInstance().getConnection();
+      return connection != null ? connection.registryAccess() : RegistryAccess.EMPTY;
+    }
+
+    @Override
+    public MutableComponent deserialize(JsonElement json, Type type, JsonDeserializationContext context) {
+      return (MutableComponent)ComponentSerialization.CODEC
+        .parse(registries().createSerializationContext(JsonOps.INSTANCE), json)
+        .getOrThrow(JsonParseException::new);
+    }
+
+    @Override
+    public JsonElement serialize(Component component, Type type, JsonSerializationContext context) {
+      return ComponentSerialization.CODEC
+        .encodeStart(registries().createSerializationContext(JsonOps.INSTANCE), component)
+        .getOrThrow(JsonParseException::new);
+    }
+  }
+
+  /**
    * Initializes the books
    */
   public static void initBook() {
-    BookLoader.registerGsonTypeAdapter(Component.class, new Component.Serializer());
+    BookLoader.registerGsonTypeAdapter(Component.class, ComponentAdapter.INSTANCE);
 
     // register page types
     BookLoader.registerPageType(MeleeHarvestMaterialContent.ID, MeleeHarvestMaterialContent.class);
     BookLoader.registerPageType(RangedMaterialContent.ID,       RangedMaterialContent.class);
     BookLoader.registerPageType(ArmorMaterialContent.ID,        ArmorMaterialContent.class);
-    BookLoader.registerPageType(AmmoMaterialContent.ID,        ArmorMaterialContent.class);
+    BookLoader.registerPageType(AmmoMaterialContent.ID,         AmmoMaterialContent.class);
     BookLoader.registerPageType(ContentTool.ID, ContentTool.class);
     BookLoader.registerPageType(ContentModifier.ID, ContentModifier.class);
     BookLoader.registerPageType(TooltipShowcaseContent.ID, TooltipShowcaseContent.class);

@@ -46,11 +46,12 @@ public class TintedArmorTexture implements ArmorTexture {
   }
 
   @Override
-  public void renderTexture(Model model, PoseStack matrices, MultiBufferSource bufferSource, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, boolean hasGlint) {
-    VertexConsumer buffer = ItemRenderer.getArmorFoilBuffer(bufferSource, RenderType.armorCutoutNoCull(texture), false, hasGlint);
+  public void renderTexture(Model model, PoseStack matrices, MultiBufferSource bufferSource, int packedLight, int packedOverlay, int baseColor, boolean hasGlint) {
+    // 1.21: getArmorFoilBuffer dropped its "no entity" flag, leaving the buffer source, render type and glint
+    VertexConsumer buffer = ItemRenderer.getArmorFoilBuffer(bufferSource, RenderType.armorCutoutNoCull(texture), hasGlint);
     if (luminosity > 0) {
       packedLight = applyLuminosity(packedLight, luminosity);
     }
-    AbstractArmorModel.renderColored(model, matrices, buffer, packedLight, packedOverlay, color, red, green, blue, alpha);
+    AbstractArmorModel.renderColored(model, matrices, buffer, packedLight, packedOverlay, color, baseColor);
   }
 }

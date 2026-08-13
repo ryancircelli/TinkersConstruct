@@ -91,7 +91,8 @@ public class ModifierModelManager implements IEarlySafeManagerReloadListener {
   public void onReloadSafe(ResourceManager manager) {
     // fire an event so people can register loaders, was the easiest way to do so after modifiers are registered but before models load
     if (!eventFired) {
-      ModLoader.get().postEvent(new ModifierModelRegistrationEvent());
+      // 1.21: ModLoader is all static, there is no instance to get
+      ModLoader.postEvent(new ModifierModelRegistrationEvent());
       eventFired = true;
     }
 

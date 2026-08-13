@@ -27,6 +27,9 @@ src/test/java/slimeknights/tconstruct/fixture/MaterialStatsFixture.java
 src/test/java/slimeknights/tconstruct/fixture/RegistrationFixture.java
 src/test/java/slimeknights/tconstruct/fixture/ToolDefinitionFixture.java
 src/test/java/slimeknights/tconstruct/fixture/package-info.java
+src/test/java/slimeknights/tconstruct/library/client/armor/ArmorModelTest.java
+src/test/java/slimeknights/tconstruct/library/client/book/TinkerBookTest.java
+src/test/java/slimeknights/tconstruct/library/client/modifiers/ModifierModelMapTest.java
 src/test/java/slimeknights/tconstruct/library/materials/MaterialRegistryExtension.java
 src/test/java/slimeknights/tconstruct/library/materials/definition/MaterialManagerTest.java
 src/test/java/slimeknights/tconstruct/library/materials/definition/TestMaterial.java

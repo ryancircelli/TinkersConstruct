@@ -10,7 +10,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.ForgeI18n;
+import net.minecraft.locale.Language;
 import slimeknights.mantle.client.book.HTMLUtils;
 import slimeknights.mantle.client.book.data.BookData;
 import slimeknights.mantle.client.book.data.content.PageContent;
@@ -91,7 +91,7 @@ public class ContentModifier extends PageContent {
   public ContentModifier(Modifier modifier) {
     this.modifier = modifier;
     this.modifierID = modifier.getId().toString();
-    this.text = new TextData[] {new TextData(ForgeI18n.getPattern(modifier.getTranslationKey() + ".description"))};
+    this.text = new TextData[] {new TextData(Language.getInstance().getOrDefault(modifier.getTranslationKey() + ".description"))};
     this.effects = new String[0];
     this.more_text_space = true;
   }
