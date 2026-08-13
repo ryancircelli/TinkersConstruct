@@ -870,3 +870,10 @@ src/main/java/slimeknights/tconstruct/world/worldgen/trees/feature/SlimeFungusFe
 src/main/java/slimeknights/tconstruct/world/worldgen/trees/feature/SlimeTreeFeature.java
 src/main/java/slimeknights/tconstruct/world/worldgen/trees/feature/package-info.java
 src/main/java/slimeknights/tconstruct/world/worldgen/trees/package-info.java
+src/main/java/slimeknights/tconstruct/world/entity/ArmoredSlimeEntity.java
+src/main/java/slimeknights/tconstruct/world/entity/EnderSlimeEntity.java
+src/main/java/slimeknights/tconstruct/world/entity/SkySlimeEntity.java
+src/main/java/slimeknights/tconstruct/world/entity/SlimePlacementPredicate.java
+src/main/java/slimeknights/tconstruct/world/entity/TerracubeEntity.java
+src/main/java/slimeknights/tconstruct/world/entity/TravelersPlateSlimeEntity.java
+src/main/java/slimeknights/tconstruct/world/entity/package-info.java

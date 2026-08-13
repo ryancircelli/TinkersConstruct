@@ -1,6 +1,6 @@
 {
-    "total": 349,
-    "islandFiles": 843,
+    "total": 350,
+    "islandFiles": 850,
     "categories": {
         "other: static import only from classes and interfaces": 11,
         "package slimeknights.tconstruct.gadgets": 6,
@@ -26,7 +26,7 @@
         "package slimeknights.tconstruct.tools.client": 1,
         "package slimeknights.tconstruct.tools.client.material": 1,
         "package slimeknights.tconstruct.tools.data": 9,
-        "package slimeknights.tconstruct.tools.data.material": 7,
+        "package slimeknights.tconstruct.tools.data.material": 9,
         "package slimeknights.tconstruct.tools.data.sprite": 1,
         "package slimeknights.tconstruct.tools.entity": 3,
         "package slimeknights.tconstruct.tools.item": 1,
@@ -45,12 +45,10 @@
         "package slimeknights.tconstruct.tools.recipe": 1,
         "package slimeknights.tconstruct.tools.stats": 49,
         "package slimeknights.tconstruct.world.data": 1,
-        "package slimeknights.tconstruct.world.entity": 2,
         "symbol class ArmorModuleBuilder": 11,
         "symbol class ArmorShieldModuleBuilder": 1,
         "symbol class BleedingEffect": 1,
         "symbol class CraftingTableRepairKitRecipe": 1,
-        "symbol class EnderSlimeEntity": 3,
         "symbol class MagneticEffect": 1,
         "symbol class OvergrowthModule": 1,
         "symbol class PlatingMaterialStats": 2,
@@ -64,7 +62,7 @@
         "symbol class TinkerTables": 22,
         "symbol class TinkerToolActions": 9,
         "symbol class TinkerToolParts": 11,
-        "symbol class TinkerTools": 13,
-        "symbol class TinkerWorld": 21
+        "symbol class TinkerTools": 14,
+        "symbol class TinkerWorld": 24
     }
 }
