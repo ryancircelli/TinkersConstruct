@@ -21,8 +21,8 @@ import net.neoforged.neoforge.client.event.RecipesUpdatedEvent;
 import net.neoforged.neoforge.client.event.RenderBlockScreenEffectEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod.EventBusSubscriber;
-import net.neoforged.fml.common.Mod.EventBusSubscriber.Bus;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import org.joml.Matrix4f;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.TinkerTags;
@@ -35,6 +35,7 @@ import slimeknights.tconstruct.library.client.armor.texture.MaterialArmorTexture
 import slimeknights.tconstruct.library.client.armor.texture.MaterialHasFallbackTextureSupplier;
 import slimeknights.tconstruct.library.client.armor.texture.TrimArmorTextureSupplier;
 import slimeknights.tconstruct.library.client.book.TinkerBook;
+import slimeknights.tconstruct.library.tools.helper.TooltipUtil;
 import slimeknights.tconstruct.library.client.data.spritetransformer.FramesSpriteTransformer;
 import slimeknights.tconstruct.library.client.data.spritetransformer.GreyToColorMapping;
 import slimeknights.tconstruct.library.client.data.spritetransformer.GreyToSpriteTransformer;
@@ -65,12 +66,16 @@ import static slimeknights.tconstruct.TConstruct.getResource;
 /**
  * This class should only be referenced on the client side
  */
-@EventBusSubscriber(modid = TConstruct.MOD_ID, value = Dist.CLIENT, bus = Bus.FORGE)
+@EventBusSubscriber(modid = TConstruct.MOD_ID, value = Dist.CLIENT, bus = Bus.GAME)
 public class TinkerClient {
   /**
    * Called by TConstruct to handle any client side logic that needs to run during the constructor
    */
   public static void onConstruct() {
+    // registers the GatherSkippedAttributeTooltipsEvent listener that replaced the 1.20 attribute hide flags
+    // (T10 SS6). That event is client only, so this is its only correct caller; without it every tool prints its
+    // attributes twice.
+    TooltipUtil.init();
     TinkerBook.initBook();
     // needs to register listeners early enough for minecraft to load
     ModifierIconManager.init();
@@ -130,8 +135,6 @@ public class TinkerClient {
         RenderSystem.setShaderTexture(0, texture.atlasLocation());
         // changed: shader using pos tex
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-
         // change: handle brightness based on renderWater, and enable blend
         Player player = minecraft.player;
         BlockPos blockpos = BlockPos.containing(player.getX(), player.getEyeY(), player.getZ());
@@ -146,13 +149,14 @@ public class TinkerClient {
         float v0 = texture.getV0();
         float v1 = texture.getV1();
         Matrix4f matrix4f = event.getPoseStack().last().pose();
-        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        // 1.21: a buffer is begun by the tesselator and the vertex methods are addVertex/setUv, with no endVertex
+        BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         // change: dropped color, see above
-        bufferbuilder.vertex(matrix4f, -1, -1, -0.5f).uv(u1, v1).endVertex();
-        bufferbuilder.vertex(matrix4f, 1, -1, -0.5f).uv(u0, v1).endVertex();
-        bufferbuilder.vertex(matrix4f, 1, 1, -0.5f).uv(u0, v0).endVertex();
-        bufferbuilder.vertex(matrix4f, -1, 1, -0.5f).uv(u1, v0).endVertex();
-        BufferUploader.drawWithShader(bufferbuilder.end());
+        bufferbuilder.addVertex(matrix4f, -1, -1, -0.5f).setUv(u1, v1);
+        bufferbuilder.addVertex(matrix4f, 1, -1, -0.5f).setUv(u0, v1);
+        bufferbuilder.addVertex(matrix4f, 1, 1, -0.5f).setUv(u0, v0);
+        bufferbuilder.addVertex(matrix4f, -1, 1, -0.5f).setUv(u1, v0);
+        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
         // changed: disable blend
         RenderSystem.disableBlend();
       }

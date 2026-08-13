@@ -26,6 +26,7 @@ import net.minecraft.world.level.storage.loot.entries.LootPoolEntryType;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import slimeknights.mantle.item.BlockTooltipItem;
@@ -78,6 +79,13 @@ public abstract class TinkerModule {
   protected static final SynchronizedDeferredRegister<LootItemConditionType> LOOT_CONDITIONS = SynchronizedDeferredRegister.create(Registries.LOOT_CONDITION_TYPE, TConstruct.MOD_ID);
   protected static final SynchronizedDeferredRegister<LootItemFunctionType<?>> LOOT_FUNCTIONS = SynchronizedDeferredRegister.create(Registries.LOOT_FUNCTION_TYPE, TConstruct.MOD_ID);
   protected static final SynchronizedDeferredRegister<LootPoolEntryType> LOOT_ENTRIES = SynchronizedDeferredRegister.create(Registries.LOOT_POOL_ENTRY_TYPE, TConstruct.MOD_ID);
+  /**
+   * Recipe and loot table conditions.
+   * @apiNote  Forge kept condition serializers in a static map written during construction, which is what
+   *           {@code CraftingHelper.register} did. NeoForge gives them a registry holding one {@link MapCodec} each,
+   *           so they register like anything else and the JSON is unchanged.
+   */
+  protected static final SynchronizedDeferredRegister<MapCodec<? extends ICondition>> CONDITIONS = SynchronizedDeferredRegister.create(NeoForgeRegistries.Keys.CONDITION_CODECS, TConstruct.MOD_ID);
 
   /* Base item properties.
    *
@@ -127,6 +135,7 @@ public abstract class TinkerModule {
     LOOT_CONDITIONS.register(bus);
     LOOT_FUNCTIONS.register(bus);
     LOOT_ENTRIES.register(bus);
+    CONDITIONS.register(bus);
     TinkerRecipeTypes.init(bus);
     TinkerIngredients.init(bus);
   }

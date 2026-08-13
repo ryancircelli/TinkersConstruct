@@ -905,6 +905,15 @@ src/main/java/slimeknights/tconstruct/library/utils/Util.java
 src/main/java/slimeknights/tconstruct/library/utils/WeakListenerList.java
 src/main/java/slimeknights/tconstruct/library/utils/package-info.java
 src/main/java/slimeknights/tconstruct/package-info.java
+src/main/java/slimeknights/tconstruct/shared/AchievementEvents.java
+src/main/java/slimeknights/tconstruct/shared/CommonsClientEvents.java
+src/main/java/slimeknights/tconstruct/shared/CommonsEvents.java
+src/main/java/slimeknights/tconstruct/shared/TinkerAttributes.java
+src/main/java/slimeknights/tconstruct/shared/TinkerClient.java
+src/main/java/slimeknights/tconstruct/shared/TinkerCommons.java
+src/main/java/slimeknights/tconstruct/shared/TinkerEffects.java
+src/main/java/slimeknights/tconstruct/shared/TinkerFood.java
+src/main/java/slimeknights/tconstruct/shared/TinkerMaterials.java
 src/main/java/slimeknights/tconstruct/shared/block/BetterPaneBlock.java
 src/main/java/slimeknights/tconstruct/shared/block/ClearGlassPaneBlock.java
 src/main/java/slimeknights/tconstruct/shared/block/ClearStainedGlassBlock.java
@@ -924,6 +933,8 @@ src/main/java/slimeknights/tconstruct/shared/block/WeatheringPlatformBlock.java
 src/main/java/slimeknights/tconstruct/shared/block/entity/TableBlockEntity.java
 src/main/java/slimeknights/tconstruct/shared/block/entity/package-info.java
 src/main/java/slimeknights/tconstruct/shared/block/package-info.java
+src/main/java/slimeknights/tconstruct/shared/data/CommonRecipeProvider.java
+src/main/java/slimeknights/tconstruct/shared/data/package-info.java
 src/main/java/slimeknights/tconstruct/shared/effect/AntigravityEffect.java
 src/main/java/slimeknights/tconstruct/shared/effect/ReturningEffect.java
 src/main/java/slimeknights/tconstruct/shared/effect/package-info.java
@@ -938,6 +949,7 @@ src/main/java/slimeknights/tconstruct/shared/item/TinkerBookItem.java
 src/main/java/slimeknights/tconstruct/shared/item/package-info.java
 src/main/java/slimeknights/tconstruct/shared/network/GeneratePartTexturesPacket.java
 src/main/java/slimeknights/tconstruct/shared/network/package-info.java
+src/main/java/slimeknights/tconstruct/shared/package-info.java
 src/main/java/slimeknights/tconstruct/shared/particle/FluidParticleData.java
 src/main/java/slimeknights/tconstruct/shared/particle/package-info.java
 src/main/java/slimeknights/tconstruct/smeltery/network/ChannelFlowPacket.java
