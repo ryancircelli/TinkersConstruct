@@ -4,7 +4,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.core.registries.BuiltInRegistries;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import slimeknights.mantle.data.predicate.block.BlockPredicate;
@@ -31,8 +30,8 @@ class ToolHarvestLogicTest extends ToolItemTest {
   synchronized static void beforeAllToolLogic() {
     MaterialItemFixture.init();
     if (pickaxeTool == null) {
-      pickaxeTool = new ModifiableItem(new Item.Properties().stacksTo(1), ToolDefinitionFixture.getStandardToolDefinition());
-      BuiltInRegistries.ITEM.register(ResourceLocation.fromNamespaceAndPath("test", "pickaxe"), pickaxeTool);
+      pickaxeTool = MaterialItemFixture.register(ResourceLocation.fromNamespaceAndPath("test", "pickaxe"),
+                                                 new ModifiableItem(new Item.Properties().stacksTo(1), ToolDefinitionFixture.getStandardToolDefinition()));
     }
   }
 
@@ -89,8 +88,8 @@ class ToolHarvestLogicTest extends ToolItemTest {
                          .module(new MultiplyStatsModule(MultiplierNBT.builder().set(ToolStats.MINING_SPEED, modifier).build()))
                          .build());
 
-    ModifiableItem toolWithMiningModifier = new ModifiableItem(new Item.Properties(), definition);
-    BuiltInRegistries.ITEM.register(ResourceLocation.fromNamespaceAndPath("test", "tool_with_mining_modifier"), toolWithMiningModifier);
+    ModifiableItem toolWithMiningModifier = MaterialItemFixture.register(ResourceLocation.fromNamespaceAndPath("test", "tool_with_mining_modifier"),
+                                                                        new ModifiableItem(new Item.Properties(), definition));
     ItemStack tool = buildTestTool(toolWithMiningModifier);
 
     // boosted by correct block

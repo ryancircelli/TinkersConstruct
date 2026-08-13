@@ -37,6 +37,10 @@ src/test/java/slimeknights/tconstruct/library/materials/traits/UpdateMaterialTra
 src/test/java/slimeknights/tconstruct/library/modifiers/ModifierFixture.java
 src/test/java/slimeknights/tconstruct/library/modifiers/UpdateModifiersPacketTest.java
 src/test/java/slimeknights/tconstruct/library/modifiers/util/EnchantmentLevelsTest.java
+src/test/java/slimeknights/tconstruct/library/tools/capability/EntityModifierCapabilityTest.java
+src/test/java/slimeknights/tconstruct/library/tools/capability/PersistentDataCapabilityTest.java
+src/test/java/slimeknights/tconstruct/library/tools/capability/TinkerDataCapabilityTest.java
+src/test/java/slimeknights/tconstruct/library/tools/capability/ToolCapabilityProviderTest.java
 src/test/java/slimeknights/tconstruct/library/tools/definition/ToolDefinitionDataTest.java
 src/test/java/slimeknights/tconstruct/library/tools/definition/ToolDefinitionLoaderTest.java
 src/test/java/slimeknights/tconstruct/library/tools/definition/UpdateToolDefinitionDataPacketTest.java
@@ -49,6 +53,7 @@ src/test/java/slimeknights/tconstruct/library/tools/layout/LayoutIconTest.java
 src/test/java/slimeknights/tconstruct/library/tools/layout/StationSlotLayoutLoaderTest.java
 src/test/java/slimeknights/tconstruct/library/tools/layout/StationSlotLayoutTest.java
 src/test/java/slimeknights/tconstruct/library/tools/layout/UpdateTinkerSlotLayoutsPacketTest.java
+src/test/java/slimeknights/tconstruct/library/tools/nbt/DisplayComponentTest.java
 src/test/java/slimeknights/tconstruct/library/tools/nbt/MaterialNBTTest.java
 src/test/java/slimeknights/tconstruct/library/tools/nbt/ModifierNBTest.java
 src/test/java/slimeknights/tconstruct/library/tools/nbt/MultiplierNBTTest.java
