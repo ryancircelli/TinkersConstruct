@@ -153,6 +153,18 @@ public class ToolStack implements IToolStackView {
     } else {
       this.tracker = null;
     }
+    watchPersistentData();
+  }
+
+  /**
+   * Points the persistent data's edit listener at this tool's tracker, so a write through the handle
+   * {@link #getPersistentData()} returns is what marks the tool edited. Called wherever the data object is replaced.
+   * Costs nothing in production, where {@link #tracker} is always null.
+   */
+  private void watchPersistentData() {
+    if (tracker != null) {
+      persistentModData.setOnEdit(this::markEdited);
+    }
   }
 
   /**
@@ -268,6 +280,7 @@ public class ToolStack implements IToolStackView {
     this.materials = persistent.materials();
     this.upgrades = persistent.upgrades();
     this.persistentModData = persistent.mutableData();
+    watchPersistentData();
     this.broken = persistent.broken();
     this.damage = stack.getOrDefault(DataComponents.DAMAGE, 0);
     this.unbreakable = stack.has(DataComponents.UNBREAKABLE);
@@ -655,9 +668,9 @@ public class ToolStack implements IToolStackView {
 
   @Override
   public ToolDataNBT getPersistentData() {
-    // this hands out a write handle, and a caller that writes through it never touches another setter,
-    // so this is the write that has to be assumed rather than observed
-    markEdited();
+    // no markEdited here: this hands out a write handle, not a write. The handle reports its own writes through the
+    // listener wired in watchPersistentData, since a tooltip reads persistent data through IToolStackView and marking
+    // on the getter made every rendered tool look edited.
     return persistentModData;
   }
 
