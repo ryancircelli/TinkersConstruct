@@ -117,7 +117,7 @@ public class TinkerBook extends BookData {
     BookLoader.registerPageType(MeleeHarvestMaterialContent.ID, MeleeHarvestMaterialContent.class);
     BookLoader.registerPageType(RangedMaterialContent.ID,       RangedMaterialContent.class);
     BookLoader.registerPageType(ArmorMaterialContent.ID,        ArmorMaterialContent.class);
-    BookLoader.registerPageType(AmmoMaterialContent.ID,        ArmorMaterialContent.class);
+    BookLoader.registerPageType(AmmoMaterialContent.ID,         AmmoMaterialContent.class);
     BookLoader.registerPageType(ContentTool.ID, ContentTool.class);
     BookLoader.registerPageType(ContentModifier.ID, ContentModifier.class);
     BookLoader.registerPageType(TooltipShowcaseContent.ID, TooltipShowcaseContent.class);
