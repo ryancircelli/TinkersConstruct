@@ -113,10 +113,9 @@ public class FaucetBlock extends Block implements EntityBlock {
     if (worldIn.isClientSide()) {
       return;
     }
-    getFaucet(worldIn, pos).ifPresent(faucet -> {
-      faucet.neighborChanged(fromPos);
-      faucet.handleRedstone(worldIn.hasNeighborSignal(pos));
-    });
+    // the faucet used to drop its cached input/output handler here; a BlockCapabilityCache is refreshed by the level
+    // when the neighbor changes, so redstone is all this hook has left to do
+    getFaucet(worldIn, pos).ifPresent(faucet -> faucet.handleRedstone(worldIn.hasNeighborSignal(pos)));
   }
 
   @SuppressWarnings("deprecation")

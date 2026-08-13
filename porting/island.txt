@@ -1,9 +1,4 @@
 #
-#
-#
-#
-#
-#
 #     for measurement only, and the real build must stay green.
 #     island is still excluded from the main source set: it is being compiled
 #   - every listed path exists and lives under src/main/java
@@ -817,6 +812,28 @@ src/main/java/slimeknights/tconstruct/shared/item/CheeseBlockItem.java
 src/main/java/slimeknights/tconstruct/shared/item/CheeseItem.java
 src/main/java/slimeknights/tconstruct/shared/item/TinkerBookItem.java
 src/main/java/slimeknights/tconstruct/shared/network/GeneratePartTexturesPacket.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/CastingBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/CastingTankBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/ChannelBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/FaucetBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/FluidCannonBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/GaugeBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/HeaterBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/ITankBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/LanternBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/ProxyTankBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/component/DrainBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/component/DuctBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/component/SmelteryComponentBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/component/SmelteryInputOutputBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/component/TankBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/component/package-info.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/controller/AlloyerBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/controller/FoundryBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/controller/HeatingStructureBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/controller/MelterBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/controller/SmelteryBlockEntity.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/controller/package-info.java
 src/main/java/slimeknights/tconstruct/smeltery/block/entity/inventory/CastingContainerWrapper.java
 src/main/java/slimeknights/tconstruct/smeltery/block/entity/inventory/DuctItemHandler.java
 src/main/java/slimeknights/tconstruct/smeltery/block/entity/inventory/DuctTankWrapper.java
@@ -845,6 +862,7 @@ src/main/java/slimeknights/tconstruct/smeltery/block/entity/multiblock/Multibloc
 src/main/java/slimeknights/tconstruct/smeltery/block/entity/multiblock/MultiblockStructureData.java
 src/main/java/slimeknights/tconstruct/smeltery/block/entity/multiblock/SmelteryMultiblock.java
 src/main/java/slimeknights/tconstruct/smeltery/block/entity/multiblock/package-info.java
+src/main/java/slimeknights/tconstruct/smeltery/block/entity/package-info.java
 src/main/java/slimeknights/tconstruct/smeltery/block/entity/tank/CastingFluidHandler.java
 src/main/java/slimeknights/tconstruct/smeltery/block/entity/tank/ChannelSideTank.java
 src/main/java/slimeknights/tconstruct/smeltery/block/entity/tank/ChannelTank.java
