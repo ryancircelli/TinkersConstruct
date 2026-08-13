@@ -1,18 +1,23 @@
 package slimeknights.tconstruct.shared.block;
 
-import net.minecraft.world.level.block.AbstractGlassBlock;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.world.level.block.TransparentBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelReader;
 
-import javax.annotation.Nullable;
 import java.util.Locale;
 
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
-public class ClearStainedGlassBlock extends AbstractGlassBlock {
+public class ClearStainedGlassBlock extends TransparentBlock {
+  public static final MapCodec<ClearStainedGlassBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+    propertiesCodec(),
+    GlassColor.CODEC.fieldOf("color").forGetter(block -> block.glassColor)
+  ).apply(instance, ClearStainedGlassBlock::new));
 
   private final GlassColor glassColor;
   public ClearStainedGlassBlock(Properties properties, GlassColor glassColor) {
@@ -20,10 +25,14 @@ public class ClearStainedGlassBlock extends AbstractGlassBlock {
     this.glassColor = glassColor;
   }
 
-  @Nullable
   @Override
-  public float[] getBeaconColorMultiplier(BlockState state, LevelReader world, BlockPos pos, BlockPos beaconPos) {
-    return this.glassColor.getRgb();
+  public MapCodec<? extends ClearStainedGlassBlock> codec() {
+    return CODEC;
+  }
+
+  @Override
+  public Integer getBeaconColorMultiplier(BlockState state, LevelReader world, BlockPos pos, BlockPos beaconPos) {
+    return this.glassColor.getBeaconColor();
   }
 
   /** Enum used for registration of this and the pane block */
@@ -45,29 +54,17 @@ public class ClearStainedGlassBlock extends AbstractGlassBlock {
     RED(0x993333, DyeColor.RED),
     BLACK(0x191919, DyeColor.BLACK);
 
+    /** Codec for the color, used by the block codecs */
+    public static final StringRepresentable.EnumCodec<GlassColor> CODEC = StringRepresentable.fromEnum(GlassColor::values);
+
     private final int color;
     private final DyeColor dye;
-    private final float[] rgb;
     private final String name;
 
     GlassColor(int color, DyeColor dye) {
       this.color = color;
       this.dye = dye;
-      this.rgb = calcRGB(color);
       this.name = this.name().toLowerCase(Locale.US);
-    }
-
-    /**
-     * Converts the color into an RGB float array
-     * @param color  Color input
-     * @return  Float array
-     */
-    private static float[] calcRGB(int color) {
-      float[] out = new float[3];
-      out[0] = ((color >> 16) & 0xFF) / 255f;
-      out[1] = ((color >> 8) & 0xFF) / 255f;
-      out[2] = (color & 0xFF) / 255f;
-      return out;
     }
 
     /**
@@ -84,11 +81,15 @@ public class ClearStainedGlassBlock extends AbstractGlassBlock {
     }
 
     /**
-     * Gets the RGB value for this color as an array
-     * @return  Color RGB for beacon
+     * Gets the color for the beacon beam.
+     * <p>
+     * 1.20 answered the beam with a {@code float[]} of RGB components; 1.21 replaced that hook with
+     * {@link net.neoforged.neoforge.common.extensions.IBlockExtension#getBeaconColorMultiplier} which wants a packed
+     * ARGB integer, matching {@link DyeColor#getTextureDiffuseColor()}.
+     * @return  Opaque ARGB color for the beacon beam
      */
-    public float[] getRgb() {
-      return this.rgb;
+    public int getBeaconColor() {
+      return 0xFF000000 | this.color;
     }
 
     @Override

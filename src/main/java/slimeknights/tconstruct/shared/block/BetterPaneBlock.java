@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.shared.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Plane;
 import net.minecraft.world.level.block.IronBarsBlock;
@@ -10,6 +11,7 @@ import java.util.EnumMap;
 
 /** Pane block with sensible culling */
 public class BetterPaneBlock extends IronBarsBlock {
+  public static final MapCodec<BetterPaneBlock> CODEC = simpleCodec(BetterPaneBlock::new);
   public static final EnumMap<Direction,BooleanProperty> DIRECTIONS;
   static {
     DIRECTIONS = new EnumMap<>(Direction.class);
@@ -24,7 +26,12 @@ public class BetterPaneBlock extends IronBarsBlock {
   }
 
   @Override
-  public boolean skipRendering(BlockState state, BlockState adjacentBlockState, Direction side) {
+  public MapCodec<? extends BetterPaneBlock> codec() {
+    return CODEC;
+  }
+
+  @Override
+  protected boolean skipRendering(BlockState state, BlockState adjacentBlockState, Direction side) {
     // cull top and bottom if all props that we have are contained in the above or below
     if (adjacentBlockState.getBlock() == this && side.getAxis().isVertical()) {
       for (Direction dir : Plane.HORIZONTAL) {

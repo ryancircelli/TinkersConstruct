@@ -1,5 +1,7 @@
 package slimeknights.tconstruct.shared.block;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import lombok.Getter;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
@@ -7,7 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -26,11 +28,21 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class WeatheringPlatformBlock extends PlatformBlock implements WeatheringCopper {
+  public static final MapCodec<WeatheringPlatformBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+    WeatherState.CODEC.fieldOf("weathering_state").forGetter(WeatheringPlatformBlock::getAge),
+    propertiesCodec()
+  ).apply(instance, WeatheringPlatformBlock::new));
+
   @Getter
   private final WeatherState age;
   public WeatheringPlatformBlock(WeatherState age, Properties props) {
     super(props);
     this.age = age;
+  }
+
+  @Override
+  public MapCodec<? extends WeatheringPlatformBlock> codec() {
+    return CODEC;
   }
 
   @Override
@@ -40,7 +52,8 @@ public class WeatheringPlatformBlock extends PlatformBlock implements Weathering
 
   @Override
   public void randomTick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
-    this.onRandomTick(pState, pLevel, pPos, pRandom);
+    // 1.21 renamed WeatheringCopper#onRandomTick to ChangeOverTimeBlock#changeOverTime
+    this.changeOverTime(pState, pLevel, pPos, pRandom);
   }
 
   /** Gets the next state for weathering */
@@ -89,8 +102,7 @@ public class WeatheringPlatformBlock extends PlatformBlock implements Weathering
   }
 
   @Override
-  public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-    ItemStack stack = player.getItemInHand(hand);
+  protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
     if (stack.getItem() == Items.HONEYCOMB) {
       if (player instanceof ServerPlayer serverPlayer) {
         CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger(serverPlayer, pos, stack);
@@ -100,8 +112,8 @@ public class WeatheringPlatformBlock extends PlatformBlock implements Weathering
       }
       level.setBlock(pos, TinkerCommons.waxedCopperPlatform.get(age).withPropertiesOf(state), 11);
       level.levelEvent(player, LevelEvent.PARTICLES_AND_SOUND_WAX_ON, pos, 0);
-      return InteractionResult.sidedSuccess(level.isClientSide);
+      return ItemInteractionResult.sidedSuccess(level.isClientSide);
     }
-    return InteractionResult.PASS;
+    return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
   }
 }
