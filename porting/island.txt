@@ -1102,6 +1102,14 @@ src/main/java/slimeknights/tconstruct/tools/item/ModifierCrystalItem.java
 src/main/java/slimeknights/tconstruct/tools/item/RepairKitItem.java
 src/main/java/slimeknights/tconstruct/tools/item/SlimeskullItem.java
 src/main/java/slimeknights/tconstruct/tools/item/package-info.java
+src/main/java/slimeknights/tconstruct/tools/logic/DoubleJumpHandler.java
+src/main/java/slimeknights/tconstruct/tools/logic/EquipmentChangeWatcher.java
+src/main/java/slimeknights/tconstruct/tools/logic/InteractionHandler.java
+src/main/java/slimeknights/tconstruct/tools/logic/ModifiableArrowDispenserBehavior.java
+src/main/java/slimeknights/tconstruct/tools/logic/ModifiableShurikenDispenserBehavior.java
+src/main/java/slimeknights/tconstruct/tools/logic/ModifierEvents.java
+src/main/java/slimeknights/tconstruct/tools/logic/ToolEvents.java
+src/main/java/slimeknights/tconstruct/tools/logic/package-info.java
 src/main/java/slimeknights/tconstruct/tools/menu/ReadOnlySlot.java
 src/main/java/slimeknights/tconstruct/tools/menu/ToolContainerMenu.java
 src/main/java/slimeknights/tconstruct/tools/menu/package-info.java
