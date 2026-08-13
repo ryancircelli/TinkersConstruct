@@ -21,6 +21,7 @@ import slimeknights.mantle.data.GenericDataProvider;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.registration.object.EnumObject;
 import slimeknights.mantle.registration.object.IdAwareObject;
+import slimeknights.tconstruct.library.tools.definition.ModifiableArmorMaterial;
 import slimeknights.tconstruct.library.tools.item.ranged.ModifiableLauncherItem;
 
 import javax.annotation.Nullable;
@@ -267,7 +268,7 @@ public abstract class AbstractToolItemModelProvider extends GenericDataProvider 
 
   /** Adds broken and blocking models for the armor set */
   protected void armor(String name, EnumObject<ArmorItem.Type,? extends Item> armor, String... textures) throws IOException {
-    armor(name, armor, ArmorItem.Type.values(), textures);
+    armor(name, armor, ModifiableArmorMaterial.ARMOR_TYPES, textures);
   }
 
   /** Creates models for fishing rods cast and broken */

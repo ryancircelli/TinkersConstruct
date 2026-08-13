@@ -31,6 +31,7 @@ import slimeknights.tconstruct.library.json.predicate.material.MaterialPredicate
 import slimeknights.tconstruct.library.materials.RandomMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
 import slimeknights.tconstruct.library.recipe.FluidValues;
+import slimeknights.tconstruct.library.tools.definition.ModifiableArmorMaterial;
 import slimeknights.tconstruct.smeltery.TinkerSmeltery;
 import slimeknights.tconstruct.tools.TinkerTools;
 import slimeknights.tconstruct.world.TinkerWorld;
@@ -158,7 +159,7 @@ public class LootTableInjectionProvider extends AbstractLootTableInjectionProvid
                                  .build());
     // diamond armor shows in bastions, add in some plate with similar weight to enchanted version
     RandomMaterial randomHighTier = RandomMaterial.random().allowHidden().tier(3, 4).material(includeInLoot).build();
-    for (ArmorItem.Type slot : ArmorItem.Type.values()) {
+    for (ArmorItem.Type slot : ModifiableArmorMaterial.ARMOR_TYPES) {
       bastion.addToPool("main", LootItem.lootTableItem(TinkerTools.plateArmor.get(slot))
                                         .setWeight(6)
                                         .apply(AddToolDataFunction.builder()

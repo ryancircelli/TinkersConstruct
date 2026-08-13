@@ -17,6 +17,7 @@ import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.json.loot.ToolPartLootEntry;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
+import slimeknights.tconstruct.library.tools.definition.ModifiableArmorMaterial;
 import slimeknights.tconstruct.library.tools.helper.ToolBuildHandler;
 import slimeknights.tconstruct.library.tools.part.IMaterialItem;
 import slimeknights.tconstruct.library.tools.part.IRepairKitItem;
@@ -40,6 +41,16 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public final class TinkerToolParts extends TinkerModule {
+  /**
+   * Loads the class, which runs the registrations below into {@link TinkerModule}'s shared deferred registers.
+   * <p>
+   * Unlike its neighbours this is a static call rather than {@code bus.register(new TinkerToolParts())}: this module
+   * has never had a mod bus listener, and NeoForge's bus rejects an object with no {@code @SubscribeEvent} methods
+   * outright ({@code IllegalArgumentException}) where 1.20's Forge bus silently accepted it and found nothing.
+   * Everything this class registers is a static field, so loading it is all that was ever wanted here.
+   */
+  public static void init() {}
+
   /** Tab for all tool parts or tool components with many variants */
   public static final DeferredHolder<CreativeModeTab,CreativeModeTab> tabToolParts = CREATIVE_TABS.register(
     "tool_parts", () -> CreativeModeTab.builder().title(TConstruct.makeTranslation("itemGroup", "tool_parts"))
@@ -92,7 +103,7 @@ public final class TinkerToolParts extends TinkerModule {
   public static final ItemObject<ToolPartItem> toolHandle = ITEMS.register("tool_handle", () -> new ToolPartItem(itemProps(), HandleMaterialStats.ID));
   public static final ItemObject<ToolPartItem> toughHandle = ITEMS.register("tough_handle", () -> new ToolPartItem(itemProps(), HandleMaterialStats.ID));
   // armor
-  public static final EnumObject<ArmorItem.Type,ToolPartItem> plating = ITEMS.registerEnum(ArmorItem.Type.values(), "plating", type -> new ToolPartItem(itemProps(), PlatingMaterialStats.TYPES.get(type.ordinal()).getId()));
+  public static final EnumObject<ArmorItem.Type,ToolPartItem> plating = ITEMS.registerEnum(ModifiableArmorMaterial.ARMOR_TYPES, "plating", type -> new ToolPartItem(itemProps(), PlatingMaterialStats.TYPES.get(type.ordinal()).getId()));
   public static final ItemObject<ToolPartItem> maille = ITEMS.register("maille", () -> new ToolPartItem(itemProps(), StatlessMaterialStats.MAILLE.getIdentifier()));
   public static final ItemObject<ToolPartItem> shieldCore = ITEMS.register("shield_core", () -> new ToolPartItem(itemProps(), StatlessMaterialStats.SHIELD_CORE.getIdentifier()));
   // slimesuit
@@ -136,7 +147,7 @@ public final class TinkerToolParts extends TinkerModule {
     accept(output, arrowShaft);
     accept(output, fletching);
     // plating, pair each one with the dummy plating item
-    for (ArmorItem.Type type : ArmorItem.Type.values()) {
+    for (ArmorItem.Type type : ModifiableArmorMaterial.ARMOR_TYPES) {
       tab.accept(TinkerSmeltery.dummyPlating.get(type));
       plating.get(type).addVariants(output, "");
     }
