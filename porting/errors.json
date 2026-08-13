@@ -1,8 +1,8 @@
 {
-    "total": 351,
-    "islandFiles": 855,
+    "total": 444,
+    "islandFiles": 860,
     "categories": {
-        "other: static import only from classes and interfaces": 11,
+        "other: static import only from classes and interfaces": 56,
         "package slimeknights.tconstruct.gadgets": 6,
         "package slimeknights.tconstruct.gadgets.entity": 2,
         "package slimeknights.tconstruct.library.client.model": 5,
@@ -44,7 +44,6 @@
         "package slimeknights.tconstruct.tools.modules.ranged.ammo": 1,
         "package slimeknights.tconstruct.tools.recipe": 1,
         "package slimeknights.tconstruct.tools.stats": 49,
-        "package slimeknights.tconstruct.world.data": 1,
         "symbol class ArmorModuleBuilder": 11,
         "symbol class ArmorShieldModuleBuilder": 1,
         "symbol class BleedingEffect": 1,
@@ -58,11 +57,11 @@
         "symbol class TinkerModifiers": 30,
         "symbol class TinkerSmeltery": 37,
         "symbol class TinkerStationRepairRecipe": 1,
-        "symbol class TinkerStructures": 7,
+        "symbol class TinkerStructures": 28,
         "symbol class TinkerTables": 22,
         "symbol class TinkerToolActions": 9,
         "symbol class TinkerToolParts": 11,
-        "symbol class TinkerTools": 14,
-        "symbol class TinkerWorld": 25
+        "symbol class TinkerTools": 15,
+        "symbol class TinkerWorld": 52
     }
 }

@@ -882,3 +882,8 @@ src/main/java/slimeknights/tconstruct/world/item/SlimeGrassSeedItem.java
 src/main/java/slimeknights/tconstruct/world/item/package-info.java
 src/main/java/slimeknights/tconstruct/world/logic/AncientToolItemListing.java
 src/main/java/slimeknights/tconstruct/world/logic/package-info.java
+src/main/java/slimeknights/tconstruct/world/data/MobEquipmentProvider.java
+src/main/java/slimeknights/tconstruct/world/data/StructureRepalleter.java
+src/main/java/slimeknights/tconstruct/world/data/WorldRecipeProvider.java
+src/main/java/slimeknights/tconstruct/world/data/WorldgenProvider.java
+src/main/java/slimeknights/tconstruct/world/data/package-info.java
