@@ -1,6 +1,7 @@
 package slimeknights.tconstruct.test.characterization;
 
 import net.minecraft.core.MappedRegistry;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -98,7 +99,7 @@ public final class RealItemStubs {
         // IMaterialItem/IToolPart part item), and Mantle's field-typed loadables do an instanceof check at
         // parse time. A single stub class implementing all three marker interfaces satisfies every role at
         // once without needing to classify each id ahead of time.
-        BuiltInRegistries.ITEM.register(rl, new StubToolPartItem());
+        Registry.register(BuiltInRegistries.ITEM, rl, new StubToolPartItem());
       } catch (Exception ignored) {
         // not a valid item id (e.g. shape of a fluid/block/tag id) - fine, best effort
       }
@@ -132,7 +133,7 @@ public final class RealItemStubs {
   private static void stubAttribute(ResourceLocation rl) {
     if (!BuiltInRegistries.ATTRIBUTE.containsKey(rl)) {
       try {
-        BuiltInRegistries.ATTRIBUTE.register(rl, new RangedAttribute(rl.toString(), 0, -1000, 1000));
+        Registry.register(BuiltInRegistries.ATTRIBUTE, rl, new RangedAttribute(rl.toString(), 0, -1000, 1000));
       } catch (Exception ignored) {
         // fine, best effort
       }
@@ -142,7 +143,7 @@ public final class RealItemStubs {
   private static void stubMobEffect(ResourceLocation rl) {
     if (!BuiltInRegistries.MOB_EFFECT.containsKey(rl)) {
       try {
-        BuiltInRegistries.MOB_EFFECT.register(rl, new MobEffect(MobEffectCategory.NEUTRAL, 0xFFFFFF) {});
+        Registry.register(BuiltInRegistries.MOB_EFFECT, rl, new MobEffect(MobEffectCategory.NEUTRAL, 0xFFFFFF) {});
       } catch (Exception ignored) {
         // fine, best effort
       }
@@ -152,7 +153,7 @@ public final class RealItemStubs {
   private static void stubParticleType(ResourceLocation rl) {
     if (!BuiltInRegistries.PARTICLE_TYPE.containsKey(rl)) {
       try {
-        BuiltInRegistries.PARTICLE_TYPE.register(rl, new SimpleParticleType(false));
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE, rl, new SimpleParticleType(false));
       } catch (Exception ignored) {
         // fine, best effort
       }
@@ -162,7 +163,7 @@ public final class RealItemStubs {
   private static void stubBlock(ResourceLocation rl) {
     if (!BuiltInRegistries.BLOCK.containsKey(rl)) {
       try {
-        BuiltInRegistries.BLOCK.register(rl, new Block(BlockBehaviour.Properties.of()));
+        Registry.register(BuiltInRegistries.BLOCK, rl, new Block(BlockBehaviour.Properties.of()));
       } catch (Exception ignored) {
         // fine, best effort
       }

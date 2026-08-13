@@ -1,12 +1,7 @@
 {
-    "total": 20,
-    "islandFiles": 1443,
+    "total": 0,
+    "islandFiles": 1473,
     "categories": {
-        "package slimeknights.tconstruct.library.client.model": 12,
-        "package slimeknights.tconstruct.library.client.model.block": 2,
-        "package slimeknights.tconstruct.library.client.model.tools": 2,
-        "symbol class CombatFishingHookRenderer": 1,
-        "symbol class ShieldBannerModifierSpriteSource": 1,
-        "symbol class SlimeskullArmorModel": 2
+        
     }
 }

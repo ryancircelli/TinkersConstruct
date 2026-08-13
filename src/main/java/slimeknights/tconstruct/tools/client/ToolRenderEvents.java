@@ -30,7 +30,8 @@ import net.neoforged.neoforge.client.event.RenderHighlightEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent.Stage;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.tools.definition.module.ToolHooks;
@@ -43,7 +44,7 @@ import slimeknights.tconstruct.library.utils.BlockSideHitListener;
 
 import java.util.Iterator;
 
-@Mod.EventBusSubscriber(modid = TConstruct.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = TConstruct.MOD_ID, value = Dist.CLIENT, bus = Bus.GAME)
 public class ToolRenderEvents {
   /** Maximum number of blocks from the iterator to render */
   private static final int MAX_BLOCKS = 60;
@@ -193,7 +194,8 @@ public class ToolRenderEvents {
       matrices.pushPose();
       matrices.translate(pos.getX() - x, pos.getY() - y, pos.getZ() - z);
       PoseStack.Pose entry = matrices.last();
-      VertexConsumer blockBuilder = new SheetedDecalTextureGenerator(vertexBuilder, entry.pose(), entry.normal(), 1);
+      // takes the pose whole rather than its two matrices split apart, and the scale is a float
+      VertexConsumer blockBuilder = new SheetedDecalTextureGenerator(vertexBuilder, entry, 1.0f);
       // TODO: is it practical to fetch model data here?
       dispatcher.renderBreakingTexture(world.getBlockState(pos), pos, world, matrices, blockBuilder);
       matrices.popPose();

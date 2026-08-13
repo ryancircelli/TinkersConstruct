@@ -31,9 +31,13 @@ public class CommonsClientEvents extends ClientEventBase {
     DomainDisplayName.addResourceListener(event);
   }
 
+  /**
+   * @apiNote  {@code register} keys on a {@link net.minecraft.resources.ResourceLocation} in 1.21 rather than a bare
+   * name implicitly namespaced to the registering mod. The registered id is unchanged, so no resource pack breaks.
+   */
   @SubscribeEvent
   static void registerModelLoaders(RegisterGeometryLoaders event) {
-    event.register("gui", UniqueGuiModel.LOADER);
+    event.register(TConstruct.getResource("gui"), UniqueGuiModel.LOADER);
   }
 
   @SubscribeEvent
