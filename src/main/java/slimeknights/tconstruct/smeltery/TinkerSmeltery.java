@@ -47,7 +47,6 @@ import slimeknights.tconstruct.common.TinkerModule;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.common.registration.CastItemObject;
 import slimeknights.tconstruct.fluids.TinkerFluids;
-import slimeknights.tconstruct.fluids.item.EmptyPotionTransfer;
 import slimeknights.tconstruct.library.recipe.FluidValues;
 import slimeknights.tconstruct.library.recipe.TinkerRecipeTypes;
 import slimeknights.tconstruct.library.recipe.alloying.AlloyRecipe;
@@ -464,7 +463,6 @@ public final class TinkerSmeltery extends TinkerModule {
   @SubscribeEvent
   void registerSerializers(RegisterEvent event) {
     if (event.getRegistryKey() == Registries.RECIPE_SERIALIZER) {
-      FluidContainerTransferManager.TRANSFER_LOADERS.registerDeserializer(EmptyPotionTransfer.ID, EmptyPotionTransfer.DESERIALIZER);
     }
   }
 
