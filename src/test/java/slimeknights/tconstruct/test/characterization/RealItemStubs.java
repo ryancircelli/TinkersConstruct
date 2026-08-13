@@ -44,7 +44,6 @@ public final class RealItemStubs {
 
   private static final Pattern ID_PATTERN = Pattern.compile("^[a-z0-9_.-]+:[a-z0-9_./-]+$");
   private static final Set<String> scannedFolders = new HashSet<>();
-  private static boolean unfrozen = false;
 
   /**
    * Scans the given classpath folders (if not already scanned) and stubs any item/block/attribute id referenced
@@ -52,16 +51,16 @@ public final class RealItemStubs {
    * multiple test classes' {@code @BeforeAll} - only newly-seen folders are rescanned.
    */
   public static synchronized void ensureRegistered(String... classpathFolders) {
-    if (!unfrozen) {
-      unfrozen = true;
-      // these headless tests never run a full game/datapack load, so BuiltInRegistries.ITEM/BLOCK/ATTRIBUTE are
-      // frozen as soon as Bootstrap.bootStrap() runs (see BaseMcTest); unfreeze the same way MaterialItemFixture does
-      unfreeze(BuiltInRegistries.ITEM);
-      unfreeze(BuiltInRegistries.BLOCK);
-      unfreeze(BuiltInRegistries.ATTRIBUTE);
-      unfreeze(BuiltInRegistries.MOB_EFFECT);
-      unfreeze(BuiltInRegistries.PARTICLE_TYPE);
-    }
+    // these headless tests never run a full game/datapack load, so BuiltInRegistries.ITEM/BLOCK/ATTRIBUTE are
+    // frozen as soon as Bootstrap.bootStrap() runs (see BaseMcTest); unfreeze the same way MaterialItemFixture does.
+    // This runs on every call rather than once: anything that asks for a HolderLookup over the built-in registries
+    // re-freezes them (TestRegistries does, building the datapack lookup), and which test class that lands between
+    // is JUnit's ordering to decide. A one-shot guard made stubbing silently depend on it.
+    unfreeze(BuiltInRegistries.ITEM);
+    unfreeze(BuiltInRegistries.BLOCK);
+    unfreeze(BuiltInRegistries.ATTRIBUTE);
+    unfreeze(BuiltInRegistries.MOB_EFFECT);
+    unfreeze(BuiltInRegistries.PARTICLE_TYPE);
     Set<String> ids = new HashSet<>();
     for (String folder : classpathFolders) {
       if (scannedFolders.add(folder)) {

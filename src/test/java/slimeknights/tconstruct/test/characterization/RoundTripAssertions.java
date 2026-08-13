@@ -8,6 +8,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import slimeknights.mantle.data.loadable.Loadable;
 import slimeknights.mantle.util.typed.TypedMap;
+import slimeknights.tconstruct.test.TestRegistries;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -77,7 +78,7 @@ public final class RoundTripAssertions {
     JsonElement originalJson = loadable.serialize(original);
     // Loadable#encode/#decode want a RegistryFriendlyByteBuf now (M4 SS1); T5's pattern for a registry access
     // with no live game to draw one from.
-    RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+    RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), TestRegistries.access());
     loadable.encode(buffer, original);
     int written = buffer.readableBytes();
     T decoded = loadable.decode(buffer, context);
