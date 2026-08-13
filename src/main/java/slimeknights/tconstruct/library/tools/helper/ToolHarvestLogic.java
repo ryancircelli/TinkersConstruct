@@ -2,7 +2,6 @@ package slimeknights.tconstruct.library.tools.helper;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,13 +13,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.ForgeHooks;
+import net.neoforged.neoforge.common.CommonHooks;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.common.network.TinkerNetwork;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
@@ -111,30 +111,35 @@ public class ToolHarvestLogic {
 
   /** @deprecated use {@link #breakBlock(IToolStackView, ItemStack, ToolHarvestContext, boolean)} */
   @Deprecated(forRemoval = true)
-  protected static boolean breakBlock(ToolStack tool, ItemStack stack, ToolHarvestContext context, boolean useLastXP) {
-    return breakBlock((IToolStackView) tool, stack, context, useLastXP);
+  protected static boolean breakBlock(ToolStack tool, ItemStack stack, ToolHarvestContext context, boolean eventFired) {
+    return breakBlock((IToolStackView) tool, stack, context, eventFired);
   }
 
   /**
    * Called to break a block using this tool
-   * @param tool      Tool instance
-   * @param stack     Stack instance for vanilla functions
-   * @param context   Harvest context
-   * @param useLastXP If true, fetches the XP from {@link BlockSideHitListener} instead of firing the event. Prevents firing {@link net.minecraftforge.event.level.BlockEvent.BreakEvent} twice.
+   * @param tool        Tool instance
+   * @param stack       Stack instance for vanilla functions
+   * @param context     Harvest context
+   * @param eventFired  If true, {@link net.neoforged.neoforge.event.level.BlockEvent.BreakEvent} has already been fired for
+   *                    this position and must not be fired a second time.
    * @return  True if broken
+   * @apiNote  The parameter used to be {@code useLastXP} and did double duty: the 1.20 break event carried the block's
+   * experience, so a caller that had already fired it needed the cached value back from {@link BlockSideHitListener}.
+   * {@code BlockEvent.BreakEvent} has no experience in 1.21 - a block drops its own experience from
+   * {@code Block#playerDestroy}, through {@code BlockDropsEvent} - so nothing is cached and nothing is popped by hand
+   * here. All that survives is "do not fire the event twice".
    */
-  protected static boolean breakBlock(IToolStackView tool, ItemStack stack, ToolHarvestContext context, boolean useLastXP) {
-    // have to rerun the event to get the EXP, also ensures extra blocks broken get EXP properly
+  protected static boolean breakBlock(IToolStackView tool, ItemStack stack, ToolHarvestContext context, boolean eventFired) {
     ServerPlayer player = Objects.requireNonNull(context.getPlayer());
     ServerLevel world = context.getWorld();
     BlockPos pos = context.getPos();
     GameType type = player.gameMode.getGameModeForPlayer();
-    int exp = useLastXP ? BlockSideHitListener.getLastXP(player) : ForgeHooks.onBlockBreakEvent(world, type, player, pos);
-    if (exp == -1) {
+    // ensures extra blocks broken get their own break event
+    if (!eventFired && CommonHooks.fireBlockBreak(world, type, player, pos, context.getState()).isCanceled()) {
       return false;
     }
-    // checked after the Forge hook, so we have to recheck
-    // TODO: is this needed? Seems its called inside ForgeHooks.onBlockBreakEvent
+    // checked after the NeoForge hook, so we have to recheck
+    // TODO: is this needed? Seems its called inside CommonHooks.fireBlockBreak
     if (player.blockActionRestricted(world, pos, type)) {
       return false;
     }
@@ -154,15 +159,10 @@ public class ToolHarvestLogic {
     BlockEntity te = canHarvest ? world.getBlockEntity(pos) : null; // ensures tile entity is fetched so it's around for afterBlockBreak
     boolean removed = removeBlock(tool, context);
 
-    // harvest drops
+    // harvest drops. Also drops the block's experience in 1.21, so there is no separate popExperience call
     Block block = state.getBlock();
     if (removed && canHarvest) {
       block.playerDestroy(world, player, pos, state, te, stack);
-    }
-
-    // drop XP
-    if (removed && exp > 0) {
-      block.popExperience(world, pos, exp);
     }
 
     // handle modifiers if not broken
@@ -214,13 +214,16 @@ public class ToolHarvestLogic {
 
   /**
    * Call on block break to break a block.
-   * Used in {@link net.minecraftforge.common.extensions.IForgeItem#onBlockStartBreak(ItemStack, BlockPos, Player)}.
    * See also {@link net.minecraft.client.multiplayer.MultiPlayerGameMode#destroyBlock(BlockPos)} (client)
    * and {@link net.minecraft.server.level.ServerPlayerGameMode#destroyBlock(BlockPos)} (server)
    * @param stack   Stack instance
    * @param pos     Position to break
    * @param player  Player instance
    * @return  True if the block break is overridden.
+   * @apiNote  {@code IForgeItem#onBlockStartBreak}, the hook this used to implement, has no counterpart in NeoForge
+   * 21.1 - it was not renamed, it was deleted. A caller must therefore take over the break from
+   * {@link net.neoforged.neoforge.event.level.BlockEvent.BreakEvent} instead, cancelling it and calling this. That is
+   * also why the calls below still pass {@code eventFired = true}: any such entry point is downstream of the event.
    */
   public static boolean handleBlockBreak(ItemStack stack, BlockPos pos, Player player) {
     // TODO: offhand harvest reconsidering
@@ -259,6 +262,8 @@ public class ToolHarvestLogic {
       // run standard breaking logic
       runBlockBreak(stack, tool, state, pos, sideHit, serverPlayer, null);
     }
+    // both branches damage the tool through the mutable instance above, so commit once they are done
+    tool.updateStack();
     return true;
   }
 
@@ -286,7 +291,7 @@ public class ToolHarvestLogic {
     }
     // let armor change enchantments
     // TODO: should we have a hook for non-enchantment armor responses?
-    ListTag originalEnchantments = HarvestEnchantmentsModifierHook.updateHarvestEnchantments(tool, stack, context);
+    ItemEnchantments originalEnchantments = HarvestEnchantmentsModifierHook.updateHarvestEnchantments(tool, stack, context);
     // need to calculate the iterator before we break the block, as we need the reference hardness from the center
     UseOnContext useContext = new UseOnContext(world, player, InteractionHand.MAIN_HAND, stack, Util.createTraceResult(pos, sideHit, false));
     Iterable<BlockPos> extraBlocks = context.isEffective() ? tool.getHook(ToolHooks.AOE_ITERATOR).getBlocks(tool, useContext, state, AOEMatchType.BREAKING) : Collections.emptyList();
@@ -329,6 +334,7 @@ public class ToolHarvestLogic {
     }
 
     if (!worldIn.isClientSide && worldIn instanceof ServerLevel) {
+      // the only branch that edits the tool, so it also owns the commit
       // must not be broken, and the tool definition must be effective
       boolean isEffective = IsEffectiveToolHook.isEffective(tool, state);
       ToolHarvestContext context = new ToolHarvestContext((ServerLevel) worldIn, entityLiving, state, pos, Direction.UP, true, isEffective);
@@ -336,6 +342,7 @@ public class ToolHarvestLogic {
         entry.getHook(ModifierHooks.BLOCK_BREAK).afterBlockBreak(tool, entry, context);
       }
       ToolDamageUtil.damageAnimated(tool, ToolHarvestLogic.getDamage(tool, worldIn, pos, state), entityLiving, EquipmentSlot.MAINHAND);
+      tool.updateStack();
     }
 
     return true;

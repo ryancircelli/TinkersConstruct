@@ -1,19 +1,21 @@
 package slimeknights.tconstruct.library.tools.helper;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
+import slimeknights.tconstruct.library.tools.nbt.ToolDataComponent;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.stat.ToolStats;
 import slimeknights.tconstruct.tools.TinkerTools;
@@ -30,7 +32,7 @@ public class ToolDamageUtil {
    * @param stack  Tool stack
    */
   public static void breakTool(ItemStack stack) {
-    stack.getOrCreateTag().putBoolean(ToolStack.TAG_BROKEN, true);
+    ToolDataComponent.get(stack).withBroken(true).set(stack);
   }
 
   /**
@@ -39,8 +41,7 @@ public class ToolDamageUtil {
    * @return  True if broken
    */
   public static boolean isBroken(ItemStack stack) {
-    CompoundTag nbt = stack.getTag();
-    return nbt != null && nbt.getBoolean(ToolStack.TAG_BROKEN);
+    return ToolDataComponent.get(stack).broken();
   }
 
   /**
@@ -49,7 +50,8 @@ public class ToolDamageUtil {
    * For normal tool usages, see {@link ToolStack#getStats()} with {@link ToolStats#DURABILITY}.
    */
   public static int getFakeMaxDamage(ItemStack stack) {
-    if (!stack.getItem().canBeDepleted()) {
+    // Item#canBeDepleted is gone; durability is the minecraft:max_damage component, and a stack's own is what counts
+    if (!stack.has(DataComponents.MAX_DAMAGE)) {
       return 0;
     }
     IToolStackView tool = ToolStack.from(stack);
@@ -150,7 +152,7 @@ public class ToolDamageUtil {
    */
   public static boolean damageAnimated(IToolStackView tool, int amount, LivingEntity entity, EquipmentSlot slot, ModifierId cause) {
     if (damage(tool, amount, entity, entity.getItemBySlot(slot), cause)) {
-      entity.broadcastBreakEvent(slot);
+      entity.onEquippedItemBroken(tool.getItem(), slot);
       return true;
     }
     return false;
@@ -180,8 +182,8 @@ public class ToolDamageUtil {
    */
   public static boolean damageAnimated(IToolStackView tool, int amount, LivingEntity entity, InteractionHand hand, ModifierId cause) {
     if (damage(tool, amount, entity, entity.getItemInHand(hand), cause)) {
-      entity.broadcastBreakEvent(hand);
-      // TODO: why don't we fire ForgeEventFactory.onPlayerDestroyItem here?
+      entity.onEquippedItemBroken(tool.getItem(), LivingEntity.getSlotForHand(hand));
+      // TODO: why don't we fire EventHooks.onPlayerDestroyItem here?
       return true;
     }
     return false;
@@ -214,7 +216,7 @@ public class ToolDamageUtil {
         ItemStack stack = entity.getItemBySlot(slot);
         if (tool.isSameStack(stack)) {
           if (damage(tool, amount, entity, stack, cause)) {
-            entity.broadcastBreakEvent(slot);
+            entity.onEquippedItemBroken(tool.getItem(), slot);
             return true;
           }
           return false;
@@ -253,12 +255,23 @@ public class ToolDamageUtil {
     return false;
   }
 
-  /** Implements {@link net.minecraft.world.item.Item#damageItem(ItemStack, int, LivingEntity, Consumer)} for a modifiable item */
-  public static <T extends LivingEntity> void handleDamageItem(ItemStack stack, int amount, T damager, Consumer<T> onBroken) {
+  /**
+   * Implements {@link net.minecraft.world.item.Item#damageItem(ItemStack, int, LivingEntity, Consumer)} for a modifiable item
+   * @apiNote  The break callback is a {@code Consumer<Item>} in 1.21 rather than a consumer of the damaging entity;
+   * vanilla hands it the item so a caller can react after the stack has already shrunk. Ours never shrinks, so the
+   * item is simply the stack's own.
+   */
+  public static <T extends LivingEntity> void handleDamageItem(ItemStack stack, int amount, @Nullable T damager, Consumer<Item> onBroken) {
     // We basically emulate Itemstack.damageItem here. We always return 0 to skip the handling in ItemStack.
     // If we don't tools ignore our damage logic
-    if (stack.getItem().canBeDepleted() && ToolDamageUtil.damage(ToolStack.mutable(stack), amount, damager, stack)) {
-      onBroken.accept(damager);
+    if (stack.has(DataComponents.MAX_DAMAGE)) {
+      ToolStack tool = ToolStack.mutable(stack);
+      boolean broke = ToolDamageUtil.damage(tool, amount, damager, stack);
+      // commit before notifying: the broken flag has to be on the stack by the time anything reacts to the break
+      tool.updateStack();
+      if (broke) {
+        onBroken.accept(stack.getItem());
+      }
     }
   }
 

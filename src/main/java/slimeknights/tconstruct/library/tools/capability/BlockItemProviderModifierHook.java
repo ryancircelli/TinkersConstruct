@@ -5,15 +5,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 
 import javax.annotation.Nullable;
-import java.util.function.Supplier;
 
 /** A hook used to provide BlockItems through the {@link BlockItemProviderCapability}, for modifiers such as exchanging */
 public interface BlockItemProviderModifierHook {
@@ -65,19 +62,13 @@ public interface BlockItemProviderModifierHook {
                     return;
                 }
             }
-            TConstruct.LOG.warn("Could not find a modifier to consume {} from after providing it from ToolBlockItemProviderHook. This is likely causing a duplication glitch! Stack nbt: {}", BuiltInRegistries.ITEM.getKey(backingStack.getItem()), backingStack.getTag());
+            TConstruct.LOG.warn("Could not find a modifier to consume {} from after providing it from ToolBlockItemProviderHook. This is likely causing a duplication glitch! Stack components: {}", BuiltInRegistries.ITEM.getKey(backingStack.getItem()), backingStack.getComponents());
         }
     }
 
-    class Provider implements ToolCapabilityProvider.IToolCapabilityProvider {
-        private final LazyOptional<BlockItemProviderCapability> lazy;
-        public Provider(Supplier<? extends IToolStackView> tool) {
-            lazy = LazyOptional.of(() -> new CapabilityImpl(tool.get()));
-        }
-
-        @Override
-        public <T> LazyOptional<T> getCapability(IToolStackView tool, Capability<T> cap) {
-            return BlockItemProviderCapability.CAPABILITY.orEmpty(cap, lazy);
-        }
-    }
+    /**
+     * Provider making every modifiable tool a block item provider. Unconditional, as it was in 1.20: the hook itself
+     * returns an empty stack when no modifier provides blocks.
+     */
+    ToolCapabilityProvider.IToolCapabilityProvider<BlockItemProviderCapability> PROVIDER = (stack, tool) -> new CapabilityImpl(tool);
 }

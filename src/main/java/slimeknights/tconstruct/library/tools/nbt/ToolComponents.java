@@ -2,6 +2,8 @@ package slimeknights.tconstruct.library.tools.nbt;
 
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Unit;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -55,6 +57,33 @@ public class ToolComponents {
     COMPONENTS.registerComponentType("material", builder -> builder
       .persistent(MaterialVariantId.LENIENT_LOADABLE.codec())
       .networkSynchronized(MaterialVariantId.LENIENT_LOADABLE));
+
+  /**
+   * Marks a stack as a display prop rather than a real item: the tools a recipe viewer shows, the previews a station
+   * paints into its result slot, the part a recycling recipe offers back. Such a stack is deliberately half built, so
+   * {@link ToolStack#verifyComponents} leaves it alone and the tooltip code skips the lines that would lie about it.
+   * <p>
+   * This is the home 1.20's {@code tic_display} tag key never had after T5 deleted the item tag, and T7 and T9 both
+   * declined to pick. Three shapes were possible and this is the reason for the one chosen:
+   * <ul>
+   *   <li><b>A field on {@link ToolDataComponent}</b> is wrong because two of the four readers are
+   *       {@code MaterialItem} and {@code ToolPartItem}. A tool part is not a tool and carries no
+   *       {@code tconstruct:tool} component at all, so the flag has to be able to sit on a stack that has none.</li>
+   *   <li><b>An entry in {@code minecraft:custom_data}</b> would keep the 1.20 bytes, but T5 deleted the allowlist that
+   *       used to fence Tinkers' keys off from other mods' - {@code RawDataNBT} hands a modifier the whole compound
+   *       with plain string keys by design. An internal flag living there is one {@code RawDataModifierHook} away from
+   *       being cleared by a modifier that never knew it existed.</li>
+   *   <li><b>Its own component</b> is what a boolean flag on a stack is in 1.21. {@link Unit} rather than a boolean
+   *       because presence is the whole state, which is how vanilla spells {@code minecraft:fire_resistant} and
+   *       {@code minecraft:intangible_projectile}.</li>
+   * </ul>
+   * Nothing is owed to the old format: every writer of {@code tic_display} builds its stack at runtime for a UI, so
+   * no display stack has ever reached a save file.
+   */
+  public static final DeferredHolder<DataComponentType<?>,DataComponentType<Unit>> DISPLAY =
+    COMPONENTS.registerComponentType("display", builder -> builder
+      .persistent(Unit.CODEC)
+      .networkSynchronized(StreamCodec.unit(Unit.INSTANCE)));
 
   /** Registers the component types with the mod event bus */
   public static void init(IEventBus bus) {

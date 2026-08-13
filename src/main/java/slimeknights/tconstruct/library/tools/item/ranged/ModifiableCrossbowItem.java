@@ -3,11 +3,9 @@ package slimeknights.tconstruct.library.tools.item.ranged;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -22,17 +20,18 @@ import net.minecraft.world.entity.projectile.AbstractArrow.Pickup;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ArrowItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.component.ChargedProjectiles;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import slimeknights.mantle.client.TooltipKey;
-import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.client.item.ModifiableCrossbowClientExtension;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
@@ -61,9 +60,17 @@ import java.util.function.Predicate;
 
 import static slimeknights.tconstruct.library.modifiers.hook.interaction.GeneralInteractionModifierHook.KEY_DRAWTIME;
 
+/**
+ * A crossbow that keeps its loaded ammo in {@code minecraft:charged_projectiles}.
+ * <p>
+ * 1.20 kept it in the tool's own persistent data under {@code tconstruct:crossbow_ammo}, as an {@code ItemStack} saved
+ * to NBT by hand. Neither half of that survives: an item stack cannot write itself to a tag without a registry lookup
+ * in 1.21, and the thing it would be written into is a component of its own already. Using vanilla's component instead
+ * of reinventing it costs the {@code KEY_CROSSBOW_AMMO} constant that outside code read, and buys the loaded state
+ * being legible to everything that understands a crossbow - including {@code CrossbowAttackGoal}, which is the mob
+ * usage the old TODO in {@link #fireCrossbow} asked about.
+ */
 public class ModifiableCrossbowItem extends ModifiableLauncherItem {
-  /** Key containing the stored crossbow ammo */
-  public static final ResourceLocation KEY_CROSSBOW_AMMO = TConstruct.getResource("crossbow_ammo");
   private static final String PROJECTILE_KEY = "item.minecraft.crossbow.projectile";
   @Getter
   private final Predicate<ItemStack> supportedHeldProjectiles;
@@ -117,6 +124,34 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
   }
 
 
+  /* Ammo */
+
+  /**
+   * Gets the ammo loaded in the given crossbow, empty if it is not loaded.
+   * @apiNote  Replaces reading {@code KEY_CROSSBOW_AMMO} out of the tool's persistent data.
+   * Tinkers stores a multishot volley as one stack with a count, where vanilla stores one entry per shot, so only the
+   * first entry is read; nothing but this class writes the component on a Tinkers crossbow.
+   */
+  public static ItemStack getChargedAmmo(ItemStack bow) {
+    List<ItemStack> items = bow.getOrDefault(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.EMPTY).getItems();
+    return items.isEmpty() ? ItemStack.EMPTY : items.get(0);
+  }
+
+  /** Checks whether the given crossbow is loaded */
+  public static boolean isCharged(ItemStack bow) {
+    return !bow.getOrDefault(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.EMPTY).isEmpty();
+  }
+
+  /** Loads the given ammo into the crossbow, or clears it if empty */
+  public static void setChargedAmmo(ItemStack bow, ItemStack ammo) {
+    if (ammo.isEmpty()) {
+      bow.remove(DataComponents.CHARGED_PROJECTILES);
+    } else {
+      bow.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.of(ammo));
+    }
+  }
+
+
   /* Arrow launching */
 
   /** Gets the arrow pitch */
@@ -140,8 +175,7 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
     boolean sinistral = hand == InteractionHand.MAIN_HAND && tool.getModifierLevel(TinkerModifiers.sinistral.getId()) > 0;
 
     // no ammo? not charged
-    ModDataNBT persistentData = tool.getPersistentData();
-    CompoundTag heldAmmo = persistentData.getCompound(KEY_CROSSBOW_AMMO);
+    ItemStack heldAmmo = getChargedAmmo(bow);
     if (heldAmmo.isEmpty()) {
       // do not charge if sneaking and we have sinistral, gives you a way to activate the offhand when the crossbow is not charged
       if (sinistral && !player.getOffhandItem().isEmpty() && player.isCrouching()) {
@@ -154,12 +188,14 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
         GeneralInteractionModifierHook.startDrawing(tool, player, 1);
         if (!ammo.isEmpty()) {
           if (storeDrawingItem) {
-            persistentData.put(KEY_DRAWBACK_AMMO, ammo.save(new CompoundTag()));
+            // see ModifiableBowItem: the stack goes through the registry aware codec now
+            tool.getPersistentData().put(KEY_DRAWBACK_AMMO, ammo.save(level.registryAccess()));
           } else {
             // boolean is enough to get detected by the property override, but won't bother the model
-            persistentData.putBoolean(KEY_DRAWBACK_AMMO, true);
+            tool.getPersistentData().putBoolean(KEY_DRAWBACK_AMMO, true);
           }
         }
+        tool.updateStack();
         player.startUsingItem(hand);
         if (!level.isClientSide) {
           level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.CROSSBOW_QUICK_CHARGE_1, SoundSource.PLAYERS, 0.75F, 1.0F);
@@ -190,30 +226,33 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
     }
 
     // ammo already loaded? time to fire
-    fireCrossbow(tool, player, hand, heldAmmo);
+    fireCrossbow(tool, bow, player, hand, heldAmmo);
+    tool.updateStack();
     return InteractionResultHolder.consume(bow);
   }
 
   /**
    * Fires the crossbow
-   * @param tool       Tool instance
+   * @param tool       Tool instance. The caller commits it, as firing damages the bow
+   * @param bow        Crossbow stack, the ammo is cleared off it
    * @param player     Player firing
    * @param hand       Hand fired from
    * @param heldAmmo   Ammo used to fire, should be non-empty
    */
-  public static void fireCrossbow(IToolStackView tool, Player player, InteractionHand hand, CompoundTag heldAmmo) {
-    fireCrossbow(tool, player, player.getAbilities().instabuild, hand, heldAmmo);
+  public static void fireCrossbow(IToolStackView tool, ItemStack bow, Player player, InteractionHand hand, ItemStack heldAmmo) {
+    fireCrossbow(tool, bow, player, player.getAbilities().instabuild, hand, heldAmmo);
   }
 
   /**
    * Fires the crossbow
-   * @param tool       Tool instance
+   * @param tool       Tool instance. The caller commits it, as firing damages the bow
+   * @param bow        Crossbow stack, the ammo is cleared off it
    * @param living     Entity firing
    * @param creative   If true, was fired in creative
    * @param hand       Hand fired from
    * @param heldAmmo   Ammo used to fire, should be non-empty
    */
-  public static void fireCrossbow(IToolStackView tool, LivingEntity living, boolean creative, InteractionHand hand, CompoundTag heldAmmo) {
+  public static void fireCrossbow(IToolStackView tool, ItemStack bow, LivingEntity living, boolean creative, InteractionHand hand, ItemStack heldAmmo) {
     // ammo already loaded? time to fire
     Level level = living.level();
     if (!level.isClientSide) {
@@ -225,8 +264,7 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
       float inaccuracy = ModifierUtil.getInaccuracy(tool, living);
 
       // the ammo has a stack size that may be greater than 1 (meaning multishot)
-      // when creating the ammo stacks, we use split, so its getting smaller each time
-      ItemStack ammo = ItemStack.of(heldAmmo);
+      ItemStack ammo = heldAmmo;
       float startAngle = getAngleStart(ammo.getCount());
       int primaryIndex = ammo.getCount() / 2;
       for (int arrowIndex = 0; arrowIndex < ammo.getCount(); arrowIndex++) {
@@ -241,11 +279,12 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
           damage += 3;
         } else {
           ArrowItem arrowItem = ammo.getItem() instanceof ArrowItem a ? a : (ArrowItem)Items.ARROW;
-          arrow = arrowItem.createArrow(level, ammo, living);
+          // passing the bow as the firing weapon replaces setShotFromCrossbow, which 1.21 dropped: an arrow reads what
+          // fired it off the weapon stack now, which is also where piercing comes from
+          arrow = arrowItem.createArrow(level, ammo, living, bow);
           projectile = arrow;
           arrow.setCritArrow(true);
           arrow.setSoundEvent(SoundEvents.CROSSBOW_HIT);
-          arrow.setShotFromCrossbow(true);
           speed = 3f;
           damage += 1;
 
@@ -259,8 +298,6 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
           }
         }
 
-        // TODO: can we get piglins/illagers to use our crossbow?
-
         // setup projectile
         Vec3 upVector = living.getUpVector(1.0f);
         float angle = startAngle + (10 * arrowIndex);
@@ -272,7 +309,7 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
         EntityModifierCapability.getCapability(projectile).addModifiers(modifiers);
 
         // fetch the persistent data for the arrow as modifiers may want to store data
-        ModDataNBT projectileData = PersistentDataCapability.getOrWarn(projectile);
+        ModDataNBT projectileData = PersistentDataCapability.getData(projectile);
 
         // let modifiers set properties
         for (ModifierEntry entry : modifiers.getModifiers()) {
@@ -285,7 +322,7 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
       }
 
       // clear the ammo, damage the bow
-      tool.getPersistentData().remove(KEY_CROSSBOW_AMMO);
+      bow.remove(DataComponents.CHARGED_PROJECTILES);
       ToolDamageUtil.damageAnimated(tool, damage, living, hand);
 
       // stats
@@ -301,7 +338,7 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
     ToolStack tool = ToolStack.mutable(bow);
 
     // call the stop using modifier hook
-    int duration = getUseDuration(bow);
+    int duration = getUseDuration(bow, living);
     for (ModifierEntry entry : tool.getModifiers()) {
       entry.getHook(ModifierHooks.TOOL_USING).beforeReleaseUsing(tool, entry, living, duration, chargeRemaining, ModifierEntry.EMPTY);
     }
@@ -309,7 +346,8 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
     // any reason we shouldn't load?
     // specifically: broken, not fully charged, already have ammo
     ModDataNBT persistentData = tool.getPersistentData();
-    if (tool.isBroken() || getUseDuration(bow) - chargeRemaining < persistentData.getInt(KEY_DRAWTIME) || persistentData.contains(KEY_CROSSBOW_AMMO, Tag.TAG_COMPOUND)) {
+    if (tool.isBroken() || duration - chargeRemaining < persistentData.getInt(KEY_DRAWTIME) || isCharged(bow)) {
+      tool.updateStack();
       return;
     }
 
@@ -319,42 +357,39 @@ public class ModifiableCrossbowItem extends ModifiableLauncherItem {
     if (!ammo.isEmpty()) {
       level.playSound(null, living.getX(), living.getY(), living.getZ(), SoundEvents.CROSSBOW_LOADING_END, SoundSource.PLAYERS, 1.0F, 1.0F / (level.getRandom().nextFloat() * 0.5F + 1.0F) + 0.2F);
       if (!level.isClientSide) {
-        CompoundTag ammoNBT = ammo.save(new CompoundTag());
-        persistentData.put(KEY_CROSSBOW_AMMO, ammoNBT);
+        setChargedAmmo(bow, ammo);
         // if the crossbow broke during loading, fire immediately
         if (tool.isBroken()) {
-          fireCrossbow(tool, living, player != null && player.getAbilities().instabuild, living.getUsedItemHand(), ammoNBT);
+          fireCrossbow(tool, bow, living, player != null && player.getAbilities().instabuild, living.getUsedItemHand(), ammo);
         }
       }
     }
+    tool.updateStack();
   }
 
   @Override
-  public List<Component> getStatInformation(IToolStackView tool, @Nullable Player player, List<Component> tooltips, TooltipKey key, TooltipFlag tooltipFlag) {
-    tooltips = super.getStatInformation(tool, player, tooltips, key, tooltipFlag);
+  public List<Component> getStatInformation(IToolStackView tool, ItemStack stack, @Nullable Player player, List<Component> tooltips, TooltipKey key, TooltipFlag tooltipFlag) {
+    tooltips = super.getStatInformation(tool, stack, player, tooltips, key, tooltipFlag);
 
     // if we have ammo, render that in the tooltip
-    CompoundTag heldAmmo = tool.getPersistentData().getCompound(KEY_CROSSBOW_AMMO);
-    if (!heldAmmo.isEmpty()) {
-      ItemStack heldStack = ItemStack.of(heldAmmo);
-      if (!heldStack.isEmpty()) {
-        // basic info: item and count
-        MutableComponent component = Component.translatable(PROJECTILE_KEY);
-        int count = heldStack.getCount();
-        if (count > 1) {
-          component.append(" " + count + " ");
-        } else {
-          component.append(" ");
-        }
-        tooltips.add(component.append(heldStack.getDisplayName()));
+    ItemStack heldStack = getChargedAmmo(stack);
+    if (!heldStack.isEmpty()) {
+      // basic info: item and count
+      MutableComponent component = Component.translatable(PROJECTILE_KEY);
+      int count = heldStack.getCount();
+      if (count > 1) {
+        component.append(" " + count + " ");
+      } else {
+        component.append(" ");
+      }
+      tooltips.add(component.append(heldStack.getDisplayName()));
 
-        // copy the stack's tooltip if advanced
-        if (tooltipFlag.isAdvanced() && player != null) {
-          List<Component> nestedTooltip = new ArrayList<>();
-          heldStack.getItem().appendHoverText(heldStack, player.level(), nestedTooltip, tooltipFlag);
-          for (Component nested : nestedTooltip) {
-            tooltips.add(Component.literal("  ").append(nested).withStyle(ChatFormatting.GRAY));
-          }
+      // copy the stack's tooltip if advanced
+      if (tooltipFlag.isAdvanced() && player != null) {
+        List<Component> nestedTooltip = new ArrayList<>();
+        heldStack.getItem().appendHoverText(heldStack, Item.TooltipContext.of(player.level()), nestedTooltip, tooltipFlag);
+        for (Component nested : nestedTooltip) {
+          tooltips.add(Component.literal("  ").append(nested).withStyle(ChatFormatting.GRAY));
         }
       }
     }

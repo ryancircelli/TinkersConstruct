@@ -14,6 +14,7 @@ import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.stat.CapacityStat;
 import slimeknights.tconstruct.library.tools.stat.INumericToolStat;
 import slimeknights.tconstruct.library.tools.stat.ToolStatId;
+import slimeknights.tconstruct.library.utils.Util;
 import slimeknights.tconstruct.tools.TinkerModifiers;
 
 import java.util.function.BiFunction;
@@ -23,8 +24,15 @@ import java.util.function.BiFunction;
 @Getter
 @RequiredArgsConstructor
 public class ToolTankHelper {
-  /** Helper function to parse a fluid from NBT */
-  public static final BiFunction<CompoundTag, String, FluidStack> PARSE_FLUID = (nbt, key) -> FluidStack.loadFluidStackFromNBT(nbt.getCompound(key));
+  /**
+   * Helper function to parse a fluid from NBT.
+   * <p>
+   * 1.21 replaced {@code FluidStack#loadFluidStackFromNBT} with a codec, and the codec needs registry access for the
+   * stack's data components. There is none to hand at this depth - see {@link Util#registryAccess()}, which explains
+   * why and is the same answer {@code InventoryModule} reached for the item stacks it stores beside these fluids.
+   */
+  public static final BiFunction<CompoundTag, String, FluidStack> PARSE_FLUID = (nbt, key) ->
+    FluidStack.parseOptional(Util.registryAccess(), nbt.getCompound(key));
 
   /** Format key for the stat */
   public static final String MB_FORMAT = Mantle.makeDescriptionId("gui", "fluid.millibucket");
@@ -68,7 +76,7 @@ public class ToolTankHelper {
     if (fluid.getAmount() > capacity) {
       fluid.setAmount(capacity);
     }
-    tool.getPersistentData().put(fluidKey, fluid.writeToNBT(new CompoundTag()));
+    tool.getPersistentData().put(fluidKey, fluid.save(Util.registryAccess()));
     return fluid;
   }
 }
