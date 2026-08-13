@@ -1,6 +1,7 @@
 package slimeknights.tconstruct.world.block;
 
 import com.google.common.collect.Lists;
+import com.mojang.serialization.MapCodec;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -25,9 +26,19 @@ public class SlimeTallGrassBlock extends BushBlock implements IShearable {
 
   @Getter
   private final FoliageType foliageType;
+  // built in the constructor rather than a field initializer or static CODEC: BushBlock#codec() is abstract and
+  // this block's constructor takes more than the Properties simpleCodec(Constructor) assumes, and building it
+  // here (rather than an initializer above) avoids reading foliageType before its own constructor assignment runs
+  private final MapCodec<SlimeTallGrassBlock> codec;
   public SlimeTallGrassBlock(Properties properties, FoliageType foliageType) {
     super(properties);
     this.foliageType = foliageType;
+    this.codec = simpleCodec(props -> new SlimeTallGrassBlock(props, foliageType));
+  }
+
+  @Override
+  protected MapCodec<? extends SlimeTallGrassBlock> codec() {
+    return codec;
   }
 
   @Deprecated

@@ -107,7 +107,8 @@ public record EdibleModule(ItemStack representativeItem, LevelingInt duration, L
       // 15 damage for a bite per level, does not process reinforced/overslime, your teeth are tough
       int damage = this.durabilityUsage.compute(modifier.getEffectiveLevel());
       if (damage > 0 && ToolDamageUtil.directDamage(tool, damage, player, player.getUseItem())) {
-        player.broadcastBreakEvent(player.getUsedItemHand());
+        // broadcastBreakEvent is gone; onEquippedItemBroken is the same broadcast, now keyed by the broken item too
+        player.onEquippedItemBroken(player.getUseItem().getItem(), player.getUsedItemHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
       }
     }
   }

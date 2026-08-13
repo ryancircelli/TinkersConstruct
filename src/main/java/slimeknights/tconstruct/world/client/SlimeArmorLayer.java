@@ -1,6 +1,5 @@
 package slimeknights.tconstruct.world.client;
 
-import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
@@ -18,9 +17,7 @@ import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -32,6 +29,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.block.AbstractSkullBlock;
 import net.minecraft.world.level.block.SkullBlock;
 import net.minecraft.world.level.block.SkullBlock.Type;
@@ -98,15 +96,13 @@ public class SlimeArmorLayer<T extends Slime, M extends HierarchicalModel<T>, A 
         // skull block rendering
         if (item instanceof BlockItem block && block.getBlock() instanceof AbstractSkullBlock skullBlock) {
           matrices.scale(1.1875F, -1.1875F, -1.1875F);
-          GameProfile gameprofile = null;
-          CompoundTag tag = helmet.getTag();
-          if (tag != null && tag.contains("SkullOwner", Tag.TAG_COMPOUND)) {
-            gameprofile = NbtUtils.readGameProfile(tag.getCompound("SkullOwner"));
-          }
+          // the skull owner is minecraft:profile now, not raw "SkullOwner" NBT, and SkullBlockRenderer takes the
+          // unresolved ResolvableProfile directly rather than a resolved GameProfile
+          ResolvableProfile resolvableProfile = helmet.get(DataComponents.PROFILE);
           matrices.translate(-0.5, 0.0, -0.5);
           SkullBlock.Type type = skullBlock.getType();
           SkullModelBase skullModel = this.skullModels.get(type);
-          RenderType renderType = SkullBlockRenderer.getRenderType(type, gameprofile);
+          RenderType renderType = SkullBlockRenderer.getRenderType(type, resolvableProfile);
           SkullBlockRenderer.renderSkull(null, 180.0F, pLimbSwing, matrices, buffer, packedLight, skullModel, renderType);
         } else {
           // standard rendering
@@ -119,7 +115,8 @@ public class SlimeArmorLayer<T extends Slime, M extends HierarchicalModel<T>, A 
   }
 
   private static void renderModel(PoseStack matrices, MultiBufferSource buffer, int packedLight, boolean enchanted, Model model, int color, ResourceLocation texture) {
-    VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(buffer, RenderType.armorCutoutNoCull(texture), false, enchanted);
+    // getArmorFoilBuffer dropped the extra boolean, keeping only the hasFoil flag that mattered here
+    VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(buffer, RenderType.armorCutoutNoCull(texture), enchanted);
     model.renderToBuffer(matrices, vertexconsumer, packedLight, OverlayTexture.NO_OVERLAY, color);
   }
 }

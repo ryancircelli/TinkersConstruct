@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.world;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -65,8 +66,10 @@ public final class TinkerStructures extends TinkerModule {
   /*
    * Misc
    */
-  public static final DeferredHolder<TreeDecoratorType<?>,TreeDecoratorType<LeaveVineDecorator>> leaveVineDecorator = TREE_DECORATORS.register("leave_vines", () -> new TreeDecoratorType<>(LeaveVineDecorator.CODEC));
-  public static final DeferredHolder<RootPlacerType<?>,RootPlacerType<ExtraRootVariantPlacer>> extraRootVariantPlacer = ROOT_PLACERS.register("extra_root_variants", () -> new RootPlacerType<>(ExtraRootVariantPlacer.CODEC));
+  // TreeDecoratorType/RootPlacerType take a MapCodec now; these codecs already encode as a JSON object at the
+  // top level (RecordCodecBuilder), so assumeMapUnsafe wraps them without changing the generated format
+  public static final DeferredHolder<TreeDecoratorType<?>,TreeDecoratorType<LeaveVineDecorator>> leaveVineDecorator = TREE_DECORATORS.register("leave_vines", () -> new TreeDecoratorType<>(MapCodec.assumeMapUnsafe(LeaveVineDecorator.CODEC)));
+  public static final DeferredHolder<RootPlacerType<?>,RootPlacerType<ExtraRootVariantPlacer>> extraRootVariantPlacer = ROOT_PLACERS.register("extra_root_variants", () -> new RootPlacerType<>(MapCodec.assumeMapUnsafe(ExtraRootVariantPlacer.CODEC)));
 
   /*
    * Features
@@ -98,7 +101,7 @@ public final class TinkerStructures extends TinkerModule {
    * Structures
    */
   public static final DeferredHolder<StructurePieceType,StructurePieceType> islandPiece = STRUCTURE_PIECE.register("island", () -> IslandPiece::new);
-  public static final DeferredHolder<StructureType<?>,StructureType<IslandStructure>> island = STRUCTURE_TYPE.register("island", () -> () -> IslandStructure.CODEC);
+  public static final DeferredHolder<StructureType<?>,StructureType<IslandStructure>> island = STRUCTURE_TYPE.register("island", () -> () -> MapCodec.assumeMapUnsafe(IslandStructure.CODEC));
 
 
   // island structures - TODO 1.21: rename to better match placement?

@@ -9,6 +9,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
@@ -18,6 +19,7 @@ import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import slimeknights.tconstruct.common.Sounds;
 import slimeknights.tconstruct.gadgets.TinkerGadgets;
@@ -66,7 +68,17 @@ public class FancyItemFrameEntity extends ItemFrame {
       Level level = level();
       BlockState state = level.getBlockState(behind);
       if (!state.isAir()) {
-        InteractionResult result = state.use(level, player, hand, Util.createTraceResult(behind, direction, false));
+        // BlockState#use(Level,Player,InteractionHand,BlockHitResult) split into useItemOn/useWithoutItem;
+        // reproduces vanilla's own fallback (ServerPlayerGameMode#useItemOn) rather than losing the block's own
+        // interaction (doors, buttons, levers all answer through useWithoutItem, not useItemOn)
+        BlockHitResult hitResult = Util.createTraceResult(behind, direction, false);
+        ItemInteractionResult itemResult = state.useItemOn(player.getItemInHand(hand), level, player, hand, hitResult);
+        InteractionResult result;
+        if (itemResult == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION && hand == InteractionHand.MAIN_HAND) {
+          result = state.useWithoutItem(level, player, hitResult);
+        } else {
+          result = itemResult.result();
+        }
         if (result.consumesAction()) {
           return result;
         }

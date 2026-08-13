@@ -68,7 +68,7 @@ public interface ScheduledProjectileTaskModifierHook {
       if (task < 0) {
         break;
       }
-      ModDataNBT persistentData = PersistentDataCapability.getOrWarn(projectile);
+      ModDataNBT persistentData = PersistentDataCapability.getData(projectile);
       List<ModifierEntry> modifiers = tool.getModifiers().getModifiers();
       int size = modifiers.size();
       int index = Schedule.index(task, size);

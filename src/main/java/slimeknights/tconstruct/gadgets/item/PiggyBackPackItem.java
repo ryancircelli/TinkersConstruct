@@ -148,7 +148,7 @@ public class PiggyBackPackItem extends TooltipItem {
   public void inventoryTick(ItemStack stack, Level worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
     if (entityIn instanceof LivingEntity livingEntity && livingEntity.getItemBySlot(EquipmentSlot.CHEST) == stack && entityIn.isVehicle()) {
       int amplifier = this.getEntitiesCarriedCount(livingEntity) - 1;
-      livingEntity.addEffect(new MobEffectInstance(TinkerGadgets.carryEffect.get(), 2, amplifier, true, false, true));
+      livingEntity.addEffect(new MobEffectInstance(TinkerGadgets.carryEffect, 2, amplifier, true, false, true));
     }
   }
 
@@ -156,12 +156,14 @@ public class PiggyBackPackItem extends TooltipItem {
   // so unlike 1.20's per-EquipmentSlot getDefaultAttributeModifiers override, there is nothing to override here
 
   public static class CarryPotionEffect extends TinkerEffect {
-    static final String UUID = "ff4de63a-2b24-11e6-b67b-9e71128cae77";
+    // AttributeModifier keys on a ResourceLocation id now, not a UUID (T8a §5.2, T8c §3); the old UUID
+    // literal's text is gone, this is a fresh but stable id for the same modifier
+    static final ResourceLocation ID = TConstruct.getResource("effect/carry");
 
     public CarryPotionEffect() {
       super(MobEffectCategory.NEUTRAL, true);
 
-      this.addAttributeModifier(Attributes.MOVEMENT_SPEED, UUID, -0.05D, AttributeModifier.Operation.MULTIPLY_TOTAL);
+      this.addAttributeModifier(Attributes.MOVEMENT_SPEED, ID, -0.05D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     }
 
     @Override

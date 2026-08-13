@@ -4,6 +4,8 @@ import com.google.common.collect.Streams;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.PackOutput.Target;
@@ -19,7 +21,6 @@ import slimeknights.mantle.data.GenericDataProvider;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.registration.object.EnumObject;
 import slimeknights.mantle.registration.object.IdAwareObject;
-import slimeknights.tconstruct.library.tools.item.ranged.ModifiableCrossbowItem;
 import slimeknights.tconstruct.library.tools.item.ranged.ModifiableLauncherItem;
 
 import javax.annotation.Nullable;
@@ -148,7 +149,9 @@ public abstract class AbstractToolItemModelProvider extends GenericDataProvider 
       // add the arrow to pulling 3, ToolModel handles not showing it when it has no ammo
       {
         JsonObject ammo = new JsonObject();
-        ammo.addProperty("key", ModifiableCrossbowItem.KEY_CROSSBOW_AMMO.toString());
+        // KEY_CROSSBOW_AMMO (a persistent-data key) is gone with the persistent-data field it named; ammo is
+        // minecraft:charged_projectiles now, so the "key" the client model reads is that component's own id.
+        ammo.addProperty("key", BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(DataComponents.CHARGED_PROJECTILES).toString());
         ammo.addProperty("flip", flipAmmo);
         ammo.addProperty("left", leftAmmo);
         ammo.add("offset", serializeVec2(ammoOffset));

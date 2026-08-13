@@ -310,7 +310,7 @@ public class WorldgenProvider {
       .addTree(configured.getOrThrow(TreeFeatures.SPRUCE), 2)
       .addTree(configured.getOrThrow(TreeFeatures.ACACIA), 1)
       .addTree(configured.getOrThrow(TreeFeatures.JUNGLE_TREE_NO_VINE), 1)
-      .addGrass(Blocks.GRASS, 7)
+      .addGrass(Blocks.SHORT_GRASS, 7)
       .addGrass(Blocks.FERN, 1)
       .build(new StructureSettings(biomes.getOrThrow(TinkerTags.Biomes.CLAY_ISLANDS), monsterOverride(TinkerWorld.terracubeEntity.get(), 2, 4), Decoration.SURFACE_STRUCTURES, TerrainAdjustment.NONE)));
     // blood island

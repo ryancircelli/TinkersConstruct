@@ -104,7 +104,9 @@ public class IslandPiece extends TemplateStructurePiece {
           if (plant.isPresent()) {
             Block block = plant.get();
             BlockState state = block.defaultBlockState();
-            if (block instanceof BushBlock bush && bush.canSurvive(state, level, pos)) {
+            // BlockBehaviour#canSurvive is protected; BlockState's own public canSurvive(LevelReader,BlockPos)
+            // is the same check through the public door (it just calls back into the protected one)
+            if (block instanceof BushBlock && state.canSurvive(level, pos)) {
               level.setBlock(pos, state, 2);
             }
           }

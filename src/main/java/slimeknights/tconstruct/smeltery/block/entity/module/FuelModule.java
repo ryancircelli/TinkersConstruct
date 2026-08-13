@@ -3,7 +3,6 @@ package slimeknights.tconstruct.smeltery.block.entity.module;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.inventory.ContainerData;
@@ -25,7 +24,6 @@ import java.util.Objects;
 /**
  * Module handling fuel consumption for the melter and smeltery
  */
-@RequiredArgsConstructor
 public abstract class FuelModule implements ContainerData {
   /** Parent TE */
   protected final MantleBlockEntity parent;
@@ -36,9 +34,16 @@ public abstract class FuelModule implements ContainerData {
   /**
    * Fluid handler last used for fuel. Reading it through the cache is what replaces 1.20's listener on the neighbor's
    * optional; the position is only set once a subclass picks a tank, so an unset cache reads as "no fuel yet".
+   * @apiNote  Assigned in the constructor body rather than as a field initializer: field initializers all run before
+   *           any {@code @RequiredArgsConstructor}-generated parameter assignment (JLS 12.5), so a lambda here
+   *           capturing {@code this.parent} would close over the blank final before it was ever set.
    */
-  protected final NeighborCapabilityCache<IFluidHandler> fluidHandler =
-    new NeighborCapabilityCache<>(Capabilities.FluidHandler.BLOCK, () -> !this.parent.isRemoved(), this::onFuelInvalidated);
+  protected final NeighborCapabilityCache<IFluidHandler> fluidHandler;
+
+  protected FuelModule(MantleBlockEntity parent) {
+    this.parent = parent;
+    this.fluidHandler = new NeighborCapabilityCache<>(Capabilities.FluidHandler.BLOCK, () -> !this.parent.isRemoved(), this::onFuelInvalidated);
+  }
 
   /** Current amount of fluid in the TE */
   @Getter

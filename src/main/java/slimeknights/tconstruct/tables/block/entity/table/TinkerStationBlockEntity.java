@@ -12,13 +12,13 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import org.apache.commons.lang3.StringUtils;
 import slimeknights.mantle.util.RetexturedHelper;
 import slimeknights.tconstruct.TConstruct;
@@ -55,9 +55,13 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
   /** Name of the TE */
   private static final Component NAME = TConstruct.makeTranslation("gui", "tinker_station");
 
-  /** Last crafted crafting recipe */
+  /**
+   * Last crafted crafting recipe.
+   * @apiNote  A holder rather than a bare {@link ITinkerStationRecipe}: 1.21 moved a recipe's ID onto the holder,
+   *           which {@link UpdateTinkerStationRecipePacket} needs to sync it.
+   */
   @Nullable @Getter
-  private ITinkerStationRecipe lastRecipe;
+  private RecipeHolder<ITinkerStationRecipe> lastRecipe;
   /** Result inventory, lazy loads results */
   @Getter
   private final LazyResultContainer craftingResult;
@@ -164,9 +168,9 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
       RecipeManager manager = this.level.getServer().getRecipeManager();
 
       // first, try the cached recipe
-      ITinkerStationRecipe recipe = lastRecipe;
+      RecipeHolder<ITinkerStationRecipe> recipe = lastRecipe;
       // if it does not match, find a new recipe
-      if (recipe == null || !recipe.matches(this.inventoryWrapper, this.level)) {
+      if (recipe == null || !recipe.value().matches(this.inventoryWrapper, this.level)) {
         recipe = manager.getRecipeFor(TinkerRecipeTypes.TINKER_STATION.get(), this.inventoryWrapper, this.level).orElse(null);
       }
 
@@ -181,7 +185,7 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
         }
 
         // try for UI errors
-        RecipeResult<LazyToolStack> validatedResult = recipe.getValidatedResult(this.inventoryWrapper, level.registryAccess());
+        RecipeResult<LazyToolStack> validatedResult = recipe.value().getValidatedResult(this.inventoryWrapper, level.registryAccess());
         if (validatedResult.isSuccess()) {
           result = validatedResult.getResult();
         } else if (validatedResult.hasError()) {
@@ -194,8 +198,8 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
       }
     }
     // client side only needs to update result, server syncs message elsewhere
-    else if (this.lastRecipe != null && this.lastRecipe.matches(this.inventoryWrapper, level)) {
-      RecipeResult<LazyToolStack> validatedResult = this.lastRecipe.getValidatedResult(this.inventoryWrapper, level.registryAccess());
+    else if (this.lastRecipe != null && this.lastRecipe.value().matches(this.inventoryWrapper, level)) {
+      RecipeResult<LazyToolStack> validatedResult = this.lastRecipe.value().getValidatedResult(this.inventoryWrapper, level.registryAccess());
       if (validatedResult.isSuccess()) {
         result = validatedResult.getResult();
       } else if (validatedResult.hasError()) {
@@ -206,7 +210,7 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
     if (result != null) {
       // set name if we have one
       if (!itemName.isEmpty()) {
-        TooltipUtil.setDisplayName(result.getStack(), itemName);
+        TooltipUtil.setDisplayName(result.getStack(), Component.literal(itemName));
       }
 
       return result.getStack();
@@ -225,17 +229,18 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
 
     // fire crafting events
     resultItem.onCraftedBy(this.level, player, amount);
-    EventHooks.firePlayerCraftingEvent(player, resultItem, this.inventoryWrapper);
+    // the crafting matrix here is the block entity itself (a Container via InventoryBlockEntity), not the recipe-facing wrapper
+    EventHooks.firePlayerCraftingEvent(player, resultItem, this);
     this.playCraftSound(player);
 
     // fetch this before updating inputs so they can do input sensitive shrinking
     ItemStack tinkerable = this.getItem(TINKER_SLOT);
-    int shrinkToolSlot = tinkerable.isEmpty() ? 0 : lastRecipe.shrinkToolSlotBy(result, inventoryWrapper);
+    int shrinkToolSlot = tinkerable.isEmpty() ? 0 : lastRecipe.value().shrinkToolSlotBy(result, inventoryWrapper);
 
     // run the recipe, will shrink inputs
     // run both sides for the sake of shift clicking
     this.inventoryWrapper.setPlayer(player);
-    this.lastRecipe.updateInputs(result, inventoryWrapper, !level.isClientSide);
+    this.lastRecipe.value().updateInputs(result, inventoryWrapper, !level.isClientSide);
     this.inventoryWrapper.setPlayer(null);
 
     // remove the center slot item, just clear it entirely (if you want shrinking you should use the outer slots or ask nicely for a shrink amount hook)
@@ -243,7 +248,7 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
       if (tinkerable.getCount() <= shrinkToolSlot) {
         this.setItem(TINKER_SLOT, ItemStack.EMPTY);
       } else {
-        this.setItem(TINKER_SLOT, ItemHandlerHelper.copyStackWithSize(tinkerable, tinkerable.getCount() - shrinkToolSlot));
+        this.setItem(TINKER_SLOT, tinkerable.copyWithCount(tinkerable.getCount() - shrinkToolSlot));
       }
     }
     this.itemName = "";
@@ -271,7 +276,12 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
 
   /* Item name */
 
-  /** Sets the name of the item */
+  /**
+   * Sets the name of the item.
+   * @apiNote  The blank branch below intentionally does not round-trip the restored name through the {@code String}
+   *           parameter: {@link TooltipUtil#setDisplayName} takes a {@link Component} now, and going through a
+   *           {@code String} would be lossy for a formatted name where reading it back off the stack is lossless.
+   */
   public void setItemName(String name) {
     this.itemName = name;
     ItemStack result = craftingResult.getResult();
@@ -280,14 +290,10 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
       if (StringUtils.isBlank(name)) {
         // if the input was named, instead of clearing restore the old name
         ItemStack input = getItem(TINKER_SLOT);
-        if (!input.isEmpty()) {
-          name = TooltipUtil.getDisplayName(input);
-        } else {
-          // empty string will clear the stack tag
-          name = "";
-        }
+        TooltipUtil.setDisplayName(result, input.isEmpty() ? null : TooltipUtil.getDisplayName(input));
+      } else {
+        TooltipUtil.setDisplayName(result, Component.literal(name));
       }
-      TooltipUtil.setDisplayName(result, name);
     }
   }
 
@@ -309,7 +315,7 @@ public class TinkerStationBlockEntity extends RetexturedTableBlockEntity impleme
    * Updates the recipe from the server
    * @param recipe  New recipe
    */
-  public void updateRecipe(ITinkerStationRecipe recipe) {
+  public void updateRecipe(RecipeHolder<ITinkerStationRecipe> recipe) {
     this.lastRecipe = recipe;
     this.craftingResult.clearContent();
   }

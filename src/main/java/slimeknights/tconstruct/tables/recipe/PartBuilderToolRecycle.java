@@ -231,7 +231,8 @@ public class PartBuilderToolRecycle implements IPartBuilderRecipe, IMultiRecipe<
     return displayParts.stream().map(pi -> {
       ItemStack part = pi.part.withMaterialForDisplay(ToolBuildHandler.getRenderMaterial(pi.index));
       TooltipUtil.setDisplay(part);
-      return new DisplayPartRecipe(id, MaterialVariant.UNKNOWN, new Pattern(Loadables.ITEM.getKey(pi.part.asItem())), patternItems, 0, tool, List.of(part));
+      // no id: this recipe is synthesized for JEI display by IMultiRecipe, which has no RecipeHolder to read one from
+      return new DisplayPartRecipe(null, MaterialVariant.UNKNOWN, new Pattern(Loadables.ITEM.getKey(pi.part.asItem())), patternItems, 0, tool, List.of(part));
     });
   }
 

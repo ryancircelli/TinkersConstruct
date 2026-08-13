@@ -57,7 +57,9 @@ public class ModifierRepairCraftingRecipe extends CustomRecipe implements IModif
   public ItemStack assemble(CraftingInput inv, HolderLookup.Provider access) {
     ToolFound inputs = OverslimeCraftingTableRecipe.findTool(inv, TOOLS, ingredient);
     if (inputs == null) {
-      TConstruct.LOG.error("Recipe repair on {} failed to find items after matching", getId());
+      // getId() is gone from Recipe (1.21 moved it to RecipeHolder, which this call has no way to reach); the
+      // modifier this recipe repairs is the useful identifier a log reader actually wants, same as the 1.20 id was
+      TConstruct.LOG.error("Modifier repair recipe for {} failed to find items after matching", modifier);
       return ItemStack.EMPTY;
     }
 
