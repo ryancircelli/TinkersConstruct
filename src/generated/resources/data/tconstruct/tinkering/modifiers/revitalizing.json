@@ -5,7 +5,7 @@
       "type": "tconstruct:attribute",
       "attribute": "minecraft:generic.max_health",
       "each_level": 2.0,
-      "operation": "addition",
+      "operation": "add_value",
       "slots": [
         "mainhand",
         "offhand",

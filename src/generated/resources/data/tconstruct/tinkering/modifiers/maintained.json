@@ -78,7 +78,7 @@
         2.0,
         "*"
       ],
-      "operation": "addition",
+      "operation": "add_value",
       "slots": [
         "mainhand",
         "offhand",

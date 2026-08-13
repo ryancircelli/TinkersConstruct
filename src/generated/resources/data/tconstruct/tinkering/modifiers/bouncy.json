@@ -5,7 +5,7 @@
       "type": "tconstruct:attribute",
       "attribute": "tconstruct:generic.bouncy",
       "flat": 1.0,
-      "operation": "addition",
+      "operation": "add_value",
       "slots": [
         "mainhand",
         "offhand",

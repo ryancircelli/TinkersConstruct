@@ -20,7 +20,7 @@
       "type": "tconstruct:attribute",
       "attribute": "minecraft:generic.luck",
       "flat": 1.0,
-      "operation": "addition",
+      "operation": "add_value",
       "slots": [
         "mainhand",
         "offhand",

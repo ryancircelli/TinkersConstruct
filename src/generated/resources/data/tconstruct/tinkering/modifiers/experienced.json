@@ -14,7 +14,7 @@
       "type": "tconstruct:attribute",
       "attribute": "tconstruct:player.experience_multiplier",
       "each_level": 0.25,
-      "operation": "multiply_base",
+      "operation": "add_multiplied_base",
       "slots": [
         "mainhand",
         "offhand",
