@@ -871,6 +871,13 @@ src/main/java/slimeknights/tconstruct/smeltery/block/entity/tank/ISmelteryTankHa
 src/main/java/slimeknights/tconstruct/smeltery/block/entity/tank/ProxyItemTank.java
 src/main/java/slimeknights/tconstruct/smeltery/block/entity/tank/SmelteryTank.java
 src/main/java/slimeknights/tconstruct/smeltery/block/entity/tank/package-info.java
+src/main/java/slimeknights/tconstruct/smeltery/item/CopperCanFluidHandler.java
+src/main/java/slimeknights/tconstruct/smeltery/item/CopperCanItem.java
+src/main/java/slimeknights/tconstruct/smeltery/item/DummyMaterialItem.java
+src/main/java/slimeknights/tconstruct/smeltery/item/ScaledFluidTank.java
+src/main/java/slimeknights/tconstruct/smeltery/item/TankItem.java
+src/main/java/slimeknights/tconstruct/smeltery/item/TankItemFluidHandler.java
+src/main/java/slimeknights/tconstruct/smeltery/item/package-info.java
 src/main/java/slimeknights/tconstruct/smeltery/network/ChannelFlowPacket.java
 src/main/java/slimeknights/tconstruct/smeltery/network/FaucetActivationPacket.java
 src/main/java/slimeknights/tconstruct/smeltery/network/SmelteryFluidClickedPacket.java

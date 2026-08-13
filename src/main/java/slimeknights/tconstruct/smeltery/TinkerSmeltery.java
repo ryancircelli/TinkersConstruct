@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.smeltery;
 
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -29,6 +30,7 @@ import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -123,6 +125,7 @@ import slimeknights.tconstruct.smeltery.block.entity.controller.SmelteryBlockEnt
 import slimeknights.tconstruct.smeltery.data.FluidContainerTransferProvider;
 import slimeknights.tconstruct.smeltery.data.SmelteryRecipeProvider;
 import slimeknights.tconstruct.smeltery.item.CopperCanItem;
+import slimeknights.tconstruct.smeltery.item.ScaledFluidTank;
 import slimeknights.tconstruct.smeltery.item.DummyMaterialItem;
 import slimeknights.tconstruct.smeltery.item.TankItem;
 import slimeknights.tconstruct.smeltery.menu.AlloyerContainerMenu;
@@ -152,6 +155,37 @@ public final class TinkerSmeltery extends TinkerModule {
                                      .displayItems(TinkerSmeltery::addTabItems)
                                      .withTabsBefore(TinkerToolParts.tabToolParts.getId())
                                      .build());
+
+  /*
+   * Data components
+   */
+
+  /**
+   * Fluid held by a tank, gauge or lantern item, successor to the {@code tank} compound in the item's tag.
+   * <p>
+   * {@link SimpleFluidContent} is NeoForge's own component type for exactly this - a {@link FluidStack} that is a
+   * component rather than a container of components - so the fluid's own data, which 1.20 nested as a {@code Tag}
+   * compound inside the tank compound, is now the fluid stack's component patch and needs no separate key. The amount
+   * stored is per item, not per stack: {@link ScaledFluidTank} multiplies it up by the stack size when it is read and
+   * divides it back down when it is written, exactly as its NBT methods used to.
+   */
+  public static final DeferredHolder<DataComponentType<?>,DataComponentType<SimpleFluidContent>> tankFluid =
+    COMPONENTS.registerComponentType("tank", builder -> builder
+      .persistent(SimpleFluidContent.CODEC)
+      .networkSynchronized(SimpleFluidContent.STREAM_CODEC));
+
+  /**
+   * Fluid held by a copper can, successor to the {@code fluid} string plus {@code fluid_tag} compound pair.
+   * <p>
+   * Separate from {@link #tankFluid} because the two mean different things: a can always holds one ingot per item and
+   * the block model keys off which fluid rather than how much, so 1.20 stored no amount at all. The stored stack is
+   * normalized to {@link slimeknights.tconstruct.library.recipe.FluidValues#INGOT} so two cans of the same fluid still
+   * stack, and the handler scales that by the stack size when it hands the fluid out.
+   */
+  public static final DeferredHolder<DataComponentType<?>,DataComponentType<SimpleFluidContent>> canFluid =
+    COMPONENTS.registerComponentType("can_fluid", builder -> builder
+      .persistent(SimpleFluidContent.CODEC)
+      .networkSynchronized(SimpleFluidContent.STREAM_CODEC));
 
   /* Bricks */
   /* Crafting related items */

@@ -28,6 +28,7 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import slimeknights.mantle.item.BlockTooltipItem;
 import slimeknights.mantle.item.TooltipItem;
@@ -69,6 +70,14 @@ public abstract class TinkerModule {
   protected static final SynchronizedDeferredRegister<ParticleType<?>> PARTICLE_TYPES = SynchronizedDeferredRegister.create(BuiltInRegistries.PARTICLE_TYPE, TConstruct.MOD_ID);
   protected static final SynchronizedDeferredRegister<EntityDataSerializer<?>> DATA_SERIALIZERS = SynchronizedDeferredRegister.create(NeoForgeRegistries.Keys.ENTITY_DATA_SERIALIZERS, TConstruct.MOD_ID);
   protected static final SynchronizedDeferredRegister<CreativeModeTab> CREATIVE_TABS = SynchronizedDeferredRegister.create(Registries.CREATIVE_MODE_TAB, TConstruct.MOD_ID);
+  /**
+   * Data component types for items registered by a module. Tools have their own register in
+   * {@link slimeknights.tconstruct.library.tools.nbt.ToolComponents}, since that package is used without the mod's
+   * module classes; anything else a module stores on a stack belongs here.
+   * @apiNote  Registries is named explicitly: the single argument overload is deprecated for removal, as 1.21 has a
+   *           second data component registry for enchantment effects.
+   */
+  protected static final DeferredRegister.DataComponents COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, TConstruct.MOD_ID);
   // gameplay instances
   protected static final BlockEntityTypeDeferredRegister BLOCK_ENTITIES = new BlockEntityTypeDeferredRegister(TConstruct.MOD_ID);
   protected static final EntityTypeDeferredRegister ENTITIES = new EntityTypeDeferredRegister(TConstruct.MOD_ID);
@@ -125,6 +134,7 @@ public abstract class TinkerModule {
     PARTICLE_TYPES.register(bus);
     DATA_SERIALIZERS.register(bus);
     CREATIVE_TABS.register(bus);
+    COMPONENTS.register(bus);
     // gameplay instance
     BLOCK_ENTITIES.register(bus);
     ENTITIES.register(bus);
