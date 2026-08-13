@@ -21,8 +21,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Round trip tests for the armor model data format: the resource pack files under
  * {@code tinkering/armor_models} that {@link ArmorModelManager} loads and {@link MultilayerArmorModel} draws.
  * <p>
- * Only the suppliers with no dependency on an unported package are registered. {@code dyed} and {@code trim} both
- * default their modifier field to a {@code TinkerModifiers} constant, which lives behind the frontier.
+ * Only the suppliers this class round trips are registered. {@code dyed} and {@code trim} both default their modifier
+ * field to a {@code TinkerModifiers} constant, so registering them would tie the format test to the content module.
  */
 class ArmorModelTest extends BaseMcTest {
   @BeforeAll

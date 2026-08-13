@@ -73,8 +73,8 @@ public class TinkerNetwork extends NetworkWrapper {
    * Called during mod construction to setup the network.
    * <p>
    * Registration order stopped being the wire format when {@code SimpleChannel} did: a packet is called by an
-   * identifier derived from its class name now, so this list may be reordered, or have an entry commented out while
-   * its handler is behind the frontier, with no effect on the packets that remain (M6 SS4).
+   * identifier derived from its class name now, so this list may be reordered, or have an entry commented out, with no
+   * effect on the packets that remain (M6 SS4).
    */
   public static void setup() {
     if (instance != null) {

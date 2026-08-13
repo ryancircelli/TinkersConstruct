@@ -25,8 +25,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * {@code tinkering/modifiers/sprites} that decides which overlay a modifier draws.
  * <p>
  * The loaders are registered here rather than through {@code TinkerClient#onConstruct}, which does far more and needs
- * a mod event bus. Only the types with no dependency on an unported package are registered, which is why trim, banner
- * and material are absent - they reach into {@code tools/} and would put this file behind the frontier.
+ * a mod event bus. Only the types this class parses are registered, which is why trim, banner and material are absent;
+ * registering them would pull {@code tools/} in for no test that reads it.
  */
 class ModifierModelMapTest extends BaseMcTest {
   @BeforeAll

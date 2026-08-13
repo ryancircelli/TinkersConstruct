@@ -53,8 +53,8 @@ class UpdateModifiersPacketTest extends BaseMcTest {
    * the one it is carrying. What is pinned here is the property that makes the question never get asked: decoding the
    * packet must decode no modifier payload at all.
    * <p>
-   * A level display is used rather than a module because modules live behind the frontier; the mechanism is the same,
-   * as both are read by the modifier's own loadable.
+   * A level display is used rather than a module because it is the smaller of the two to stand up; the mechanism is
+   * the same, as both are read by the modifier's own loadable.
    */
   record CountingDisplay(int value) implements ModifierLevelDisplay {
     /** Whether the registries this payload needs are loaded. Static, as the loadable has no other way in */
