@@ -26,12 +26,16 @@ public class EnderSlimeEntity extends TravelersPlateSlimeEntity {
     return TinkerWorld.enderSlimeParticle.get();
   }
 
+  /** @implNote  1.20's {@code doEnchantDamageEffects(LivingEntity, Entity)} hook is gone - melee enchantment effects
+   *             are applied by {@code EnchantmentHelper#doPostAttackEffects} from inside {@link #doHurtTarget}, which
+   *             is also the only remaining place to hook "this slime successfully hit something". */
   @Override
-  public void doEnchantDamageEffects(LivingEntity slime, Entity target) {
-    super.doEnchantDamageEffects(slime, target);
-    if (target instanceof LivingEntity) {
-      TeleportHelper.randomNearbyTeleport((LivingEntity) target, teleportPredicate);
+  public boolean doHurtTarget(Entity target) {
+    boolean success = super.doHurtTarget(target);
+    if (success && target instanceof LivingEntity livingTarget) {
+      TeleportHelper.randomNearbyTeleport(livingTarget, teleportPredicate);
     }
+    return success;
   }
 
   @Override
