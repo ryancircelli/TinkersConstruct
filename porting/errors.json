@@ -1,19 +1,12 @@
 {
-    "total": 168,
-    "islandFiles": 1408,
+    "total": 20,
+    "islandFiles": 1443,
     "categories": {
         "package slimeknights.tconstruct.library.client.model": 12,
         "package slimeknights.tconstruct.library.client.model.block": 2,
         "package slimeknights.tconstruct.library.client.model.tools": 2,
-        "package slimeknights.tconstruct.tools.data": 13,
-        "package slimeknights.tconstruct.tools.data.material": 13,
-        "package slimeknights.tconstruct.tools.data.sprite": 1,
         "symbol class CombatFishingHookRenderer": 1,
         "symbol class ShieldBannerModifierSpriteSource": 1,
-        "symbol class SlimeskullArmorModel": 2,
-        "symbol class TinkerModifiers": 63,
-        "symbol class TinkerToolActions": 19,
-        "symbol class TinkerToolParts": 15,
-        "symbol class TinkerTools": 24
+        "symbol class SlimeskullArmorModel": 2
     }
 }

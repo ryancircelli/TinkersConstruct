@@ -1,6 +1,8 @@
 package slimeknights.tconstruct.tools;
 
 import com.mojang.serialization.MapCodec;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -21,9 +23,9 @@ import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
 import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import slimeknights.mantle.recipe.helper.LoadableRecipeSerializer;
@@ -183,6 +185,7 @@ import slimeknights.tconstruct.library.recipe.tinkerstation.repairing.ModifierMa
 import slimeknights.tconstruct.library.recipe.tinkerstation.repairing.ModifierRepairCraftingRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.repairing.ModifierRepairTinkerStationRecipe;
 import slimeknights.tconstruct.library.recipe.worktable.ModifierSetWorktableRecipe;
+import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.capability.BlockItemProviderCapability;
 import slimeknights.tconstruct.library.tools.capability.EntityModifierCapability;
 import slimeknights.tconstruct.library.tools.capability.PersistentDataCapability;
@@ -342,6 +345,7 @@ import slimeknights.tconstruct.tools.recipe.severing.SnowGolemBeheadingRecipe;
 import slimeknights.tconstruct.tools.stats.ToolType;
 
 import static slimeknights.tconstruct.TConstruct.getResource;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Contains modifiers and the items or blocks used to craft modifiers
@@ -350,12 +354,24 @@ import static slimeknights.tconstruct.TConstruct.getResource;
 public final class TinkerModifiers extends TinkerModule {
   private static final ModifierDeferredRegister MODIFIERS = ModifierDeferredRegister.create(TConstruct.MOD_ID);
 
-  public TinkerModifiers() {
-    ModifierManager.INSTANCE.init();
+  /**
+   * @apiNote The bus is a constructor parameter now. 1.21 has no ambient currently-loading-mod context to fetch it
+   * from - {@code FMLJavaModLoadingContext} is gone - and four attachment types plus the modifier register all need
+   * one, so it comes down from {@link slimeknights.tconstruct.TConstruct}'s own constructor the same way
+   * {@code TinkerGadgets} and {@code TinkerAttributes} take theirs.
+   */
+  public TinkerModifiers(IEventBus bus) {
+    ModifierManager.INSTANCE.init(bus);
     DynamicModifier.init();
     FluidEffectManager.INSTANCE.init();
-    MODIFIERS.register(FMLJavaModLoadingContext.get().getModEventBus());
+    MODIFIERS.register(bus);
     TinkerDataKeys.init();
+    // the three attachments and the one real capability all register against the mod bus rather than from common setup:
+    // an AttachmentType is a registry entry in 1.21, and a capability is granted from RegisterCapabilitiesEvent (T10 SS1)
+    TinkerDataCapability.register(bus);
+    PersistentDataCapability.register(bus);
+    EntityModifierCapability.register(bus);
+    BlockItemProviderCapability.register(bus);
   }
 
   /*
@@ -375,6 +391,24 @@ public final class TinkerModifiers extends TinkerModule {
   // special
   public static final ItemObject<Item> modifierCrystal = ITEMS.register("modifier_crystal", () -> new ModifierCrystalItem(new Item.Properties().stacksTo(16)));
   public static final ItemObject<CreativeSlotItem> creativeSlotItem = ITEMS.register("creative_slot", () -> new CreativeSlotItem(itemProps()));
+
+  /*
+   * Components for the two items above. Both stored a single string in item NBT, which does not exist, and both are
+   * ordinary inventory items rather than tools, so neither can use a tool component and neither belongs in
+   * minecraft:custom_data: they are persistent, they are the whole identity of the stack, and stacking has to see them
+   * (two extract crystals for different modifiers must not stack, and never did). That is a data component type, per
+   * T15's rule that a module declares its own on TinkerModule.COMPONENTS.
+   */
+  /** The modifier an extract/modifier crystal carries, successor to the {@code modifier} tag key */
+  public static final DeferredHolder<DataComponentType<?>,DataComponentType<ModifierId>> modifierCrystalId =
+    COMPONENTS.registerComponentType("modifier_crystal", builder -> builder
+      .persistent(ModifierId.PARSER.codec())
+      .networkSynchronized(ModifierId.PARSER));
+  /** The slot type a creative slot item grants, successor to the {@code slot} tag key */
+  public static final DeferredHolder<DataComponentType<?>,DataComponentType<SlotType>> creativeSlotType =
+    COMPONENTS.registerComponentType("creative_slot", builder -> builder
+      .persistent(SlotType.LOADABLE.codec())
+      .networkSynchronized(SlotType.LOADABLE));
 
   // entity
   public static final DeferredHolder<EntityType<?>,EntityType<FluidEffectProjectile>> fluidSpitEntity = ENTITIES.register("fluid_spit", () ->
@@ -719,7 +753,7 @@ public final class TinkerModifiers extends TinkerModule {
   public static final EnumObject<ToolType,TinkerEffect> insatiableEffect = MOB_EFFECTS.registerEnum("insatiable", new ToolType[] {ToolType.MELEE, ToolType.RANGED, ToolType.ARMOR}, type -> {
     TinkerEffect effect = new NoMilkEffect(MobEffectCategory.BENEFICIAL, 0x9261cc, true);
     if (type == ToolType.ARMOR) {
-      effect.addAttributeModifier(Attributes.ATTACK_DAMAGE, "cc6904f7-674a-4e6a-b992-4f3cb8edfef4", 1, AttributeModifier.Operation.ADDITION);
+      effect.addAttributeModifier(Attributes.ATTACK_DAMAGE, TConstruct.getResource("effect/insatiable_armor"), 1, AttributeModifier.Operation.ADD_VALUE);
     }
     return effect;
   });
@@ -771,10 +805,10 @@ public final class TinkerModifiers extends TinkerModule {
    * Loot
    */
   public static final DeferredHolder<MapCodec<? extends IGlobalLootModifier>,MapCodec<ModifierLootModifier>> modifierLootModifier = GLOBAL_LOOT_MODIFIERS.register("modifier_hook", () -> ModifierLootModifier.CODEC);
-  public static final DeferredHolder<LootItemConditionType,LootItemConditionType> hasModifierLootCondition = LOOT_CONDITIONS.register("has_modifier", () -> new LootItemConditionType(new HasModifierLootCondition.ConditionSerializer()));
-  public static final DeferredHolder<LootItemFunctionType<?>,LootItemFunctionType<?>> modifierBonusFunction = LOOT_FUNCTIONS.register("modifier_bonus", () -> new LootItemFunctionType(new ModifierBonusLootFunction.Serializer()));
-  public static final DeferredHolder<LootItemConditionType,LootItemConditionType> chrysophiliteLootCondition = LOOT_CONDITIONS.register("has_chrysophilite", () -> new LootItemConditionType(ChrysophiliteLootCondition.SERIALIZER));
-  public static final DeferredHolder<LootItemFunctionType<?>,LootItemFunctionType<?>> chrysophiliteBonusFunction = LOOT_FUNCTIONS.register("chrysophilite_bonus", () -> new LootItemFunctionType(ChrysophiliteBonusFunction.SERIALIZER));
+  public static final DeferredHolder<LootItemConditionType,LootItemConditionType> hasModifierLootCondition = LOOT_CONDITIONS.register("has_modifier", () -> new LootItemConditionType(HasModifierLootCondition.CODEC));
+  public static final DeferredHolder<LootItemFunctionType<?>,LootItemFunctionType<ModifierBonusLootFunction>> modifierBonusFunction = LOOT_FUNCTIONS.register("modifier_bonus", () -> ModifierBonusLootFunction.TYPE);
+  public static final DeferredHolder<LootItemConditionType,LootItemConditionType> chrysophiliteLootCondition = LOOT_CONDITIONS.register("has_chrysophilite", () -> new LootItemConditionType(ChrysophiliteLootCondition.CODEC));
+  public static final DeferredHolder<LootItemFunctionType<?>,LootItemFunctionType<ChrysophiliteBonusFunction>> chrysophiliteBonusFunction = LOOT_FUNCTIONS.register("chrysophilite_bonus", () -> ChrysophiliteBonusFunction.TYPE);
 
   /*
    * Events
@@ -1075,23 +1109,23 @@ public final class TinkerModifiers extends TinkerModule {
     }
   }
 
-  @SubscribeEvent
-  void commonSetup(final FMLCommonSetupEvent event) {
-    TinkerDataCapability.register();
-    PersistentDataCapability.register();
-    EntityModifierCapability.register();
-    BlockItemProviderCapability.register();
-    // by default, we support modifying projectiles (arrows or fireworks mainly, but maybe other stuff). other entities may come in the future
-    EntityModifierCapability.registerEntityPredicate(entity -> entity instanceof Projectile);
-  }
+  /*
+   * There is no commonSetup here any more. Everything it did was capability registration, and all four moved into the
+   * constructor above. The entity predicate went with them and has no successor: 1.20 could not create capability data
+   * on demand, so anything wanting the projectile-modifier data had to declare itself into a predicate list at startup;
+   * an attachment is created for whatever holder asks, so the list had nothing left to decide (T10 SS1.3).
+   */
 
   @SubscribeEvent
   void gatherData(final GatherDataEvent event) {
     DataGenerator generator = event.getGenerator();
     PackOutput packOutput = generator.getPackOutput();
+    // a recipe provider needs the datapack registries now, because a recipe may name datapack content - an enchantment
+    // most obviously - and the event is the only thing that has them
+    CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
     boolean server = event.includeServer();
     generator.addProvider(server, new ModifierProvider(packOutput));
-    generator.addProvider(server, new ModifierRecipeProvider(packOutput));
+    generator.addProvider(server, new ModifierRecipeProvider(packOutput, lookupProvider));
     generator.addProvider(server, new FluidEffectProvider(packOutput));
     generator.addProvider(server, new ModifierTagProvider(packOutput, event.getExistingFileHelper()));
     generator.addProvider(server, new EnchantmentToModifierProvider(packOutput));

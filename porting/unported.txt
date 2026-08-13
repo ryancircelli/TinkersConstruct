@@ -1178,6 +1178,7 @@ src/main/java/slimeknights/tconstruct/tools/client/material/ThrownToolRenderer.j
 src/main/java/slimeknights/tconstruct/tools/client/material/package-info.java
 src/main/java/slimeknights/tconstruct/tools/client/package-info.java
 src/main/java/slimeknights/tconstruct/tools/data/ArmorModelProvider.java
+src/main/java/slimeknights/tconstruct/tools/data/DatagenEnchantments.java
 src/main/java/slimeknights/tconstruct/tools/data/EnchantmentToModifierProvider.java
 src/main/java/slimeknights/tconstruct/tools/data/FluidEffectProvider.java
 src/main/java/slimeknights/tconstruct/tools/data/ModifierIds.java
