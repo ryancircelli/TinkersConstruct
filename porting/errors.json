@@ -1,8 +1,8 @@
 {
-    "total": 447,
-    "islandFiles": 869,
+    "total": 320,
+    "islandFiles": 875,
     "categories": {
-        "other: static import only from classes and interfaces": 56,
+        "other: static import only from classes and interfaces": 11,
         "package slimeknights.tconstruct.gadgets": 6,
         "package slimeknights.tconstruct.gadgets.entity": 2,
         "package slimeknights.tconstruct.library.client.model": 5,
@@ -24,10 +24,10 @@
         "package slimeknights.tconstruct.tables.client.inventory": 2,
         "package slimeknights.tconstruct.tables.menu": 3,
         "package slimeknights.tconstruct.tables.recipe": 4,
-        "package slimeknights.tconstruct.tools.client": 1,
+        "package slimeknights.tconstruct.tools.client": 2,
         "package slimeknights.tconstruct.tools.client.material": 1,
         "package slimeknights.tconstruct.tools.data": 9,
-        "package slimeknights.tconstruct.tools.data.material": 9,
+        "package slimeknights.tconstruct.tools.data.material": 11,
         "package slimeknights.tconstruct.tools.data.sprite": 1,
         "package slimeknights.tconstruct.tools.entity": 3,
         "package slimeknights.tconstruct.tools.item": 1,
@@ -54,15 +54,12 @@
         "symbol class PlatingMaterialStats": 2,
         "symbol class RepulsiveEffect": 1,
         "symbol class StatOverrideModifier": 1,
-        "symbol class TinkerHeadType": 6,
-        "symbol class TinkerModifiers": 30,
+        "symbol class TinkerModifiers": 31,
         "symbol class TinkerSmeltery": 37,
         "symbol class TinkerStationRepairRecipe": 1,
-        "symbol class TinkerStructures": 28,
         "symbol class TinkerTables": 22,
         "symbol class TinkerToolActions": 9,
         "symbol class TinkerToolParts": 11,
-        "symbol class TinkerTools": 15,
-        "symbol class TinkerWorld": 52
+        "symbol class TinkerTools": 15
     }
 }

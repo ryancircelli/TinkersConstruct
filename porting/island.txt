@@ -896,3 +896,9 @@ src/main/java/slimeknights/tconstruct/world/client/SlimeColorizer.java
 src/main/java/slimeknights/tconstruct/world/client/TerracubeRenderer.java
 src/main/java/slimeknights/tconstruct/world/client/TinkerSlimeRenderer.java
 src/main/java/slimeknights/tconstruct/world/client/package-info.java
+src/main/java/slimeknights/tconstruct/world/TinkerHeadType.java
+src/main/java/slimeknights/tconstruct/world/TinkerStructures.java
+src/main/java/slimeknights/tconstruct/world/TinkerWorld.java
+src/main/java/slimeknights/tconstruct/world/WorldClientEvents.java
+src/main/java/slimeknights/tconstruct/world/WorldEvents.java
+src/main/java/slimeknights/tconstruct/world/package-info.java
