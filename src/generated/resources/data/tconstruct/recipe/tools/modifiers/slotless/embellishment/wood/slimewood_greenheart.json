@@ -1,0 +1,26 @@
+{
+  "type": "tconstruct:swappable_modifier",
+  "allow_crystal": false,
+  "inputs": [
+    {
+      "count": 1,
+      "item": "tconstruct:greenheart_planks"
+    },
+    {
+      "count": 1,
+      "item": "tconstruct:pattern"
+    },
+    {
+      "count": 1,
+      "item": "tconstruct:greenheart_planks"
+    }
+  ],
+  "result": {
+    "name": "tconstruct:embellishment",
+    "value": "tconstruct:slimewood#greenheart"
+  },
+  "tools": {
+    "tag": "tconstruct:modifiable/embellishment/wood"
+  },
+  "variant_formatter": "tconstruct:material"
+}
