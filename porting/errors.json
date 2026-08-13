@@ -1,6 +1,6 @@
 {
-    "total": 362,
-    "islandFiles": 1118,
+    "total": 361,
+    "islandFiles": 1119,
     "categories": {
         "other: static import only from classes and interfaces": 11,
         "package slimeknights.tconstruct.gadgets": 6,
@@ -61,7 +61,6 @@
         "symbol class RepulsiveEffect": 1,
         "symbol class StatOverrideModifier": 1,
         "symbol class TinkerHeadType": 1,
-        "symbol class TinkerItemDisplays": 1,
         "symbol class TinkerModifiers": 30,
         "symbol class TinkerSmeltery": 37,
         "symbol class TinkerStationRepairRecipe": 1,

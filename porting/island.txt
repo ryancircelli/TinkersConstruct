@@ -122,6 +122,7 @@ src/main/java/slimeknights/tconstruct/fluids/util/EmptyBottleIntoWater.java
 src/main/java/slimeknights/tconstruct/fluids/util/FillBottle.java
 src/main/java/slimeknights/tconstruct/fluids/util/package-info.java
 src/main/java/slimeknights/tconstruct/library/TinkerBookIDs.java
+src/main/java/slimeknights/tconstruct/library/TinkerItemDisplays.java
 src/main/java/slimeknights/tconstruct/library/client/GuiUtil.java
 src/main/java/slimeknights/tconstruct/library/client/Icons.java
 src/main/java/slimeknights/tconstruct/library/client/RenderUtils.java
