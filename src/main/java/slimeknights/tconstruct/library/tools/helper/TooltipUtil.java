@@ -181,7 +181,7 @@ public class TooltipUtil {
     } else {
       switch (tooltipKey) {
         case SHIFT:
-          item.getStatInformation(ToolStack.from(stack), player, tooltip, tooltipKey, tooltipFlag);
+          item.getStatInformation(ToolStack.from(stack), stack, player, tooltip, tooltipKey, tooltipFlag);
           break;
         case CONTROL:
           if (definition.hasMaterials()) {
