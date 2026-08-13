@@ -7,8 +7,8 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.EmptyHandler;
 import slimeknights.mantle.inventory.BaseContainerMenu;
+import slimeknights.mantle.inventory.EmptyItemHandler;
 import slimeknights.mantle.inventory.SmartItemHandlerSlot;
 import slimeknights.mantle.util.CapabilityHelper;
 
@@ -32,7 +32,7 @@ public class SideInventoryContainer<TILE extends BlockEntity> extends BaseContai
     // must have a TE
     IItemHandler handler = tile == null ? null : CapabilityHelper.itemHandler(tile, inventoryDirection);
     if (handler == null) {
-      handler = EmptyHandler.INSTANCE;
+      handler = EmptyItemHandler.INSTANCE;
     }
     this.itemHandler = handler;
 

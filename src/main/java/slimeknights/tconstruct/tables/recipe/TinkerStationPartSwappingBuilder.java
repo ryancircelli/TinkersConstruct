@@ -3,18 +3,17 @@ package slimeknights.tconstruct.tables.recipe;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.recipe.data.AbstractRecipeBuilder;
-import slimeknights.mantle.recipe.ingredient.SizedIngredient;
 import slimeknights.tconstruct.library.recipe.tinkerstation.building.ToolMaterialSwappingRecipe;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /** Builder for {@link TinkerStationPartSwapping} and {@link ToolMaterialSwappingRecipe} */
 @RequiredArgsConstructor(staticName = "tools")
@@ -41,25 +40,26 @@ public class TinkerStationPartSwappingBuilder extends AbstractRecipeBuilder<Tink
 
   /** Adds an extra ingredient requirement */
   public TinkerStationPartSwappingBuilder addExtraRequirement(Ingredient ingredient) {
-    return addExtraRequirement(SizedIngredient.of(ingredient));
+    return addExtraRequirement(new SizedIngredient(ingredient, 1));
   }
 
   /** Adds an extra ingredient requirement */
   public TinkerStationPartSwappingBuilder addExtraRequirement(ItemLike... items) {
-    return addExtraRequirement(SizedIngredient.fromItems(items));
+    return addExtraRequirement(new SizedIngredient(Ingredient.of(items), 1));
   }
 
   @Override
-  public void save(Consumer<FinishedRecipe> consumer) {
-    save(consumer, Loadables.ITEM.getKey(tools.getItems()[0].getItem()));
+  public void save(RecipeOutput output) {
+    save(output, Loadables.ITEM.getKey(tools.getItems()[0].getItem()));
   }
 
   @Override
-  public void save(Consumer<FinishedRecipe> consumer, ResourceLocation id) {
+  public void save(RecipeOutput output, ResourceLocation id) {
+    // no advancement for this recipe type, matches 1.20's unconditional null
     if (fromTool) {
-      consumer.accept(new LoadableFinishedRecipe<>(new ToolMaterialSwappingRecipe(id, tools, maxStackSize, extraRequirements), ToolMaterialSwappingRecipe.LOADER, null));
+      output.accept(id, new ToolMaterialSwappingRecipe(id, tools, maxStackSize, extraRequirements), null);
     } else {
-      consumer.accept(new LoadableFinishedRecipe<>(new TinkerStationPartSwapping(id, tools, maxStackSize, extraRequirements), TinkerStationPartSwapping.LOADER, null));
+      output.accept(id, new TinkerStationPartSwapping(id, tools, maxStackSize, extraRequirements), null);
     }
   }
 }

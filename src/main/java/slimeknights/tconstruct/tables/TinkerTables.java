@@ -176,7 +176,7 @@ public final class TinkerTables extends TinkerModule {
   @SubscribeEvent
   void gatherData(final GatherDataEvent event) {
     DataGenerator generator = event.getGenerator();
-    generator.addProvider(event.includeServer(), new TableRecipeProvider(generator.getPackOutput()));
+    generator.addProvider(event.includeServer(), new TableRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
   }
 
   /** Adds all relevant items to the creative tab, called in the general tab */

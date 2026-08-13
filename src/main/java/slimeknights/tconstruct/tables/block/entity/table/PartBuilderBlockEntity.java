@@ -9,8 +9,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.ForgeEventFactory;
+import net.neoforged.neoforge.event.EventHooks;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.TinkerTags;
@@ -47,6 +47,9 @@ public class PartBuilderBlockEntity extends RetexturedTableBlockEntity implement
   /** Crafting inventory for the recipe calls */
   @Getter
   private final PartBuilderContainerWrapper inventoryWrapper;
+  /** @implNote  Mantle's {@code InventoryBlockEntity#itemHandler} is final now (T15 §5): a block entity wanting a
+   *             different handler overrides {@link #getItemHandler()} instead of reassigning the field. */
+  private final ConfigurableInvWrapperCapability partBuilderItemHandler = new ConfigurableInvWrapperCapability(this, false, false);
 
   /* Current buttons to display */
   @Nullable
@@ -60,10 +63,13 @@ public class PartBuilderBlockEntity extends RetexturedTableBlockEntity implement
 
   public PartBuilderBlockEntity(BlockPos pos, BlockState state) {
     super(TinkerTables.partBuilderTile.get(), pos, state, NAME, 2);
-    this.itemHandler = new ConfigurableInvWrapperCapability(this, false, false);
-    this.itemHandlerCap = LazyOptional.of(() -> this.itemHandler);
     this.inventoryWrapper = new PartBuilderContainerWrapper(this);
     this.craftingResult = new LazyResultContainer(this);
+  }
+
+  @Override
+  public IItemHandlerModifiable getItemHandler() {
+    return partBuilderItemHandler;
   }
 
   /**
@@ -290,7 +296,7 @@ public class PartBuilderBlockEntity extends RetexturedTableBlockEntity implement
 
     // we are definitely crafting at this point
     result.onCraftedBy(this.level, player, amount);
-    ForgeEventFactory.firePlayerCraftingEvent(player, result, this.inventoryWrapper);
+    EventHooks.firePlayerCraftingEvent(player, result, this.inventoryWrapper);
     this.playCraftSound(player);
 
     // give the player any leftovers
