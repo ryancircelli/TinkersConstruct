@@ -25,6 +25,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.wrapper.SidedInvWrapper;
 import slimeknights.mantle.fluid.FluidTransferHelper;
 import slimeknights.mantle.fluid.transfer.FluidContainerTransferManager;
@@ -94,10 +95,19 @@ public class CastingTankBlockEntity extends TableBlockEntity implements ITankBlo
 
   /** Extendable constructor */
   @SuppressWarnings("WeakerAccess")
+  /**
+   * Item handler exposed to the world, restricted to the down face so hoppers pull from the output slot.
+   * <p>
+   * 1.20 overwrote {@code InventoryBlockEntity#itemHandler}; that field is final in 1.21, since it lost the
+   * LazyOptional wrapper and became a plain field (M9 §2), so the override moves to the getter Mantle registers the
+   * capability through.
+   */
+  @Getter
+  private final IItemHandlerModifiable itemHandler = new SidedInvWrapper(this, Direction.DOWN);
+
   protected CastingTankBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, ITankBlock block) {
     super(type, pos, state, NAME, 2, 1);
     tank = new FluidTankAnimated(block.getCapacity(), this);
-    itemHandler = new SidedInvWrapper(this, Direction.DOWN);
   }
 
   /**
@@ -260,7 +270,7 @@ public class CastingTankBlockEntity extends TableBlockEntity implements ITankBlo
    * @param stack  Stack
    */
   public void setTankTag(ItemStack stack) {
-    TankItem.setTank(stack, tank);
+    TankItem.setTank(stack, tank.getFluid());
   }
 
   /**

@@ -1,14 +1,14 @@
 package slimeknights.tconstruct.smeltery;
 
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent.RegisterGeometryLoaders;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod.EventBusSubscriber;
-import net.neoforged.fml.common.Mod.EventBusSubscriber.Bus;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import slimeknights.mantle.client.render.ChannelFluids;
 import slimeknights.mantle.client.render.FaucetFluid;
@@ -57,20 +57,29 @@ public class SmelteryClientEvents extends ClientEventBase {
     event.registerBlockEntityRenderer(TinkerSmeltery.castingTank.get(), context -> new TankInventoryBlockEntityRenderer<>(BlockStateProperties.HORIZONTAL_FACING));
   }
 
+  /**
+   * MenuScreens#register is private in 1.21; screens are registered from this event instead, which also removes the
+   * "must be on the client thread" dance FMLClientSetupEvent needed.
+   */
+  @SubscribeEvent
+  static void registerScreens(RegisterMenuScreensEvent event) {
+    event.register(TinkerSmeltery.melterContainer.get(), MelterScreen::new);
+    event.register(TinkerSmeltery.smelteryContainer.get(), HeatingStructureScreen::new);
+    event.register(TinkerSmeltery.singleItemContainer.get(), new SingleItemScreenFactory());
+    event.register(TinkerSmeltery.alloyerContainer.get(), AlloyerScreen::new);
+  }
+
   @SubscribeEvent
   static void clientSetup(final FMLClientSetupEvent event) {
-    MenuScreens.register(TinkerSmeltery.melterContainer.get(), MelterScreen::new);
-    MenuScreens.register(TinkerSmeltery.smelteryContainer.get(), HeatingStructureScreen::new);
-    MenuScreens.register(TinkerSmeltery.singleItemContainer.get(), new SingleItemScreenFactory());
-    MenuScreens.register(TinkerSmeltery.alloyerContainer.get(), AlloyerScreen::new);
     ToolModel.registerSmallTool(TinkerItemDisplays.MELTER);
     ToolModel.registerSmallTool(TinkerItemDisplays.CASTING_BASIN);
     ToolModel.registerSmallTool(TinkerItemDisplays.CASTING_TABLE);
   }
 
+  /** Geometry loaders are keyed by ResourceLocation rather than a bare name in 1.21 */
   @SubscribeEvent
   static void registerModelLoaders(RegisterGeometryLoaders event) {
-    event.register("tank", TankModel.LOADER);
-    event.register("fluid_texture", FluidTextureModel.LOADER);
+    event.register(TConstruct.getResource("tank"), TankModel.LOADER);
+    event.register(TConstruct.getResource("fluid_texture"), FluidTextureModel.LOADER);
   }
 }

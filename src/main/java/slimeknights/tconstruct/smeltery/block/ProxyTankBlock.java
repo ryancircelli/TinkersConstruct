@@ -109,7 +109,7 @@ public class ProxyTankBlock extends Block implements EntityBlock {
       }
       tank.interact(player, hand, clickedTank);
     }
-    return InteractionResult.SUCCESS;
+    return ItemInteractionResult.SUCCESS;
   }
 
   @Deprecated

@@ -2,6 +2,7 @@ package slimeknights.tconstruct.smeltery.block.entity.module;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import slimeknights.tconstruct.library.utils.TagUtil;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -148,8 +149,9 @@ public class MultitankFuelModule extends FuelModule implements IFluidHandler {
   @Override
   public void readFromTag(CompoundTag nbt) {
     super.readFromTag(nbt);
-    if (nbt.contains(TAG_LAST_FUEL, Tag.TAG_COMPOUND)) {
-      lastPos = NbtUtils.readBlockPos(nbt.getCompound(TAG_LAST_FUEL)).offset(parent.getBlockPos());
+    BlockPos last = TagUtil.readOptionalPos(nbt, TAG_LAST_FUEL, parent.getBlockPos());
+    if (last != null) {
+      lastPos = last;
     }
   }
 

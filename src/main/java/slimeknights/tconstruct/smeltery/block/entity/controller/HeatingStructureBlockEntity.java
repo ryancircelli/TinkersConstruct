@@ -490,7 +490,7 @@ public abstract class HeatingStructureBlockEntity extends NameableBlockEntity im
     if (structure != null) {
       return structure.getBounds();
     } else if (defaultBounds == null) {
-      defaultBounds = new AABB(worldPosition, worldPosition.offset(1, 1, 1));
+      defaultBounds = new AABB(worldPosition);
     }
     return defaultBounds;
   }
@@ -613,7 +613,7 @@ public abstract class HeatingStructureBlockEntity extends NameableBlockEntity im
     }
     // only exists to be sent server to client in update packets
     if (nbt.contains(TAG_ERROR_POS, Tag.TAG_COMPOUND)) {
-      this.errorPos = NbtUtils.readBlockPos(nbt.getCompound(TAG_ERROR_POS)).offset(this.worldPosition);
+      this.errorPos = TagUtil.readOptionalPos(nbt, TAG_ERROR_POS, this.worldPosition);
     }
     fuelModule.readFromTag(nbt);
     if (nbt.contains(TAG_TEXTURE, Tag.TAG_STRING)) {

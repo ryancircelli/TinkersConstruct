@@ -139,7 +139,7 @@ public class TankBlockEntity extends SmelteryComponentBlockEntity implements ITa
    * @param stack  Stack
    */
   public void setTankTag(ItemStack stack) {
-    TankItem.setTank(stack, tank);
+    TankItem.setTank(stack, tank.getFluid());
   }
 
   /**
