@@ -670,6 +670,17 @@ neoForge {
         }
     }
 
+    // T1 left this off on the grounds that every test was behind the frontier, so the test
+    // classpath needed JUnit but not Minecraft. T13 flips the island's self-contained subset
+    // into sourceSets.main and brings the first tests back with it, and every one of them
+    // loads a Minecraft class. Enabling it puts Minecraft, NeoForge and this mod's own classes
+    // on the test classpath and runs `test` through NeoForge's test launcher, which is what
+    // bootstraps the registries the tests then read.
+    unitTest {
+        enable()
+        testedMod = mods.tconstruct
+    }
+
     runs {
         // applies to all the run configs below
         configureEach {
