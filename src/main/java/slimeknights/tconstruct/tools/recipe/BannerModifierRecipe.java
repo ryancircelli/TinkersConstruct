@@ -1,20 +1,19 @@
 package slimeknights.tconstruct.tools.recipe;
 
 import lombok.Getter;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.BannerItem;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import slimeknights.mantle.recipe.IMultiRecipe;
 import slimeknights.mantle.util.RegistryHelper;
 import slimeknights.tconstruct.common.TinkerTags;
@@ -40,11 +39,7 @@ import java.util.stream.Stream;
 
 /** Recipe to add a banner to a shield */
 public class BannerModifierRecipe implements ITinkerStationRecipe, IMultiRecipe<IDisplayModifierRecipe> {
-  @Getter
-  private final ResourceLocation id;
-
-  public BannerModifierRecipe(ResourceLocation id) {
-    this.id = id;
+  public BannerModifierRecipe() {
     ModifierRecipeLookup.addRecipeModifier(null, TinkerModifiers.banner);
   }
 
@@ -75,7 +70,7 @@ public class BannerModifierRecipe implements ITinkerStationRecipe, IMultiRecipe<
   }
 
   @Override
-  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, RegistryAccess access) {
+  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, HolderLookup.Provider access) {
     ToolStack tool = inv.getTinkerable().copy();
 
     ModDataNBT persistentData = tool.getPersistentData();
@@ -99,15 +94,9 @@ public class BannerModifierRecipe implements ITinkerStationRecipe, IMultiRecipe<
       return RecipeResult.pass();
     }
 
-    // get the banner data
-    CompoundTag bannerData = BlockItem.getBlockEntityData(banner);
-    ListTag patterns = new ListTag();
-    if (bannerData != null) {
-      patterns = bannerData.getList("Patterns", Tag.TAG_COMPOUND);
-    }
-
-    // apply the pattern
-    BannerModule.copyPatterns(tool.getPersistentData(), key, dye, patterns);
+    // apply the pattern. The banner block entity's Patterns list is the minecraft:banner_patterns component now, and
+    // BannerModule reads that component's BannerPatternLayers directly
+    BannerModule.copyPatterns(tool.getPersistentData(), key, dye, banner.getOrDefault(DataComponents.BANNER_PATTERNS, BannerPatternLayers.EMPTY));
 
     // add the modifier if missing
     if (tool.getModifierLevel(key) == 0) {
@@ -115,6 +104,7 @@ public class BannerModifierRecipe implements ITinkerStationRecipe, IMultiRecipe<
     }
     return ITinkerStationRecipe.success(tool, inv);
   }
+
 
   @Override
   public RecipeSerializer<?> getSerializer() {
@@ -139,11 +129,10 @@ public class BannerModifierRecipe implements ITinkerStationRecipe, IMultiRecipe<
           return stack;
         }).toList();
       if (!toolInputs.isEmpty()) {
-        ResourceLocation id = getId();
         displayRecipes = RegistryHelper.getTagValueStream(BuiltInRegistries.ITEM, ItemTags.BANNERS)
           .flatMap(item -> {
             if (item instanceof BannerItem banner) {
-              return Stream.of(new DisplayRecipe(id, toolInputs, banner));
+              return Stream.of(new DisplayRecipe(toolInputs, banner));
             }
             return Stream.empty();
           }).collect(Collectors.toList());
@@ -154,13 +143,16 @@ public class BannerModifierRecipe implements ITinkerStationRecipe, IMultiRecipe<
     return displayRecipes;
   }
 
-  /** Display recipe instance */
+  /**
+   * Display recipe instance.
+   * @apiNote  1.21 moved a recipe's ID onto {@link net.minecraft.world.item.crafting.RecipeHolder}, and
+   *           {@link slimeknights.mantle.recipe.IMultiRecipe#getRecipes} is handed the recipe rather than its holder,
+   *           so a generated display recipe can no longer name its parent and JEI shows it with no registry name.
+   */
   private static class DisplayRecipe implements IDisplayModifierRecipe {
     private static final IntRange LEVELS = new IntRange(1, 1);
     private final ModifierEntry RESULT = new ModifierEntry(TinkerModifiers.banner, 1);
 
-    @Getter
-    private final ResourceLocation recipeId;
     private final List<ItemStack> banner;
     @Getter
     private final List<ItemStack> toolWithoutModifier;
@@ -168,15 +160,15 @@ public class BannerModifierRecipe implements ITinkerStationRecipe, IMultiRecipe<
     private final List<ItemStack> toolWithModifier;
     @Getter
     private final Component variant;
-    public DisplayRecipe(ResourceLocation recipeId, List<ItemStack> tools, BannerItem banner) {
-      this.recipeId = recipeId;
+    public DisplayRecipe(List<ItemStack> tools, BannerItem banner) {
       this.toolWithoutModifier = tools;
       this.banner = List.of(new ItemStack(banner));
       DyeColor dye = banner.getColor();
       this.variant = Component.translatable("color.minecraft." + dye.getSerializedName());
 
       ModifierId key = RESULT.getId();
-      ListTag patterns = new ListTag();
+      // the display banner is a plain dyed one with no extra layers, which is what the empty list tag meant in 1.20
+      BannerPatternLayers patterns = BannerPatternLayers.EMPTY;
       List<ModifierEntry> results = List.of(RESULT);
       toolWithModifier = tools.stream().map(stack -> IDisplayModifierRecipe.withModifiers(stack, DEFAULT_TOOL_STACK_SIZE, results, data -> BannerModule.copyPatterns(data, key, dye, patterns))).toList();
     }

@@ -1,8 +1,13 @@
 package slimeknights.tconstruct.tools.recipe;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap.Entry;
 import lombok.Getter;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -10,14 +15,13 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
-import net.minecraft.core.registries.BuiltInRegistries;
-import slimeknights.mantle.data.loadable.field.ContextKey;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import slimeknights.mantle.data.loadable.primitive.BooleanLoadable;
 import slimeknights.mantle.data.loadable.primitive.StringLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.predicate.IJsonPredicate;
-import slimeknights.mantle.recipe.ingredient.SizedIngredient;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.json.predicate.modifier.ModifierPredicate;
 import slimeknights.tconstruct.library.modifiers.Modifier;
@@ -30,19 +34,28 @@ import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.ModifierRecipe;
 import slimeknights.tconstruct.library.recipe.worktable.AbstractWorktableRecipe;
 import slimeknights.tconstruct.library.tools.nbt.LazyToolStack;
+import slimeknights.tconstruct.library.utils.Util;
 import slimeknights.tconstruct.tools.TinkerModifiers;
 import slimeknights.tconstruct.tools.item.ModifierCrystalItem;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-/** Recipe for converting enchanted books into modifier crystals */
+/**
+ * Recipe for converting enchanted books into modifier crystals
+ * @apiNote  Enchantments are a datapack registry in 1.21, so an {@link Enchantment} is a plain record which does not
+ *           know its own ID and is replaced on every datapack reload. Everything here is therefore keyed by
+ *           {@link Holder}, which is what an item's enchantment component hands out and what
+ *           {@link ModifierManager#get(Holder)} matches against: a holder carries both its key and its tags, where a
+ *           bare {@link net.minecraft.resources.ResourceKey} would carry only the key and silently lose the
+ *           enchantment-tag half of the modifier map. Only listing every enchantment for JEI needs the registry
+ *           itself, and that is the one place a {@link HolderLookup.Provider} is fetched.
+ */
 public class EnchantmentConvertingRecipe extends AbstractWorktableRecipe {
   private static final Component DESCRIPTION_LOST = TConstruct.makeTranslation("recipe", "enchantment_converting.description.lost");
   private static final Component DESCRIPTION_KEEP = TConstruct.makeTranslation("recipe", "enchantment_converting.description.keep");
@@ -50,7 +63,6 @@ public class EnchantmentConvertingRecipe extends AbstractWorktableRecipe {
   private static final RecipeResult<LazyToolStack> TOO_FEW = RecipeResult.failure(TConstruct.makeTranslationKey("recipe", "enchantment_converting.too_few"));
   /** Loader instance */
   public static final RecordLoadable<EnchantmentConvertingRecipe> LOADER = RecordLoadable.create(
-    ContextKey.ID.requiredField(),
     StringLoadable.DEFAULT.requiredField("name", r -> r.name),
     INPUTS_FIELD,
     BooleanLoadable.INSTANCE.requiredField("match_book", r -> r.matchBook),
@@ -73,8 +85,8 @@ public class EnchantmentConvertingRecipe extends AbstractWorktableRecipe {
 
   private List<ModifierEntry> displayModifiers;
 
-  public EnchantmentConvertingRecipe(ResourceLocation id, String name, List<SizedIngredient> inputs, boolean matchBook, boolean returnInput, IJsonPredicate<ModifierId> modifierPredicate) {
-    super(id, inputs);
+  public EnchantmentConvertingRecipe(String name, List<SizedIngredient> inputs, boolean matchBook, boolean returnInput, IJsonPredicate<ModifierId> modifierPredicate) {
+    super(inputs);
     this.name = name;
     this.title = Component.translatable(ExtractModifierRecipe.BASE_KEY + "." + name);
     this.matchBook = matchBook;
@@ -82,9 +94,20 @@ public class EnchantmentConvertingRecipe extends AbstractWorktableRecipe {
     this.modifierPredicate = modifierPredicate;
   }
 
-  /** Gets the enchantment map from the given stack */
-  private Map<Enchantment,Integer> getEnchantments(ItemStack stack) {
-    return EnchantmentHelper.deserializeEnchantments(matchBook ? EnchantedBookItem.getEnchantments(stack) : stack.getEnchantmentTags());
+  /**
+   * Gets the component holding this recipe's enchantments.
+   * @apiNote  Replaces 1.20's split between {@code EnchantedBookItem.getEnchantments(stack)} and
+   *           {@code stack.getEnchantmentTags()}; a book stores in {@code stored_enchantments} and everything else in
+   *           {@code enchantments}, which is the same split {@link EnchantmentHelper#getComponentType(ItemStack)} makes
+   *           for a stack we already know to be the matching type.
+   */
+  private DataComponentType<ItemEnchantments> componentType() {
+    return matchBook ? DataComponents.STORED_ENCHANTMENTS : DataComponents.ENCHANTMENTS;
+  }
+
+  /** Gets the enchantments from the given stack */
+  private ItemEnchantments getEnchantments(ItemStack stack) {
+    return stack.getOrDefault(componentType(), ItemEnchantments.EMPTY);
   }
 
 
@@ -93,8 +116,8 @@ public class EnchantmentConvertingRecipe extends AbstractWorktableRecipe {
   @Override
   public Component getDescription(@Nullable ITinkerableContainer inv) {
     // ensure we have at least one supported enchantment
-    if (inv != null && getEnchantments(inv.getTinkerableStack()).entrySet().stream().noneMatch(entry -> {
-      Modifier modifier = ModifierManager.INSTANCE.get(entry.getKey());
+    if (inv != null && getEnchantments(inv.getTinkerableStack()).keySet().stream().noneMatch(enchantment -> {
+      Modifier modifier = ModifierManager.INSTANCE.get(enchantment);
       return modifier != null && modifierPredicate.matches(modifier.getId());
     })) {
       return NO_ENCHANTMENT;
@@ -127,6 +150,22 @@ public class EnchantmentConvertingRecipe extends AbstractWorktableRecipe {
       .map(mod -> new ModifierEntry(mod, 1)).toList();
   }
 
+  /** Gets the set of modifier IDs matched by this recipe that have an enchantment equivalent */
+  private Set<ModifierId> getMatchingModifierIds() {
+    return getMatchingModifiers().stream().map(ModifierEntry::getId).collect(Collectors.toSet());
+  }
+
+  /**
+   * Gets every enchantment this recipe accepts, for JEI.
+   * @apiNote  Listing the enchantments means enumerating the registry, which a datapack registry can only do through
+   *           a {@link HolderLookup.Provider}. JEI hands the recipe nothing, so the display paths take the active
+   *           world's registries; they are only reached on the client with a world loaded.
+   */
+  private Stream<Holder<Enchantment>> getEquivalentEnchantments() {
+    Set<ModifierId> modifiers = getMatchingModifierIds();
+    return ModifierManager.INSTANCE.getEquivalentEnchantments(Util.registryAccess(), modifiers::contains);
+  }
+
   @Override
   public List<ModifierEntry> getModifierOptions(@Nullable ITinkerableContainer inv) {
     if (inv != null) {
@@ -134,17 +173,16 @@ public class EnchantmentConvertingRecipe extends AbstractWorktableRecipe {
       return getEnchantments(inv.getTinkerableStack()).entrySet().stream().map(entry -> {
         Modifier modifier = ModifierManager.INSTANCE.get(entry.getKey());
         if (modifier != null && modifierPredicate.matches(modifier.getId())) {
-          return new ModifierEntry(modifier, returnInput ? 1 : entry.getValue());
+          return new ModifierEntry(modifier, returnInput ? 1 : entry.getIntValue());
         }
         return null;
       }).filter(Objects::nonNull).distinct().toList();
     }
     if (displayModifiers == null) {
       if (matchBook) {
-        Set<ModifierId> modifiers = getMatchingModifiers().stream().map(ModifierEntry::getId).collect(Collectors.toSet());
         Modifier defaultModifier = ModifierManager.INSTANCE.getDefaultValue();
-        displayModifiers = ModifierManager.INSTANCE.getEquivalentEnchantments(modifiers::contains)
-          .flatMap(enchantment -> IntStream.rangeClosed(1, enchantment.getMaxLevel())
+        displayModifiers = getEquivalentEnchantments()
+          .flatMap(enchantment -> IntStream.rangeClosed(1, enchantment.value().getMaxLevel())
             .mapToObj(level -> new ModifierEntry(Objects.requireNonNullElse(ModifierManager.INSTANCE.get(enchantment), defaultModifier), level)))
           .toList();
       } else {
@@ -165,7 +203,7 @@ public class EnchantmentConvertingRecipe extends AbstractWorktableRecipe {
         for (int i = 0; i < inv.getInputCount(); i++) {
           if (i != used) {
             ItemStack stack = inv.getInput(i);
-            if (!stack.isEmpty() && ingredient.getAmountNeeded() * level <= stack.getCount() && ingredient.test(stack)) {
+            if (!stack.isEmpty() && ingredient.count() * level <= stack.getCount() && ingredient.test(stack)) {
               used = i;
               continue inputLoop;
             }
@@ -195,34 +233,26 @@ public class EnchantmentConvertingRecipe extends AbstractWorktableRecipe {
       ItemStack current = inv.getTinkerableStack();
       // returnInput drops just 1 level of the enchantment
       // worth noting, its possible multiple match, if thats the case we just extract the first we find
-      Map<Enchantment,Integer> enchantments = getEnchantments(current);
-      for (Entry<Enchantment,Integer> entry : enchantments.entrySet()) {
-        Enchantment enchantment = entry.getKey();
-        Modifier enchantmentModifier = ModifierManager.INSTANCE.get(enchantment);
-        if (enchantmentModifier != null && enchantmentModifier.getId().equals(modifier)) {
-          int newLevel = entry.getValue() - 1;
-          if (newLevel <= 0) {
-            enchantments.remove(enchantment);
-          } else {
-            enchantments.put(enchantment, newLevel);
+      ItemEnchantments enchantments = getEnchantments(current);
+      ItemStack unenchanted = current.copy();
+      // the component is replaced wholesale, so 1.20's dance of clearing StoredEnchantments before setting is gone
+      ItemEnchantments remaining = EnchantmentHelper.updateEnchantments(unenchanted, mutable -> {
+        for (Entry<Holder<Enchantment>> entry : enchantments.entrySet()) {
+          Modifier enchantmentModifier = ModifierManager.INSTANCE.get(entry.getKey());
+          if (enchantmentModifier != null && enchantmentModifier.getId().equals(modifier)) {
+            // set removes the entry when the level hits 0
+            mutable.set(entry.getKey(), entry.getIntValue() - 1);
+            break;
           }
-          break;
         }
-      }
+      });
 
-      ItemStack unenchanted;
-      if (matchBook && enchantments.isEmpty()) {
+      if (matchBook && remaining.isEmpty()) {
         unenchanted = new ItemStack(Items.BOOK);
-        if (current.hasCustomHoverName()) {
-          unenchanted.setHoverName(current.getHoverName());
+        Component customName = current.get(DataComponents.CUSTOM_NAME);
+        if (customName != null) {
+          unenchanted.set(DataComponents.CUSTOM_NAME, customName);
         }
-      } else {
-        unenchanted = current.copy();
-        if (matchBook) {
-          // for some dumb reason setEnchantments for a book just adds them instead of setting them
-          unenchanted.removeTagKey("StoredEnchantments");
-        }
-        EnchantmentHelper.setEnchantments(enchantments, unenchanted);
       }
       inv.giveItem(unenchanted);
     }
@@ -260,9 +290,8 @@ public class EnchantmentConvertingRecipe extends AbstractWorktableRecipe {
     // for books, cache per recipe as we show the enchants
     if (tools == null) {
       // don't use the cached value from getModifierOptions as that is going to contain some redundant listings
-      Set<ModifierId> modifiers = getMatchingModifiers().stream().map(ModifierEntry::getId).collect(Collectors.toSet());
-      tools = ModifierManager.INSTANCE.getEquivalentEnchantments(modifiers::contains)
-        .flatMap(enchantment -> IntStream.rangeClosed(1, enchantment.getMaxLevel())
+      tools = getEquivalentEnchantments()
+        .flatMap(enchantment -> IntStream.rangeClosed(1, enchantment.value().getMaxLevel())
           .mapToObj(level -> EnchantedBookItem.createForEnchantment(new EnchantmentInstance(enchantment, level))))
         .toList();
     }
@@ -278,7 +307,7 @@ public class EnchantmentConvertingRecipe extends AbstractWorktableRecipe {
   /** Gets a list of all enchantable tools. This is expensive, but only needs to be done once fortunately. */
   private static List<ItemStack> getAllEnchantableTools() {
     if (ALL_ENCHANTABLE_TOOLS == null) {
-      ALL_ENCHANTABLE_TOOLS = BuiltInRegistries.ITEM.getValues().stream().map(item -> {
+      ALL_ENCHANTABLE_TOOLS = BuiltInRegistries.ITEM.stream().map(item -> {
         if (item != Items.BOOK) {
           ItemStack stack = new ItemStack(item);
           if (stack.isEnchantable()) {
