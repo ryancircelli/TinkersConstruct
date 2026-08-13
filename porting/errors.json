@@ -1,15 +1,7 @@
 {
-    "total": 21,
+    "total": 0,
     "islandFiles": 1473,
     "categories": {
-        "package RenderGuiOverlayEvent": 1,
-        "package net.minecraftforge.client.event": 1,
-        "package net.minecraftforge.client.gui.overlay": 1,
-        "package net.minecraftforge.common": 1,
-        "package net.minecraftforge.event.TickEvent": 2,
-        "symbol class EventBusSubscriber": 10,
-        "symbol class PlayerTickEvent": 1,
-        "symbol variable Bus": 3,
-        "symbol variable EventBusSubscriber": 1
+        
     }
 }

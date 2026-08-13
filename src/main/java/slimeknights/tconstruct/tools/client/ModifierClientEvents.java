@@ -3,11 +3,13 @@ package slimeknights.tconstruct.tools.client;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -19,18 +21,19 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent.LoggingOut;
 import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.client.event.RenderHandEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientMobEffectExtensions;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod.EventBusSubscriber;
-import net.neoforged.fml.common.Mod.EventBusSubscriber.Bus;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import org.joml.Matrix4f;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.TinkerTags;
@@ -60,7 +63,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Modifier event hooks that run client side */
-@EventBusSubscriber(modid = TConstruct.MOD_ID, value = Dist.CLIENT, bus = Bus.FORGE)
+@EventBusSubscriber(modid = TConstruct.MOD_ID, value = Dist.CLIENT, bus = Bus.GAME)
 public class ModifierClientEvents {
   @SubscribeEvent
   static void onTooltipEvent(ItemTooltipEvent event) {
@@ -123,33 +126,34 @@ public class ModifierClientEvents {
   /** Handles the zoom modifier zooming */
   @SubscribeEvent
   static void handleZoom(ComputeFovModifierEvent event) {
-    event.getPlayer().getCapability(TinkerDataCapability.CAPABILITY).ifPresent(data -> {
-      float newFov = event.getNewFovModifier();
+    // the capability became a data attachment; getData never returns null, so the ifPresent wrapper has nothing left
+    // to guard and the body is inlined
+    TinkerDataCapability.Holder data = TinkerDataCapability.getData(event.getPlayer());
+    float newFov = event.getNewFovModifier();
 
-      // scaled effects only apply if we have FOV scaling, nothing to do if 0
-      float effectScale = Minecraft.getInstance().options.fovEffectScale().get().floatValue();
-      if (effectScale > 0) {
-        FloatMultiplier scaledZoom = data.get(TinkerDataKeys.SCALED_FOV_MODIFIER);
-        if (scaledZoom != null) {
-          // much easier when 1, save some effort
-          if (effectScale == 1) {
-            newFov *= scaledZoom.getValue();
-          } else {
-            // unlerp the fov before multiplitying to make sure we apply the proper amount
-            // we could use the original FOV, but someone else may have modified it
-            float original = event.getFovModifier();
-            newFov *= Mth.lerp(effectScale, 1.0F, scaledZoom.getValue() * original) / original;
-          }
+    // scaled effects only apply if we have FOV scaling, nothing to do if 0
+    float effectScale = Minecraft.getInstance().options.fovEffectScale().get().floatValue();
+    if (effectScale > 0) {
+      FloatMultiplier scaledZoom = data.get(TinkerDataKeys.SCALED_FOV_MODIFIER);
+      if (scaledZoom != null) {
+        // much easier when 1, save some effort
+        if (effectScale == 1) {
+          newFov *= scaledZoom.getValue();
+        } else {
+          // unlerp the fov before multiplitying to make sure we apply the proper amount
+          // we could use the original FOV, but someone else may have modified it
+          float original = event.getFovModifier();
+          newFov *= Mth.lerp(effectScale, 1.0F, scaledZoom.getValue() * original) / original;
         }
       }
+    }
 
-      // non-scaled effects are much easier to deal with
-      FloatMultiplier constZoom = data.get(TinkerDataKeys.FOV_MODIFIER);
-      if (constZoom != null) {
-        newFov *= constZoom.getValue();
-      }
-      event.setNewFovModifier(newFov);
-    });
+    // non-scaled effects are much easier to deal with
+    FloatMultiplier constZoom = data.get(TinkerDataKeys.FOV_MODIFIER);
+    if (constZoom != null) {
+      newFov *= constZoom.getValue();
+    }
+    event.setNewFovModifier(newFov);
   }
 
 
@@ -229,7 +233,7 @@ public class ModifierClientEvents {
     boolean hasBeneficial = false;
     for (MobEffectInstance instance : player.getActiveEffects()) {
       if (instance.showIcon() && IClientMobEffectExtensions.of(instance).isVisibleInGui(instance)) {
-        if (instance.getEffect().isBeneficial()) {
+        if (instance.getEffect().value().isBeneficial()) {
           hasBeneficial = true;
         } else {
           // negative effects means offset two rows
@@ -241,12 +245,19 @@ public class ModifierClientEvents {
     return hasBeneficial ? 26 : 0;
   }
 
-  /** Render the item in the first shield slot */
+  /**
+   * Render the item in the first shield slot
+   * @apiNote  Forge's whole overlay system is gone from NeoForge 21.1. {@code RenderGuiOverlayEvent.Post} is
+   * {@link RenderGuiLayerEvent.Post}, the overlay a layer named by a plain {@link net.minecraft.resources.ResourceLocation}
+   * off {@link VanillaGuiLayers}, and the partial tick a {@link DeltaTracker}. Drawing after the hotbar layer rather
+   * than replacing it keeps this additive, so the {@code hideGui} check is still this method's own to make - the
+   * predicate vanilla wraps its own layers in is not visible from a Post listener.
+   */
   @SubscribeEvent
-  public static void renderHotbar(RenderGuiOverlayEvent.Post event) {
+  public static void renderHotbar(RenderGuiLayerEvent.Post event) {
     Minecraft mc = Minecraft.getInstance();
     Player player = mc.player;
-    if (mc.options.hideGui || event.getOverlay() != VanillaGuiOverlay.HOTBAR.type() || player == null || player != mc.getCameraEntity()) {
+    if (mc.options.hideGui || !event.getName().equals(VanillaGuiLayers.HOTBAR) || player == null || player != mc.getCameraEntity()) {
       return;
     }
     boolean renderShield = Config.CLIENT.renderShieldSlotItem.get() && !nextOffhand.isEmpty();
@@ -272,7 +283,8 @@ public class ModifierClientEvents {
       int scaledWidth = mc.getWindow().getGuiScaledWidth();
       int scaledHeight = mc.getWindow().getGuiScaledHeight();
       GuiGraphics graphics = event.getGuiGraphics();
-      float partialTicks = event.getPartialTick();
+      // Gui#renderSlot takes the DeltaTracker itself now, so it is threaded from the event rather than flattened
+      DeltaTracker partialTicks = event.getPartialTick();
 
       // want just above the normal offhand item
       boolean emptyOffhand = player.getOffhandItem().isEmpty();
@@ -302,7 +314,8 @@ public class ModifierClientEvents {
       int mapOffset = 0;
       if (!map.isEmpty() && mc.level != null) {
         MapItemSavedData data = MapItem.getSavedData(map, mc.level);
-        Integer index = MapItem.getMapId(map);
+        // the map's id is minecraft:map_id now, a MapId rather than a boxed int, and MapItem#getMapId went with it
+        MapId index = map.get(DataComponents.MAP_ID);
 
         // determine placement of the map
         mapLocation = Config.CLIENT.mapLocation.get();
@@ -331,10 +344,10 @@ public class ModifierClientEvents {
         MultiBufferSource buffer = graphics.bufferSource();
         VertexConsumer consumer = buffer.getBuffer(data == null ? ItemInHandRenderer.MAP_BACKGROUND : ItemInHandRenderer.MAP_BACKGROUND_CHECKERBOARD);
         Matrix4f matrix = poseStack.last().pose();
-        consumer.vertex(matrix,  -7, 135, 0).color(255, 255, 255, 255).uv(0, 1).uv2(light).endVertex();
-        consumer.vertex(matrix, 135, 135, 0).color(255, 255, 255, 255).uv(1, 1).uv2(light).endVertex();
-        consumer.vertex(matrix, 135,  -7, 0).color(255, 255, 255, 255).uv(1, 0).uv2(light).endVertex();
-        consumer.vertex(matrix,  -7,  -7, 0).color(255, 255, 255, 255).uv(0, 0).uv2(light).endVertex();
+        consumer.addVertex(matrix,  -7, 135, 0).setColor(255, 255, 255, 255).setUv(0, 1).setLight(light);
+        consumer.addVertex(matrix, 135, 135, 0).setColor(255, 255, 255, 255).setUv(1, 1).setLight(light);
+        consumer.addVertex(matrix, 135,  -7, 0).setColor(255, 255, 255, 255).setUv(1, 0).setLight(light);
+        consumer.addVertex(matrix,  -7,  -7, 0).setColor(255, 255, 255, 255).setUv(0, 0).setLight(light);
 
         // draw map if present
         if (data != null && index != null) {

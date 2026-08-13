@@ -1,12 +1,10 @@
 package slimeknights.tconstruct.tools.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeMod;
 
 // TOOD: can this be removed?
 public class RayTracer {
@@ -73,28 +71,15 @@ public class RayTracer {
    *
    * @param player the player
    * @return the block reach distance
+   * @implNote  This was a three way split - the client asked {@code MultiPlayerGameMode#getPickRange()}, the server
+   *            read {@code ForgeMod.BLOCK_REACH}, and anything else got a hardcoded 5 - held apart by a
+   *            {@code ClientOnly} holder class so the server never loaded {@link Minecraft}. The split existed because
+   *            Forge's reach attribute was not synced to the client. It is vanilla's
+   *            {@link net.minecraft.world.entity.ai.attributes.Attributes#BLOCK_INTERACTION_RANGE} in 1.21 and it is
+   *            synced, so {@link Player#blockInteractionRange()} is the right answer on both sides and the holder
+   *            class has nothing left to hold.
    */
   public static double getBlockReachDistance(Player player) {
-    return player.level().isClientSide ? ClientOnly.getBlockReachDistanceClient() : player instanceof ServerPlayer serverPlayer ? getBlockReachDistanceServer(serverPlayer) : 5D;
-  }
-
-  /**
-   * Gets the block reach distance from the server
-   *
-   * @return the block reach distance from the server
-   */
-  private static double getBlockReachDistanceServer(ServerPlayer player) {
-    return player.getAttributeValue(ForgeMod.BLOCK_REACH.get());
-  }
-
-  private static class ClientOnly {
-    /**
-     * Gets the block reach distance from the client
-     * @return the block reach distance from the client
-     */
-    private static double getBlockReachDistanceClient() {
-      assert Minecraft.getInstance().gameMode != null;
-      return Minecraft.getInstance().gameMode.getPickRange();
-    }
+    return player.blockInteractionRange();
   }
 }
