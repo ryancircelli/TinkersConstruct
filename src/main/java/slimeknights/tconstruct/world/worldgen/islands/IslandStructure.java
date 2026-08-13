@@ -146,7 +146,7 @@ public class IslandStructure extends Structure {
     }
 
     /** Adds a new grass type to the builder with the given weight */
-    public Builder vines(DeferredHolder<? extends Block> block) {
+    public Builder vines(DeferredHolder<Block, ? extends Block> block) {
       return vines(block.get());
     }
 
@@ -157,7 +157,7 @@ public class IslandStructure extends Structure {
     }
 
     /** Adds a new grass type to the builder with the given weight */
-    public Builder addGrass(DeferredHolder<? extends Block> block, int weight) {
+    public Builder addGrass(DeferredHolder<Block, ? extends Block> block, int weight) {
       return addGrass(block.get(), weight);
     }
 

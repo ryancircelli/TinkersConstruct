@@ -8,7 +8,7 @@ import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.worldgen.BootstapContext;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.worldgen.features.TreeFeatures;
 import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.resources.ResourceKey;
@@ -67,8 +67,8 @@ import net.minecraft.world.level.levelgen.structure.placement.StructurePlacement
 import net.minecraft.world.level.levelgen.structure.templatesystem.BlockMatchTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.neoforged.neoforge.common.world.BiomeModifier;
-import net.minecraftforge.common.world.ForgeBiomeModifiers.AddFeaturesBiomeModifier;
-import net.minecraftforge.common.world.ForgeBiomeModifiers.AddSpawnsBiomeModifier;
+import net.neoforged.neoforge.common.world.BiomeModifiers.AddFeaturesBiomeModifier;
+import net.neoforged.neoforge.common.world.BiomeModifiers.AddSpawnsBiomeModifier;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.holdersets.AndHolderSet;
 import net.neoforged.neoforge.registries.holdersets.NotHolderSet;
@@ -158,7 +158,7 @@ public class WorldgenProvider {
 
   /** Registers all configured features */
   @SuppressWarnings("deprecation")
-  private static void registerConfiguredFeatures(BootstapContext<ConfiguredFeature<?,?>> context) {
+  private static void registerConfiguredFeatures(BootstrapContext<ConfiguredFeature<?,?>> context) {
     // sapling trees
     register(context, earthSlimeTree, slimeTree,
              new SlimeTreeConfig.Builder()
@@ -265,7 +265,7 @@ public class WorldgenProvider {
   }
 
   /** Registers all structures */
-  private static void registerPlacedFeatures(BootstapContext<PlacedFeature> context) {
+  private static void registerPlacedFeatures(BootstrapContext<PlacedFeature> context) {
     // ores
     register(context, placedSmallCobaltOre, configuredSmallCobaltOre, CountPlacement.of(5), InSquarePlacement.spread(), PlacementUtils.RANGE_8_8, BiomeFilter.biome());
     register(context, placedLargeCobaltOre, configuredLargeCobaltOre, CountPlacement.of(3), InSquarePlacement.spread(), HeightRangePlacement.triangle(VerticalAnchor.absolute(8), VerticalAnchor.absolute(32)), BiomeFilter.biome());
@@ -278,7 +278,7 @@ public class WorldgenProvider {
   }
 
   /** Registers all structures */
-  private static void registerStructures(BootstapContext<Structure> context) {
+  private static void registerStructures(BootstrapContext<Structure> context) {
     HolderGetter<Biome> biomes = context.lookup(Registries.BIOME);
     HolderGetter<ConfiguredFeature<?,?>> configured = context.lookup(Registries.CONFIGURED_FEATURE);
     // earthslime island
@@ -328,7 +328,7 @@ public class WorldgenProvider {
   }
 
   /** Registers all structures */
-  private static void registerStructureSets(BootstapContext<StructureSet> context) {
+  private static void registerStructureSets(BootstrapContext<StructureSet> context) {
     HolderGetter<Structure> structures = context.lookup(Registries.STRUCTURE);
     context.register(overworldOceanIsland, structureSet(30, 9, RandomSpreadType.LINEAR, 25988585,  0.5f, entry(structures, earthSlimeIsland, 1), entry(structures, oceanSkyslimeIsland, 1)));
     context.register(overworldSkyIsland,   structureSet(35, 4, RandomSpreadType.LINEAR, 14357800,  0.5f,  entry(structures, skySlimeIsland, 4), entry(structures, clayIsland, 1)));
@@ -337,7 +337,7 @@ public class WorldgenProvider {
   }
 
   /** Registers all biome modifiers */
-  private static void registerBiomeModifiers(BootstapContext<BiomeModifier> context) {
+  private static void registerBiomeModifiers(BootstrapContext<BiomeModifier> context) {
     HolderGetter<Biome> biomes = context.lookup(Registries.BIOME);
     HolderGetter<PlacedFeature> placed = context.lookup(Registries.PLACED_FEATURE);
     HolderSet<Biome> overworld = biomes.getOrThrow(BiomeTags.IS_OVERWORLD);
@@ -392,17 +392,17 @@ public class WorldgenProvider {
   /* Configured features */
 
   /** Registers a configured feature */
-  private static <FC extends FeatureConfiguration, F extends Feature<FC>> void register(BootstapContext<ConfiguredFeature<?,?>> context, ResourceKey<ConfiguredFeature<?,?>> key, F feature, FC config) {
+  private static <FC extends FeatureConfiguration, F extends Feature<FC>> void register(BootstrapContext<ConfiguredFeature<?,?>> context, ResourceKey<ConfiguredFeature<?,?>> key, F feature, FC config) {
     context.register(key, new ConfiguredFeature<>(feature, config));
   }
 
   /** Registers a configured feature */
-  private static <FC extends FeatureConfiguration, F extends Feature<FC>> void register(BootstapContext<ConfiguredFeature<?,?>> context, ResourceKey<ConfiguredFeature<?,?>> key, Supplier<F> feature, FC config) {
+  private static <FC extends FeatureConfiguration, F extends Feature<FC>> void register(BootstrapContext<ConfiguredFeature<?,?>> context, ResourceKey<ConfiguredFeature<?,?>> key, Supplier<F> feature, FC config) {
     register(context, key, feature.get(), config);
   }
 
   /** Configures a geode feature */
-  private static void configureGeode(BootstapContext<ConfiguredFeature<?,?>> context, ResourceKey<ConfiguredFeature<?,?>> key, GeodeItemObject geode,
+  private static void configureGeode(BootstrapContext<ConfiguredFeature<?,?>> context, ResourceKey<ConfiguredFeature<?,?>> key, GeodeItemObject geode,
                                      BlockStateProvider middleLayer, BlockStateProvider outerLayer, @Nullable Supplier<? extends Block> extraCluster, GeodeLayerSettings layerSettings, GeodeCrackSettings crackSettings,
                                      IntProvider outerWall, IntProvider distributionPoints, IntProvider pointOffset, int genOffset, int invalidBlocks) {
     // allow adding in an extra cluster type to the geode
@@ -425,12 +425,12 @@ public class WorldgenProvider {
   /* Placed features */
 
   /** Registers a placed feature */
-  private static void register(BootstapContext<PlacedFeature> context, ResourceKey<PlacedFeature> key, ResourceKey<ConfiguredFeature<?,?>> configured, PlacementModifier... placement) {
+  private static void register(BootstrapContext<PlacedFeature> context, ResourceKey<PlacedFeature> key, ResourceKey<ConfiguredFeature<?,?>> configured, PlacementModifier... placement) {
     context.register(key, new PlacedFeature(context.lookup(Registries.CONFIGURED_FEATURE).getOrThrow(configured), List.of(placement)));
   }
 
   /** Registers a placed feature */
-  private static void placeGeode(BootstapContext<PlacedFeature> context, ResourceKey<PlacedFeature> key, ResourceKey<ConfiguredFeature<?,?>> configured, RarityFilter rarity, HeightRangePlacement height) {
+  private static void placeGeode(BootstrapContext<PlacedFeature> context, ResourceKey<PlacedFeature> key, ResourceKey<ConfiguredFeature<?,?>> configured, RarityFilter rarity, HeightRangePlacement height) {
     register(context, key, configured, rarity, InSquarePlacement.spread(), height, BiomeFilter.biome());
   }
 

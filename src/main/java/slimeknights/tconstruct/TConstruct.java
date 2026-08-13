@@ -111,7 +111,7 @@ public class TConstruct {
     bus.register(new TinkerAttributes(bus));
     // world
     bus.register(new TinkerWorld());
-    bus.register(new TinkerStructures());
+    bus.register(new TinkerStructures(bus));
     // tools
     bus.register(new TinkerTables());
     bus.register(new TinkerModifiers());

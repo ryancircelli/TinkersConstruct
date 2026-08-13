@@ -1,8 +1,9 @@
 package slimeknights.tconstruct.world.data;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
@@ -20,11 +21,11 @@ import slimeknights.tconstruct.shared.TinkerCommons;
 import slimeknights.tconstruct.shared.block.SlimeType;
 import slimeknights.tconstruct.world.TinkerWorld;
 
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 
 public class WorldRecipeProvider extends BaseRecipeProvider implements ICommonRecipeHelper {
-  public WorldRecipeProvider(PackOutput packOutput) {
-    super(packOutput);
+  public WorldRecipeProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
+    super(packOutput, registries);
   }
 
   @Override
@@ -33,7 +34,7 @@ public class WorldRecipeProvider extends BaseRecipeProvider implements ICommonRe
   }
 
   @Override
-  protected void buildRecipes(Consumer<FinishedRecipe> consumer) {
+  protected void buildRecipes(RecipeOutput consumer) {
     // Add recipe for all slimeball <-> congealed and slimeblock <-> slimeball
     // only earth slime recipe we need here slime
     ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, TinkerWorld.congealedSlime.get(SlimeType.EARTH))
@@ -80,7 +81,7 @@ public class WorldRecipeProvider extends BaseRecipeProvider implements ICommonRe
     }
 
     // craft other slime based items, forge does not automatically add recipes using the tag anymore
-    Consumer<FinishedRecipe> slimeConsumer = withCondition(consumer, ConfigEnabledCondition.SLIME_RECIPE_FIX);
+    RecipeOutput slimeConsumer = withCondition(consumer, ConfigEnabledCondition.SLIME_RECIPE_FIX);
     ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, Blocks.STICKY_PISTON)
                        .pattern("#")
                        .pattern("P")
@@ -111,7 +112,7 @@ public class WorldRecipeProvider extends BaseRecipeProvider implements ICommonRe
     geodeRecipes(consumer, TinkerWorld.enderGeode, SlimeType.ENDER, "common/slime/ender/");
   }
 
-  private void geodeRecipes(Consumer<FinishedRecipe> consumer, GeodeItemObject geode, SlimeType slime, String folder) {
+  private void geodeRecipes(RecipeOutput consumer, GeodeItemObject geode, SlimeType slime, String folder) {
     ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, geode.getBlock())
                        .define('#', geode.asItem())
                        .pattern("##")

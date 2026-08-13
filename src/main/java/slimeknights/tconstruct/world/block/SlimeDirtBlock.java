@@ -5,8 +5,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraftforge.common.PlantType;
-import slimeknights.tconstruct.world.TinkerWorld;
+import net.neoforged.neoforge.common.util.TriState;
 
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
@@ -16,9 +15,14 @@ public class SlimeDirtBlock extends Block {
     super(properties);
   }
 
+  /**
+   * 1.21 replaced the {@code IPlantable}/{@code PlantType} query with this soil-side hook, and there is no longer a
+   * granular "plant kind" to compare against - just the plant's own state. Slime dirt kept the broad intent of the
+   * old check (sustain slimy plants and ordinary overworld plants alike) by allowing anything to grow here; a plant
+   * that wants a more specific soil (farmland, nylium, etc) still asks for it through its own {@code mayPlaceOn}.
+   */
   @Override
-  public boolean canSustainPlant(BlockState state, BlockGetter world, BlockPos pos, Direction facing, net.minecraftforge.common.IPlantable plantable) {
-    // can sustain both slimeplants and normal plants
-    return plantable.getPlantType(world, pos) == TinkerWorld.SLIME_PLANT_TYPE || plantable.getPlantType(world, pos) == PlantType.PLAINS;
+  public TriState canSustainPlant(BlockState state, BlockGetter level, BlockPos pos, Direction facing, BlockState plant) {
+    return TriState.TRUE;
   }
 }

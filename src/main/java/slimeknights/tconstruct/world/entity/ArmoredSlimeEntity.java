@@ -5,6 +5,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
@@ -26,6 +27,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.Nullable;
+import slimeknights.tconstruct.TConstruct;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoField;
@@ -34,12 +36,16 @@ import java.util.List;
 public abstract class ArmoredSlimeEntity extends Slime {
   private static final EntityDataAccessor<Boolean> METAL = SynchedEntityData.defineId(ArmoredSlimeEntity.class, EntityDataSerializers.BOOLEAN);
   public static final String TAG_METAL = "metal";
+  // 1.21's AttributeModifier keys on a ResourceLocation id rather than a UUID/name pair (T8a §5.2, T8c §3)
+  private static final ResourceLocation SMALL_ARMOR_BONUS = TConstruct.getResource("small_armor_bonus");
+  private static final ResourceLocation SMALL_TOUGHNESS_BONUS = TConstruct.getResource("small_toughness_bonus");
+  private static final ResourceLocation SMALL_RESISTANCE_BONUS = TConstruct.getResource("small_resistance_bonus");
   public ArmoredSlimeEntity(EntityType<? extends ArmoredSlimeEntity> type, Level world) {
     super(type, world);
     if (!world.isClientSide) {
-      tryAddAttribute(Attributes.ARMOR, new AttributeModifier("tconstruct.small_armor_bonus", 3, Operation.MULTIPLY_TOTAL));
-      tryAddAttribute(Attributes.ARMOR_TOUGHNESS, new AttributeModifier("tconstruct.small_toughness_bonus", 3, Operation.MULTIPLY_TOTAL));
-      tryAddAttribute(Attributes.KNOCKBACK_RESISTANCE, new AttributeModifier("tconstruct.small_resistence_bonus", 3, Operation.MULTIPLY_TOTAL));
+      tryAddAttribute(Attributes.ARMOR, new AttributeModifier(SMALL_ARMOR_BONUS, 3, Operation.ADD_MULTIPLIED_TOTAL));
+      tryAddAttribute(Attributes.ARMOR_TOUGHNESS, new AttributeModifier(SMALL_TOUGHNESS_BONUS, 3, Operation.ADD_MULTIPLIED_TOTAL));
+      tryAddAttribute(Attributes.KNOCKBACK_RESISTANCE, new AttributeModifier(SMALL_RESISTANCE_BONUS, 3, Operation.ADD_MULTIPLIED_TOTAL));
     }
     this.entityData.set(METAL, false);
   }
