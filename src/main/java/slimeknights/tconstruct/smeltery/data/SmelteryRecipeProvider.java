@@ -2270,8 +2270,8 @@ public class SmelteryRecipeProvider extends BaseRecipeProvider implements ISmelt
     // diamond has both railcraft spikemaul and tools complement excavator at cost 11
     molten(consumer, TinkerFluids.moltenDiamond).ore(Byproduct.DEBRIS ).largeGem().dust().gear().geore().minecraftTools("diamond", true).toolCostMelting(11, "tools_costing_11").common(HAMMER);
     molten(consumer, TinkerFluids.moltenEmerald).ore(Byproduct.DIAMOND).largeGem().dust().gear().geore();
-    molten(consumer, TinkerFluids.moltenQuartz ).ore(Byproduct.IRON   ).smallGem().dust().gear().geore();
-    molten(consumer, TinkerFluids.moltenAmethyst).smallGem();
+    molten(consumer, TinkerFluids.moltenQuartz ).ore(Byproduct.IRON   ).smallGem(Blocks.QUARTZ_BLOCK).dust().gear().geore();
+    molten(consumer, TinkerFluids.moltenAmethyst).smallGem(Blocks.AMETHYST_BLOCK);
 
     // standard alloys
     metal(consumer, TinkerFluids.moltenNetherite).metal().dust().plate().gear().coin(); // handles tools elsewhere due to byproducts

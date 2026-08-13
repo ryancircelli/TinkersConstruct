@@ -14,6 +14,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.crafting.DifferenceIngredient;
@@ -272,7 +273,12 @@ public class SmelteryRecipeBuilder {
   /** Adds a recipe for melting an item from a tag */
   private void tagMelting(float scale, String output, float factor, ResourceLocation tagName, boolean damagable, boolean forceOptional) {
     RecipeOutput wrapped = optional || forceOptional ? withCondition(tagCondition(tagName)) : consumer;
-    MeltingRecipeBuilder builder = MeltingRecipeBuilder.melting(Ingredient.of(ItemTags.create(tagName)), result((int) (baseUnit * scale)), temperature, factor);
+    ingredientMelting(scale, output, factor, Ingredient.of(ItemTags.create(tagName)), damagable, wrapped);
+  }
+
+  /** Adds a recipe for melting the given ingredient, the shared body of {@link #tagMelting} and its concrete-item twin */
+  private void ingredientMelting(float scale, String output, float factor, Ingredient ingredient, boolean damagable, RecipeOutput wrapped) {
+    MeltingRecipeBuilder builder = MeltingRecipeBuilder.melting(ingredient, result((int) (baseUnit * scale)), temperature, factor);
     if (damagable) {
       builder.setDamagable(damageUnits());
     }
@@ -399,7 +405,12 @@ public class SmelteryRecipeBuilder {
   public SmelteryRecipeBuilder blockCasting(int factor, Ingredient cast, boolean forceOptional) {
     String tagName = "storage_blocks/" + this.name.getPath();
     RecipeOutput wrapped = optional || forceOptional ? withCondition(tagCondition(tagName)) : consumer;
-    ItemCastingRecipeBuilder.basinRecipe(ItemOutput.fromTag(itemTag(tagName)))
+    return blockCasting(factor, ItemOutput.fromTag(itemTag(tagName)), cast, wrapped);
+  }
+
+  /** Recipe to cast the block, for a block with no common tag to name it */
+  private SmelteryRecipeBuilder blockCasting(int factor, ItemOutput output, Ingredient cast, RecipeOutput wrapped) {
+    ItemCastingRecipeBuilder.basinRecipe(output)
       .setFluid(ingredient(baseUnit * factor))
       .setCoolingTime(temperature, baseUnit * factor)
       .setCast(cast, true)
@@ -564,11 +575,26 @@ public class SmelteryRecipeBuilder {
 
   /** Adds basic recipes for gems */
   public SmelteryRecipeBuilder gem(int storageSize) {
+    return gem(storageSize, null);
+  }
+
+  /**
+   * Adds basic recipes for gems.
+   * @param storageBlock  Block to melt and cast, or null to use the {@code c:storage_blocks/<name>} common tag.
+   *                      Pass the block for a gem NeoForge gives no storage block tag; see {@link #smallGem(ItemLike)}.
+   */
+  public SmelteryRecipeBuilder gem(int storageSize, @Nullable ItemLike storageBlock) {
     oreRate = OreRateType.GEM;
     baseUnit = FluidValues.GEM;
     damageUnit = FluidValues.GEM_SHARD;
-    melting(storageSize, "block", "storage_blocks", (float)Math.sqrt(storageSize), false, false);
-    blockCasting(storageSize, Ingredient.EMPTY, false);
+    float factor = (float)Math.sqrt(storageSize);
+    if (storageBlock == null) {
+      melting(storageSize, "block", "storage_blocks", factor, false, false);
+      blockCasting(storageSize, Ingredient.EMPTY, false);
+    } else {
+      ingredientMelting(storageSize, "block", factor, Ingredient.of(storageBlock), false, consumer);
+      blockCasting(storageSize, ItemOutput.fromItem(storageBlock), Ingredient.EMPTY, consumer);
+    }
     meltingCasting(1, TinkerSmeltery.gemCast, 1.0f, false);
     // if we set byproducts, we are an ore
     if (hasOre) {
@@ -582,6 +608,20 @@ public class SmelteryRecipeBuilder {
   /** Adds basic recipes for a amethyst/quartz style gem */
   public SmelteryRecipeBuilder smallGem() {
     return gem(4);
+  }
+
+  /**
+   * Adds basic recipes for a amethyst/quartz style gem whose storage block has no common tag.
+   * <p>
+   * NeoForge's {@code c:storage_blocks} names the blocks that hold nine of their gem, and neither the quartz block nor
+   * the amethyst block does - both are four. Forge's {@code forge:storage_blocks/quartz} did exist and only ever held
+   * the plain block, so naming the block directly is what that tag meant; {@code MaterialRecipeProvider} and
+   * {@code ModifierRecipeProvider} already read it that way. It also matters more than a missing recipe would suggest:
+   * an {@code ItemOutput} over an empty tag resolves to an empty stack, and 1.21 writes recipes to the client through a
+   * stream codec that refuses one, so the casting recipe took the whole login down rather than quietly not matching.
+   */
+  public SmelteryRecipeBuilder smallGem(ItemLike storageBlock) {
+    return gem(4, storageBlock);
   }
 
   /** Adds basic recipes for a diamond/emerald style gem */
