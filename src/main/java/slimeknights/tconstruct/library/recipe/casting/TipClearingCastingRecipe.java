@@ -48,7 +48,9 @@ public class TipClearingCastingRecipe extends PotionCastingRecipe {
   @Override
   public ItemStack assemble(ICastingContainer inv, HolderLookup.Provider access) {
     ItemStack result = inv.getStack().copy();
-    ToolStack.mutable(result).getPersistentData().remove(modifier);
+    ToolStack tool = ToolStack.mutable(result);
+    tool.getPersistentData().remove(modifier);
+    tool.updateStack();
     return result;
   }
 
