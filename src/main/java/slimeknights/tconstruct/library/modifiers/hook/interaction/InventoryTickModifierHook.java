@@ -51,6 +51,10 @@ public interface InventoryTickModifierHook {
           entry.getHook(ModifierHooks.INVENTORY_TICK).onInventoryTick(tool, entry, worldIn, living, itemSlot, isSelected, isHeld, stack);
         }
       }
+      // both ensureHasData and any of the hooks may have written, and neither says so, so the tick always commits.
+      // ModifiableArmorItem#inventoryTick is the same method for armor and already did this; without it a tool that
+      // needs materials has them randomized afresh every tick and never keeps them.
+      tool.updateStack();
     }
   }
 
