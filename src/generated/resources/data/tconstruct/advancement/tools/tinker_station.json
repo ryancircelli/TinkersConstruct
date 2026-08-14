@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:tinker_station"
-            ]
+            "items": "tconstruct:tinker_station"
           }
         ]
       },
@@ -19,12 +17,10 @@
     "description": {
       "translate": "advancements.tconstruct.tools.tinker_station.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:tinker_station"
+      "count": 1,
+      "id": "tconstruct:tinker_station"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.tools.tinker_station.title"
     }

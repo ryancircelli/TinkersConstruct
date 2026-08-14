@@ -8,10 +8,10 @@
             "count": {
               "min": 64
             },
-            "items": [
-              "tconstruct:scorched_lantern"
-            ],
-            "nbt": "{tank:{Amount:50,FluidName:\"tconstruct:molten_manyullyn\"}}"
+            "items": "tconstruct:scorched_lantern",
+            "predicates": {
+              "minecraft:custom_data": "{tank:{Fluid:{amount:50,id:\"tconstruct:molten_manyullyn\"}}}"
+            }
           }
         ]
       },
@@ -24,10 +24,10 @@
             "count": {
               "min": 64
             },
-            "items": [
-              "tconstruct:seared_lantern"
-            ],
-            "nbt": "{tank:{Amount:50,FluidName:\"tconstruct:molten_manyullyn\"}}"
+            "items": "tconstruct:seared_lantern",
+            "predicates": {
+              "minecraft:custom_data": "{tank:{Fluid:{amount:50,id:\"tconstruct:molten_manyullyn\"}}}"
+            }
           }
         ]
       },
@@ -35,17 +35,20 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.tconstruct.foundry.manyullyn_lanterns.description"
     },
     "frame": "challenge",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:scorched_lantern",
-      "nbt": "{tank:{Amount:50,FluidName:\"tconstruct:molten_manyullyn\"}}"
+      "components": {
+        "tconstruct:tank": {
+          "amount": 50,
+          "id": "tconstruct:molten_manyullyn"
+        }
+      },
+      "count": 1,
+      "id": "tconstruct:scorched_lantern"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.foundry.manyullyn_lanterns.title"
     }

@@ -29,19 +29,19 @@
           },
           {
             "type": "mantle:tag",
-            "tag": "c:tools/shields"
+            "tag": "c:tools/shield"
           },
           {
             "type": "mantle:tag",
-            "tag": "c:tools/bows"
+            "tag": "c:tools/bow"
           },
           {
             "type": "mantle:tag",
-            "tag": "c:tools/crossbows"
+            "tag": "c:tools/crossbow"
           },
           {
             "type": "mantle:tag",
-            "tag": "c:tools/fishing_rods"
+            "tag": "c:tools/fishing_rod"
           },
           {
             "type": "mantle:tag",

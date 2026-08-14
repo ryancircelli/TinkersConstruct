@@ -9,7 +9,7 @@
             "entity": "this",
             "predicate": {
               "location": {
-                "structure": "tconstruct:sky_slime_island"
+                "structures": "tconstruct:sky_slime_island"
               }
             }
           }
@@ -19,16 +19,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.tconstruct.world.sky_island.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:sky_slime_sapling"
+      "count": 1,
+      "id": "tconstruct:sky_slime_sapling"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.world.sky_island.title"
     }

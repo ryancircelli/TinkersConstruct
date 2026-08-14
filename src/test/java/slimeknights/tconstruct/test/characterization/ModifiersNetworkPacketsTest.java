@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Object -> encode -> decode -> object field round trip for the fluid effect packet.
  * <p>
- * The modifier packet's half of this moved to {@code UpdateModifiersPacketTest}, which is on the test island beside its
- * subject and pins the decode ordering rules the 1.21 packet gained.
+ * The modifier packet's half of this moved to {@code UpdateModifiersPacketTest}, which sits beside its subject and
+ * pins the decode ordering rules the 1.21 packet gained.
  */
 class ModifiersNetworkPacketsTest extends BaseMcTest {
   @BeforeAll

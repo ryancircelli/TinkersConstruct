@@ -1,7 +1,7 @@
 {
   "type": "tconstruct:melting",
   "ingredient": {
-    "tag": "c:storage_blocks/amethyst"
+    "item": "minecraft:amethyst_block"
   },
   "result": {
     "amount": 400,

@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:adze_head_cast"
-            ]
+            "items": "tconstruct:adze_head_cast"
           }
         ]
       },
@@ -17,9 +15,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:boots_plating_cast"
-            ]
+            "items": "tconstruct:boots_plating_cast"
           }
         ]
       },
@@ -29,9 +25,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:bow_grip_cast"
-            ]
+            "items": "tconstruct:bow_grip_cast"
           }
         ]
       },
@@ -41,9 +35,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:bow_limb_cast"
-            ]
+            "items": "tconstruct:bow_limb_cast"
           }
         ]
       },
@@ -53,9 +45,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:broad_axe_head_cast"
-            ]
+            "items": "tconstruct:broad_axe_head_cast"
           }
         ]
       },
@@ -65,9 +55,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:broad_blade_cast"
-            ]
+            "items": "tconstruct:broad_blade_cast"
           }
         ]
       },
@@ -77,9 +65,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:chestplate_plating_cast"
-            ]
+            "items": "tconstruct:chestplate_plating_cast"
           }
         ]
       },
@@ -89,9 +75,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:gem_cast"
-            ]
+            "items": "tconstruct:gem_cast"
           }
         ]
       },
@@ -101,9 +85,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:hammer_head_cast"
-            ]
+            "items": "tconstruct:hammer_head_cast"
           }
         ]
       },
@@ -113,9 +95,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:helmet_plating_cast"
-            ]
+            "items": "tconstruct:helmet_plating_cast"
           }
         ]
       },
@@ -125,9 +105,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:ingot_cast"
-            ]
+            "items": "tconstruct:ingot_cast"
           }
         ]
       },
@@ -137,9 +115,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:large_plate_cast"
-            ]
+            "items": "tconstruct:large_plate_cast"
           }
         ]
       },
@@ -149,9 +125,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:leggings_plating_cast"
-            ]
+            "items": "tconstruct:leggings_plating_cast"
           }
         ]
       },
@@ -161,9 +135,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:maille_cast"
-            ]
+            "items": "tconstruct:maille_cast"
           }
         ]
       },
@@ -173,9 +145,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:nugget_cast"
-            ]
+            "items": "tconstruct:nugget_cast"
           }
         ]
       },
@@ -185,9 +155,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:pick_head_cast"
-            ]
+            "items": "tconstruct:pick_head_cast"
           }
         ]
       },
@@ -197,9 +165,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:repair_kit_cast"
-            ]
+            "items": "tconstruct:repair_kit_cast"
           }
         ]
       },
@@ -209,9 +175,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:rod_cast"
-            ]
+            "items": "tconstruct:rod_cast"
           }
         ]
       },
@@ -221,9 +185,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:small_axe_head_cast"
-            ]
+            "items": "tconstruct:small_axe_head_cast"
           }
         ]
       },
@@ -233,9 +195,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:small_blade_cast"
-            ]
+            "items": "tconstruct:small_blade_cast"
           }
         ]
       },
@@ -245,9 +205,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:tool_binding_cast"
-            ]
+            "items": "tconstruct:tool_binding_cast"
           }
         ]
       },
@@ -257,9 +215,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:tool_handle_cast"
-            ]
+            "items": "tconstruct:tool_handle_cast"
           }
         ]
       },
@@ -269,9 +225,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:tough_binding_cast"
-            ]
+            "items": "tconstruct:tough_binding_cast"
           }
         ]
       },
@@ -281,9 +235,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:tough_handle_cast"
-            ]
+            "items": "tconstruct:tough_handle_cast"
           }
         ]
       },
@@ -291,16 +243,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.tconstruct.smeltery.cast_collector.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:hammer_head_cast"
+      "count": 1,
+      "id": "tconstruct:hammer_head_cast"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.smeltery.cast_collector.title"
     }

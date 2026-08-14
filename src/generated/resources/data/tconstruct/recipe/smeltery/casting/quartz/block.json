@@ -5,7 +5,5 @@
     "amount": 400,
     "tag": "tconstruct:molten_quartz"
   },
-  "result": {
-    "tag": "c:storage_blocks/quartz"
-  }
+  "result": "minecraft:quartz_block"
 }

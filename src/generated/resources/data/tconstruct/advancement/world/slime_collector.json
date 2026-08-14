@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:slimeball/earth"
+            "items": "#c:slimeball/earth"
           }
         ]
       },
@@ -15,7 +15,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:slimeball/ender"
+            "items": "#c:slimeball/ender"
           }
         ]
       },
@@ -25,7 +25,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:slimeball/ichor"
+            "items": "#c:slimeball/ichor"
           }
         ]
       },
@@ -35,9 +35,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:magma_cream"
-            ]
+            "items": "minecraft:magma_cream"
           }
         ]
       },
@@ -47,7 +45,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:slimeball/sky"
+            "items": "#c:slimeball/sky"
           }
         ]
       },
@@ -59,12 +57,10 @@
     "description": {
       "translate": "advancements.tconstruct.world.slime_collector.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:ichor_slime_ball"
+      "count": 1,
+      "id": "tconstruct:ichor_slime_ball"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.world.slime_collector.title"
     }

@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:mighty_smelting"
-            ]
+            "items": "tconstruct:mighty_smelting"
           }
         ]
       },
@@ -19,12 +17,10 @@
     "description": {
       "translate": "advancements.tconstruct.smeltery.mighty_smelting.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:mighty_smelting"
+      "count": 1,
+      "id": "tconstruct:mighty_smelting"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.smeltery.mighty_smelting.title"
     }

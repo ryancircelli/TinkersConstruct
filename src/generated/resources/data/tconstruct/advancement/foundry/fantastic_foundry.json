@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:fantastic_foundry"
-            ]
+            "items": "tconstruct:fantastic_foundry"
           }
         ]
       },
@@ -19,12 +17,10 @@
     "description": {
       "translate": "advancements.tconstruct.foundry.fantastic_foundry.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:fantastic_foundry"
+      "count": 1,
+      "id": "tconstruct:fantastic_foundry"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.foundry.fantastic_foundry.title"
     }

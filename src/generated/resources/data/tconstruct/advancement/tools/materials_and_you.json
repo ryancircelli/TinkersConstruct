@@ -4,9 +4,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:materials_and_you"
-            ]
+            "items": "tconstruct:materials_and_you"
           }
         ]
       },
@@ -19,12 +17,10 @@
     "description": {
       "translate": "advancements.tconstruct.tools.materials_and_you.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:materials_and_you"
+      "count": 1,
+      "id": "tconstruct:materials_and_you"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.tools.materials_and_you.title"
     }

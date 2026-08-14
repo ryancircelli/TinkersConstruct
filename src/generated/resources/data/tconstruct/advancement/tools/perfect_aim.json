@@ -5,21 +5,22 @@
       "conditions": {
         "items": [
           {
-            "type": "tconstruct:tool_stack",
-            "predicate": {
-              "type": "mantle:and",
-              "predicates": [
-                {
-                  "type": "mantle:tag",
-                  "tag": "tconstruct:modifiable/ranged/bows"
-                },
-                {
-                  "type": "tconstruct:stat_in_range",
-                  "max": 1.0,
-                  "min": 1.0,
-                  "stat": "tconstruct:accuracy"
-                }
-              ]
+            "predicates": {
+              "tconstruct:tool_stack": {
+                "type": "mantle:and",
+                "predicates": [
+                  {
+                    "type": "mantle:tag",
+                    "tag": "tconstruct:modifiable/ranged/bows"
+                  },
+                  {
+                    "type": "tconstruct:stat_in_range",
+                    "max": 1,
+                    "min": 1,
+                    "stat": "tconstruct:accuracy"
+                  }
+                ]
+              }
             }
           }
         ]
@@ -28,16 +29,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.tconstruct.tools.perfect_aim.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "minecraft:target"
+      "count": 1,
+      "id": "minecraft:target"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.tools.perfect_aim.title"
     }

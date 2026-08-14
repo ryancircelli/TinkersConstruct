@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "tconstruct:casts/gold"
+            "items": "#tconstruct:casts/gold"
           }
         ]
       },
@@ -17,12 +17,10 @@
     "description": {
       "translate": "advancements.tconstruct.smeltery.gold_casting.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:pick_head_cast"
+      "count": 1,
+      "id": "tconstruct:pick_head_cast"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.smeltery.gold_casting.title"
     }

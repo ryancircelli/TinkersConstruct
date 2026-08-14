@@ -99,7 +99,9 @@ public class TippedToolTransformRecipe extends ToolBuildingRecipe {
           ResourceLocation potion = getPotion(stack);
           if (potion != null) {
             ItemStack copy = result.copy();
-            ToolStack.mutable(copy).getPersistentData().putString(modifier, potion.toString());
+            ToolStack tool = ToolStack.mutable(copy);
+            tool.getPersistentData().putString(modifier, potion.toString());
+            tool.updateStack();
             return copy;
           }
           return result;

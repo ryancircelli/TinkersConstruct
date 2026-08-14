@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:travelers_boots"
-            ]
+            "items": "tconstruct:travelers_boots"
           }
         ]
       },
@@ -17,9 +15,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:travelers_chestplate"
-            ]
+            "items": "tconstruct:travelers_chestplate"
           }
         ]
       },
@@ -29,9 +25,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:travelers_helmet"
-            ]
+            "items": "tconstruct:travelers_helmet"
           }
         ]
       },
@@ -41,9 +35,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:travelers_leggings"
-            ]
+            "items": "tconstruct:travelers_leggings"
           }
         ]
       },
@@ -55,13 +47,23 @@
     "description": {
       "translate": "advancements.tconstruct.tools.travelers_gear.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:travelers_helmet",
-      "nbt": "{Damage:0,tic_broken:0b,tic_display:1b,tic_materials:[\"tconstruct:ui_render#head\",\"tconstruct:ui_render#handle\",\"tconstruct:ui_render#extra\",\"tconstruct:ui_render#large\",\"tconstruct:ui_render#extra_large\"]}"
+      "components": {
+        "tconstruct:display": {},
+        "tconstruct:tool": {
+          "broken": false,
+          "materials": [
+            "tconstruct:ui_render#head",
+            "tconstruct:ui_render#handle",
+            "tconstruct:ui_render#extra",
+            "tconstruct:ui_render#large",
+            "tconstruct:ui_render#extra_large"
+          ]
+        }
+      },
+      "count": 1,
+      "id": "tconstruct:travelers_helmet"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.tools.travelers_gear.title"
     }

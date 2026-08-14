@@ -85,12 +85,13 @@ public record ShieldBannerModifierSpriteSource(int cropX, int cropY, int cropWid
   @Override
   public void run(ResourceManager manager, Output output) {
     for (Entry<ResourceLocation,Resource> entry : SHIELD_TEXTURES.listMatchingResources(manager).entrySet()) {
-      // the converter hands back the asset id, so the texture path has to be rebuilt to load the image
-      ResourceLocation assetId = entry.getKey();
-      ResourceLocation input = SHIELD_TEXTURES.idToFile(assetId);
-      LazyLoadedImage image = new LazyLoadedImage(input, entry.getValue(), 1);
+      // listMatchingResources is ResourceManager#listResources, so it is keyed by the file and not by the id the
+      // converter names. fileToId is the converter's own way back, and the file is what the image loads from.
+      ResourceLocation file = entry.getKey();
+      ResourceLocation assetId = SHIELD_TEXTURES.fileToId(file);
+      LazyLoadedImage image = new LazyLoadedImage(file, entry.getValue(), 1);
       ResourceLocation destination = destinationPrefix.withSuffix(MaterialRenderInfo.getSuffix(assetId));
-      output.add(destination, new BannerModifierSpriteSupplier(image, input, destination));
+      output.add(destination, new BannerModifierSpriteSupplier(image, file, destination));
     }
   }
 

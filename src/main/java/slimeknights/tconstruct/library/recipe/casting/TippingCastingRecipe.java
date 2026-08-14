@@ -63,7 +63,9 @@ public class TippingCastingRecipe extends PotionCastingRecipe {
     ItemStack result = inv.getStack().copy();
     Holder<Potion> potion = getPotion(inv);
     if (potion != null) {
-      ToolStack.mutable(result).getPersistentData().putString(modifier, Loadables.POTION.getString(potion.value()));
+      ToolStack tool = ToolStack.mutable(result);
+      tool.getPersistentData().putString(modifier, Loadables.POTION.getString(potion.value()));
+      tool.updateStack();
     }
     return result;
   }

@@ -2,13 +2,13 @@ package slimeknights.tconstruct.plugin.jei;
 
 import lombok.Getter;
 import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.drawable.IDrawableAnimated.StartDirection;
 import mezz.jei.api.gui.ingredient.IRecipeSlotTooltipCallback;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
@@ -128,7 +128,7 @@ public class AlloyRecipeCategory implements IRecipeCategory<AlloyRecipe> {
         builder.addSlot(role, fluidX, y)
                .addTooltipCallback(tooltip.apply(ingredient))
                .setFluidRenderer(maxAmount, false, w, height)
-               .addIngredients(ForgeTypes.FLUID_STACK, mapper.apply(ingredient));
+               .addIngredients(NeoForgeTypes.FLUID_STACK, mapper.apply(ingredient));
       }
       // for the last, the width is the full remaining width
       int fluidX = x + max * w;
@@ -136,7 +136,7 @@ public class AlloyRecipeCategory implements IRecipeCategory<AlloyRecipe> {
       builder.addSlot(role, fluidX, y)
              .addTooltipCallback(tooltip.apply(ingredient))
              .setFluidRenderer(maxAmount, false, totalWidth - (w * max), height)
-             .addIngredients(ForgeTypes.FLUID_STACK, mapper.apply(ingredient));
+             .addIngredients(NeoForgeTypes.FLUID_STACK, mapper.apply(ingredient));
     }
     return maxAmount;
   }
@@ -152,18 +152,19 @@ public class AlloyRecipeCategory implements IRecipeCategory<AlloyRecipe> {
     builder.addSlot(RecipeIngredientRole.OUTPUT, 137, 11)
            .addTooltipCallback(FluidTooltipCallback.UNITS)
            .setFluidRenderer(maxAmount, false, 16, 32)
-           .addIngredient(ForgeTypes.FLUID_STACK, recipe.getOutput());
+           .addIngredient(NeoForgeTypes.FLUID_STACK, recipe.getOutput());
 
     // fuel
     builder.addSlot(RecipeIngredientRole.RENDER_ONLY, 94, 43)
            .addTooltipCallback(FUEL_TOOLTIP)
            .setFluidRenderer(1, false, 16, 16)
            .setOverlay(tank, 0, 0)
-           .addIngredients(ForgeTypes.FLUID_STACK, MeltingFuelHandler.getUsableFuels(recipe.getTemperature()));
+           .addIngredients(NeoForgeTypes.FLUID_STACK, MeltingFuelHandler.getUsableFuels(recipe.getTemperature()));
   }
 
-  @Override
-  public ResourceLocation getRegistryName(AlloyRecipe recipe) {
-    return recipe.getId();
-  }
+  // No getRegistryName override: 1.21 moved a recipe's ID onto RecipeHolder, and RecipeHelper#getJEIRecipes
+  // hands out the recipes themselves rather than their holders, so there is no ID reachable from here. JEI's
+  // default returns null for a non-holder, which is what a category without an ID is meant to say. The two
+  // display-only interfaces that still carry one (IDisplayableCastingRecipe, IDisplayModifierRecipe) keep
+  // their overrides; see IDisplayableCastingRecipe#getRecipeId for why a generated recipe has no ID at all.
 }

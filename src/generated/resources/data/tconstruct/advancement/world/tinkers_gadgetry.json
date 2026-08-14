@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:tinkers_gadgetry"
-            ]
+            "items": "tconstruct:tinkers_gadgetry"
           }
         ]
       },
@@ -19,12 +17,10 @@
     "description": {
       "translate": "advancements.tconstruct.world.tinkers_gadgetry.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:tinkers_gadgetry"
+      "count": 1,
+      "id": "tconstruct:tinkers_gadgetry"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.world.tinkers_gadgetry.title"
     }

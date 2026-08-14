@@ -13,12 +13,10 @@
     "description": {
       "translate": "advancements.tconstruct.foundry.structure.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:foundry_controller"
+      "count": 1,
+      "id": "tconstruct:foundry_controller"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.foundry.structure.title"
     }

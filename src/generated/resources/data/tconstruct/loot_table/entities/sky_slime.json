@@ -20,7 +20,7 @@
           "entity": "this",
           "predicate": {
             "type_specific": {
-              "type": "slime",
+              "type": "minecraft:slime",
               "size": 1
             }
           }
@@ -57,8 +57,8 @@
                 "max": 1.0,
                 "min": 0.0
               },
-              "function": "minecraft:enchanted_count_increase",
-              "enchantment": "minecraft:looting"
+              "enchantment": "minecraft:looting",
+              "function": "minecraft:enchanted_count_increase"
             }
           ],
           "name": "tconstruct:sky_slime_ball"
@@ -90,8 +90,8 @@
                 "max": 1.0,
                 "min": 0.0
               },
-              "function": "minecraft:enchanted_count_increase",
-              "enchantment": "minecraft:looting"
+              "enchantment": "minecraft:looting",
+              "function": "minecraft:enchanted_count_increase"
             }
           ],
           "name": "tconstruct:steel_shard"
@@ -115,7 +115,7 @@
           "entity": "this",
           "predicate": {
             "type_specific": {
-              "type": "slime",
+              "type": "minecraft:slime",
               "size": 1
             }
           }

@@ -1,15 +1,15 @@
 {
-  "type": "tconstruct:casting_table",
-  "cast": {
-    "tag": "c:wither_bones"
-  },
-  "cast_consumed": true,
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "mantle:tag_filled",
       "tag": "c:ingots/uranium"
     }
   ],
+  "type": "tconstruct:casting_table",
+  "cast": {
+    "tag": "c:wither_bones"
+  },
+  "cast_consumed": true,
   "cooling_time": 61,
   "fluid": {
     "amount": 90,

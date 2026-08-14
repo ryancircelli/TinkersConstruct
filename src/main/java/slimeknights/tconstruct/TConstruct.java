@@ -11,6 +11,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import net.neoforged.fml.common.Mod;
@@ -51,6 +52,10 @@ import slimeknights.tconstruct.library.tools.definition.ToolDefinitionLoader;
 import slimeknights.tconstruct.library.tools.layout.StationSlotLayoutLoader;
 import slimeknights.tconstruct.library.tools.nbt.ToolComponents;
 import slimeknights.tconstruct.library.utils.Util;
+import slimeknights.tconstruct.plugin.DummmmmmyPlugin;
+import slimeknights.tconstruct.plugin.ImmersiveEngineeringPlugin;
+import slimeknights.tconstruct.plugin.craftingtweaks.CraftingTweaksPlugin;
+import slimeknights.tconstruct.plugin.jsonthings.JsonThingsPlugin;
 import slimeknights.tconstruct.shared.TinkerAttributes;
 import slimeknights.tconstruct.shared.TinkerClient;
 import slimeknights.tconstruct.shared.TinkerCommons;
@@ -133,8 +138,21 @@ public class TConstruct {
       TinkerClient.onConstruct(bus);
     }
 
-    // compat: every plugin here names a mod that is not yet on the 1.21 classpath, see the porting frontier.
-    // TODO: restore with the compat dependencies (T20). ModList.get().isLoaded checks go back exactly as they were.
+    // compat. Diet's registration is gone with its plugin; the mod has no 1.21.1 build to compile against, see the
+    // note beside the dependencies in build.gradle.
+    ModList modList = ModList.get();
+    if (modList.isLoaded("immersiveengineering")) {
+      bus.register(new ImmersiveEngineeringPlugin());
+    }
+    if (modList.isLoaded("jsonthings")) {
+      JsonThingsPlugin.onConstruct(bus);
+    }
+    if (modList.isLoaded("craftingtweaks")) {
+      CraftingTweaksPlugin.onConstruct();
+    }
+    if (modList.isLoaded("dummmmmmy")) {
+      bus.register(new DummmmmmyPlugin());
+    }
   }
 
   @SubscribeEvent
@@ -174,7 +192,11 @@ public class TConstruct {
 
     // other datagen
     generator.addProvider(server, new TConstructLootTableProvider(packOutput, lookupProvider));
-    generator.addProvider(server, new AdvancementsProvider(packOutput, lookupProvider));
+    // the island advancements look their structure up by key, and a structure is a datapack registry entry this mod
+    // writes itself, so the advancement provider needs the provider datapackRegistryProvider augments with them -
+    // the plain GatherDataEvent lookup only carries vanilla's. 1.20 named the structure with a bare ResourceKey and
+    // never resolved it, so this only became load bearing when LocationPredicate started taking a Holder.
+    generator.addProvider(server, new AdvancementsProvider(packOutput, datapackRegistryProvider.getRegistryProvider()));
     generator.addProvider(server, new GlobalLootModifiersProvider(packOutput, lookupProvider));
     generator.addProvider(server, new LootTableInjectionProvider(packOutput));
     generator.addProvider(server, new ConfigurationDataProvider(packOutput));

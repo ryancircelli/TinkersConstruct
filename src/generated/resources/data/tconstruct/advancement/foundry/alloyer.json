@@ -95,12 +95,10 @@
     "description": {
       "translate": "advancements.tconstruct.foundry.alloyer.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:scorched_alloyer"
+      "count": 1,
+      "id": "tconstruct:scorched_alloyer"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.foundry.alloyer.title"
     }

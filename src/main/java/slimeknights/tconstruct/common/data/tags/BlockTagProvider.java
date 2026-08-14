@@ -183,7 +183,9 @@ public class BlockTagProvider extends BlockTagsProvider {
     // vanilla is not tagged, so tag it
     this.tag(TinkerTags.Blocks.WORKBENCHES)
         .add(Blocks.CRAFTING_TABLE, TinkerTables.craftingStation.get())
-        .addOptionalTag(ResourceLocation.parse("forge:workbench")); // some mods use a non-standard name here, so support it I guess
+        // some mods use a non-standard name here, so support it I guess. The common namespace moved from forge to c in
+        // 1.21 along with everything else in it, so a mod still populating a forge: tag is populating nothing.
+        .addOptionalTag(commonResource("workbench"));
     this.tag(TinkerTags.Blocks.TABLES)
         .add(TinkerTables.craftingStation.get(), TinkerTables.partBuilder.get(), TinkerTables.tinkerStation.get());
 

@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "tconstruct:casts/single_use/blank"
+            "items": "#tconstruct:casts/single_use/blank"
           }
         ]
       },
@@ -17,12 +17,10 @@
     "description": {
       "translate": "advancements.tconstruct.smeltery.sand_casting.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:tool_handle_sand_cast"
+      "count": 1,
+      "id": "tconstruct:tool_handle_sand_cast"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.smeltery.sand_casting.title"
     }

@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "tconstruct:parts"
+            "items": "#tconstruct:parts"
           }
         ]
       },
@@ -17,13 +17,13 @@
     "description": {
       "translate": "advancements.tconstruct.tools.make_part.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:pick_head",
-      "nbt": "{Material:\"tconstruct:wood\"}"
+      "components": {
+        "tconstruct:material": "tconstruct:wood"
+      },
+      "count": 1,
+      "id": "tconstruct:pick_head"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.tools.make_part.title"
     }

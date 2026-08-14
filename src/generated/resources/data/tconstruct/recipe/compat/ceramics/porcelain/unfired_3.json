@@ -1,12 +1,13 @@
 {
-  "type": "tconstruct:melting",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "neoforge:mod_loaded",
       "modid": "ceramics"
     }
   ],
+  "type": "tconstruct:melting",
   "ingredient": {
+    "type": "mantle:item_name",
     "item": "ceramics:unfired_cistern"
   },
   "result": {

@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:puny_smelting"
-            ]
+            "items": "tconstruct:puny_smelting"
           }
         ]
       },
@@ -19,12 +17,10 @@
     "description": {
       "translate": "advancements.tconstruct.smeltery.puny_smelting.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:puny_smelting"
+      "count": 1,
+      "id": "tconstruct:puny_smelting"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.smeltery.puny_smelting.title"
     }

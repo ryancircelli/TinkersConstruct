@@ -9,7 +9,7 @@
             "entity": "this",
             "predicate": {
               "location": {
-                "structure": "tconstruct:blood_island"
+                "structures": "tconstruct:blood_island"
               }
             }
           }
@@ -19,16 +19,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.tconstruct.world.blood_island.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:blood_slime_sapling"
+      "count": 1,
+      "id": "tconstruct:blood_slime_sapling"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.world.blood_island.title"
     }

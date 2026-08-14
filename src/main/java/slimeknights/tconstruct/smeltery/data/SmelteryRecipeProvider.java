@@ -2270,8 +2270,8 @@ public class SmelteryRecipeProvider extends BaseRecipeProvider implements ISmelt
     // diamond has both railcraft spikemaul and tools complement excavator at cost 11
     molten(consumer, TinkerFluids.moltenDiamond).ore(Byproduct.DEBRIS ).largeGem().dust().gear().geore().minecraftTools("diamond", true).toolCostMelting(11, "tools_costing_11").common(HAMMER);
     molten(consumer, TinkerFluids.moltenEmerald).ore(Byproduct.DIAMOND).largeGem().dust().gear().geore();
-    molten(consumer, TinkerFluids.moltenQuartz ).ore(Byproduct.IRON   ).smallGem().dust().gear().geore();
-    molten(consumer, TinkerFluids.moltenAmethyst).smallGem();
+    molten(consumer, TinkerFluids.moltenQuartz ).ore(Byproduct.IRON   ).smallGem(Blocks.QUARTZ_BLOCK).dust().gear().geore();
+    molten(consumer, TinkerFluids.moltenAmethyst).smallGem(Blocks.AMETHYST_BLOCK);
 
     // standard alloys
     metal(consumer, TinkerFluids.moltenNetherite).metal().dust().plate().gear().coin(); // handles tools elsewhere due to byproducts
@@ -2405,11 +2405,14 @@ public class SmelteryRecipeProvider extends BaseRecipeProvider implements ISmelt
     Function<String,ItemOutput> ceramicsOutput = name -> ItemNameOutput.fromName(ResourceLocation.fromNamespaceAndPath(ceramics, name));
     RecipeOutput ceramicsConsumer = withCondition(consumer, new ModLoadedCondition(ceramics));
 
-    // fill clay and cracked clay buckets
-    ContainerFillingRecipeBuilder.tableRecipe(ceramicsId.apply("empty_clay_bucket"), FluidType.BUCKET_VOLUME)
-                                 .save(ceramicsConsumer, location(ceramicsFolder + "filling_clay_bucket"));
-    ContainerFillingRecipeBuilder.tableRecipe(ceramicsId.apply("cracked_empty_clay_bucket"), FluidType.BUCKET_VOLUME)
-                                 .save(ceramicsConsumer, location(ceramicsFolder + "filling_cracked_clay_bucket"));
+    // Filling the clay and cracked clay buckets is not generated on 1.21.
+    // A container filling recipe holds an Item, and 1.21 serializes a recipe through its own codec as it writes, so
+    // the container has to be in the item registry at generation time; 1.20 wrote the registry name through unresolved.
+    // Every other recipe below names ceramics through ItemNameIngredient/ItemNameOutput, which are name-based by
+    // design and generate fine, so this is the only part of the ceramics block that cannot be written any more.
+    // Ceramics has no 1.21.1 build to put on the datagen classpath (checked 2026-08-13: none of its 34 CurseForge
+    // files lists 1.21.1), so there is nothing to resolve against. Watch for a 1.21.1 Ceramics release: add it as a
+    // compileOnly/datagen dependency and these two lines go back verbatim.
 
     // porcelain for ceramics
     AlloyRecipeBuilder.alloy(TinkerFluids.moltenPorcelain, FluidValues.BRICK * 4)

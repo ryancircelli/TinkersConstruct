@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:scorched_anvil"
-            ]
+            "items": "tconstruct:scorched_anvil"
           }
         ]
       },
@@ -17,9 +15,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:tinkers_anvil"
-            ]
+            "items": "tconstruct:tinkers_anvil"
           }
         ]
       },
@@ -27,16 +23,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.tconstruct.smeltery.tinkers_anvil.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:tinkers_anvil"
+      "count": 1,
+      "id": "tconstruct:tinkers_anvil"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.smeltery.tinkers_anvil.title"
     }

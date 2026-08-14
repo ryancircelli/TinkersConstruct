@@ -6,7 +6,6 @@ import net.neoforged.neoforge.common.util.Lazy;
 import net.minecraft.core.registries.BuiltInRegistries;
 import slimeknights.mantle.recipe.helper.FluidOutput;
 import slimeknights.mantle.recipe.ingredient.EntityIngredient;
-import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.recipe.entitymelting.EntityMeltingRecipe;
 import slimeknights.tconstruct.smeltery.block.entity.module.EntityMeltingModule;
@@ -43,7 +42,8 @@ public class DefaultEntityMeltingRecipe extends EntityMeltingRecipe {
 
   private final Lazy<EntityIngredient> entities;
   public DefaultEntityMeltingRecipe(List<EntityMeltingRecipe> recipes) {
-    super(TConstruct.getResource("__default"), EntityIngredient.EMPTY, FluidOutput.fromStack(EntityMeltingModule.getDefaultFluid()), 2);
+    // 1.21 moved a recipe's ID onto RecipeHolder, so this display-only recipe no longer names itself "__default"
+    super(EntityIngredient.EMPTY, FluidOutput.fromStack(EntityMeltingModule.getDefaultFluid()), 2);
     entities = Lazy.of(() -> getEntityList(recipes));
   }
 

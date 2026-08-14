@@ -1,12 +1,13 @@
 {
-  "type": "tconstruct:damagable_melting",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "neoforge:mod_loaded",
       "modid": "ceramics"
     }
   ],
+  "type": "tconstruct:damagable_melting",
   "ingredient": {
+    "type": "mantle:item_name",
     "item": "ceramics:clay_chestplate"
   },
   "result": {

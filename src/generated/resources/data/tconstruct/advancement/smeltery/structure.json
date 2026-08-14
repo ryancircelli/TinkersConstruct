@@ -13,12 +13,10 @@
     "description": {
       "translate": "advancements.tconstruct.smeltery.structure.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:smeltery_controller"
+      "count": 1,
+      "id": "tconstruct:smeltery_controller"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.smeltery.structure.title"
     }

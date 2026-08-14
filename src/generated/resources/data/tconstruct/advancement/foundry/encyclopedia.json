@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "tconstruct:encyclopedia"
-            ]
+            "items": "tconstruct:encyclopedia"
           }
         ]
       },
@@ -15,16 +13,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.tconstruct.foundry.encyclopedia.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:encyclopedia"
+      "count": 1,
+      "id": "tconstruct:encyclopedia"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.foundry.encyclopedia.title"
     }

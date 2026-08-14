@@ -158,6 +158,23 @@ public final class SlotType {
     buffer.writeUtf(name);
   }
 
+  /**
+   * Slot types are interned by {@link #getOrCreate(String)}, so identity was always the right comparison and inheriting
+   * {@link Object#equals} gave the right answer. 1.21 still needs these declared: a slot type is the value of the
+   * {@code tconstruct:creative_slot} data component, and NeoForge rejects a component value whose class does not
+   * override both, since a component map compares its entries by value. Without them the whole Tinkers creative tab
+   * failed to build and the JEI plugin failed to register a single category.
+   */
+  @Override
+  public boolean equals(Object other) {
+    return this == other || (other instanceof SlotType type && name.equals(type.name));
+  }
+
+  @Override
+  public int hashCode() {
+    return name.hashCode();
+  }
+
   @Override
   public String toString() {
     return "SlotType{" + name + '}';

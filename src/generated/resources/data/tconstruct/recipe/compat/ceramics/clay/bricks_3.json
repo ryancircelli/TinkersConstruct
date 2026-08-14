@@ -1,19 +1,21 @@
 {
-  "type": "tconstruct:melting",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "neoforge:mod_loaded",
       "modid": "ceramics"
     }
   ],
+  "type": "tconstruct:melting",
   "ingredient": [
     {
       "tag": "ceramics:terracotta_cisterns"
     },
     {
+      "type": "mantle:item_name",
       "item": "ceramics:empty_clay_bucket"
     },
     {
+      "type": "mantle:item_name",
       "item": "ceramics:cracked_empty_clay_bucket"
     }
   ],

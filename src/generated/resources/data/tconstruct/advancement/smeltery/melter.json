@@ -106,12 +106,10 @@
     "description": {
       "translate": "advancements.tconstruct.smeltery.melter.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "tconstruct:seared_melter"
+      "count": 1,
+      "id": "tconstruct:seared_melter"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.tconstruct.smeltery.melter.title"
     }
