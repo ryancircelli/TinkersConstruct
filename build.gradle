@@ -96,6 +96,12 @@ sourceSets {
             exclude 'assets/tconstruct/debug'
         }
     }
+    // in-game behavior tests, run via the gameTestServer run config; not packaged into the mod jar
+    // resources/java dirs use the sourceSet's default convention (src/gametest/resources, src/gametest/java)
+    gametest {
+        compileClasspath += main.compileClasspath + main.output
+        runtimeClasspath += main.runtimeClasspath + main.output
+    }
 }
 
 idea {
@@ -170,6 +176,22 @@ minecraft {
 
         data {
             args '--mod', 'tconstruct', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/'), '--existing-mod', 'mantle'
+        }
+
+        gameTestServer {
+            // isolate the gametest world from the regular dev server's save data
+            workingDirectory project.file('run/gameTestServer')
+
+            // scans mod classes for @GameTestHolder("tconstruct") methods; without this Forge registers none
+            property 'forge.enabledGameTestNamespaces', 'tconstruct'
+
+            mods {
+                tconstruct {
+                    // ride along with the main mod classes so tests can see production code,
+                    // but keep the test sources out of the shipped jar
+                    source sourceSets.gametest
+                }
+            }
         }
     }
 }
