@@ -4,8 +4,9 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -29,7 +30,7 @@ class LayoutIconTest extends BaseMcTest {
 
   @Test
   void empty_bufferReadWrite() {
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
     LayoutIcon.EMPTY.write(buffer);
 
     LayoutIcon decoded = LayoutIcon.read(buffer);
@@ -66,7 +67,7 @@ class LayoutIconTest extends BaseMcTest {
   void item_bufferReadWrite() {
     ItemStack original = new ItemStack(Items.DIAMOND_PICKAXE);
     LayoutIcon itemIcon = LayoutIcon.ofItem(original);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
     itemIcon.write(buffer);
 
     LayoutIcon decoded = LayoutIcon.read(buffer);
@@ -76,30 +77,40 @@ class LayoutIconTest extends BaseMcTest {
     assertThat(ItemStack.matches(original, stack)).isTrue();
   }
 
+  /** A plain icon writes just the item; there is no component patch to write and no "nbt" key any more */
   @Test
   void item_jsonSerialize() {
     ItemStack original = new ItemStack(Items.DIAMOND_PICKAXE);
     LayoutIcon itemIcon = LayoutIcon.ofItem(original);
     JsonObject json = itemIcon.toJson();
+    assertThat(json.entrySet()).hasSize(1);
+    assertThat(GsonHelper.getAsString(json, "item")).isEqualTo(BuiltInRegistries.ITEM.getKey(Items.DIAMOND_PICKAXE).toString());
+  }
+
+  /** The 1.20 "nbt" string is a "components" object now, holding the same thing a stack's component patch holds */
+  @Test
+  void item_jsonSerialize_withComponents() {
+    ItemStack original = new ItemStack(Items.DIAMOND_PICKAXE);
+    original.set(DataComponents.DAMAGE, 7);
+    JsonObject json = LayoutIcon.ofItem(original).toJson();
     assertThat(json.entrySet()).hasSize(2);
     assertThat(GsonHelper.getAsString(json, "item")).isEqualTo(BuiltInRegistries.ITEM.getKey(Items.DIAMOND_PICKAXE).toString());
-    assert original.getTag() != null;
-    assertThat(GsonHelper.getAsString(json, "nbt")).isEqualTo(original.getTag().toString());
+    assertThat(json.get("components").getAsJsonObject().get("minecraft:damage").getAsInt()).isEqualTo(7);
   }
 
   @Test
   void item_jsonDeserialize() {
     JsonObject json = new JsonObject();
-    json.addProperty("item", BuiltInRegistries.ITEM.getKey(Items.DIAMOND).toString());
-    json.addProperty("nbt", "{test:1}");
+    json.addProperty("item", BuiltInRegistries.ITEM.getKey(Items.DIAMOND_PICKAXE).toString());
+    JsonObject components = new JsonObject();
+    components.addProperty("minecraft:damage", 7);
+    json.add("components", components);
     LayoutIcon icon = LayoutIcon.SERIALIZER.deserialize(json, LayoutIcon.class, mock(JsonDeserializationContext.class));
     assertThat(icon).isInstanceOf(ItemStackIcon.class);
     ItemStack stack = icon.getValue(ItemStack.class);
     assertThat(stack).isNotNull();
-    assertThat(stack.getItem()).isEqualTo(Items.DIAMOND);
-    CompoundTag nbt = stack.getTag();
-    assertThat(nbt).isNotNull();
-    assertThat(nbt.getInt("test")).isEqualTo(1);
+    assertThat(stack.getItem()).isEqualTo(Items.DIAMOND_PICKAXE);
+    assertThat(stack.get(DataComponents.DAMAGE)).isEqualTo(7);
   }
 
 
@@ -119,7 +130,7 @@ class LayoutIconTest extends BaseMcTest {
   void pattern_bufferReadWrite() {
     Pattern pattern = new Pattern("test:the_pattern");
     LayoutIcon icon = LayoutIcon.ofPattern(pattern);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
     icon.write(buffer);
 
     LayoutIcon decoded = LayoutIcon.read(buffer);

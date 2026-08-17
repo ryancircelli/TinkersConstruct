@@ -4,12 +4,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.fluids.TinkerFluids;
 import slimeknights.tconstruct.library.recipe.FluidValues;
@@ -33,8 +33,12 @@ public class FluidGameTests {
     tank.getTank().fill(new FluidStack(TinkerFluids.moltenIron.get(), 200), FluidAction.EXECUTE);
 
     ItemStack canStack = new ItemStack(TinkerSmeltery.copperCan.get());
-    IFluidHandlerItem canHandler = canStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).resolve()
-                                            .orElseThrow(() -> new AssertionError("copper can has no fluid handler item capability"));
+    // 1.20 went through ForgeCapabilities.FLUID_HANDLER_ITEM and unwrapped a LazyOptional; NeoForge's capability
+    // lookup returns the handler or null directly, with no optional to resolve.
+    IFluidHandlerItem canHandler = canStack.getCapability(Capabilities.FluidHandler.ITEM);
+    if (canHandler == null) {
+      throw new AssertionError("copper can has no fluid handler item capability");
+    }
 
     FluidStack simulated = tank.getTank().drain(FluidValues.INGOT, FluidAction.SIMULATE);
     int filled = canHandler.fill(simulated, FluidAction.EXECUTE);

@@ -12,6 +12,7 @@ import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.modifiers.ModifierManager;
 import slimeknights.tconstruct.library.modifiers.impl.ComposableModifier;
 import slimeknights.tconstruct.test.BaseMcTest;
+import slimeknights.tconstruct.test.TestRegistries;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,7 +63,14 @@ class ModifierCharacterizationTest extends BaseMcTest {
     // ModifierLevelDisplay.UniqueForLevels defaults its display name from the modifier's own ID, so the
     // loadable requires ContextKey.ID in context, exactly as ModifierManager supplies when actually loading.
     ResourceLocation id = TConstruct.getResource("characterization_test/" + fileName.replace(".json", ""));
-    TypedMap context = TypedMapBuilder.builder().put(ContextKey.ID, id).build();
+    // Enchantments are a datapack registry in 1.21, and the enchantment modules resolve their "name" through
+    // Mantle's DynamicRegistryLoadable, which reads the provider out of the context when the ops are plain
+    // JsonOps. ModifierManager supplies one from the reload's registry access; TestRegistries is the headless
+    // equivalent. Without it every fixture naming a vanilla enchantment failed to parse.
+    TypedMap context = TypedMapBuilder.builder()
+                                      .put(ContextKey.ID, id)
+                                      .put(ContextKey.REGISTRY_ACCESS, TestRegistries.lookup())
+                                      .build();
     // Predicate singletons registered through Mantle's generic predicate/entity-predicate registries
     // (mantle:fire_immune, mantle:on_ground, ...) exhibit real, order-dependent JSON round-trip instability when
     // used together with mantle:inverted - see PredicateInversionJsonAsymmetryTest for the precise finding. That

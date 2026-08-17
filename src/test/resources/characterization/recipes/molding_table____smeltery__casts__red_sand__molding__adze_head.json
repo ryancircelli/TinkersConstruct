@@ -5,7 +5,9 @@
   },
   "pattern": {
     "type": "tconstruct:material",
-    "item": "tconstruct:adze_head"
+    "match": {
+      "item": "tconstruct:adze_head"
+    }
   },
   "result": "tconstruct:adze_head_red_sand_cast"
 }

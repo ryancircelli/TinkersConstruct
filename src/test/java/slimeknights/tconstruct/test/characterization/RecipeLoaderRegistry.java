@@ -182,9 +182,14 @@ public final class RecipeLoaderRegistry {
     "tinker_station_repair", "crafting_table_repair", "armor_dyeing_modifier", "banner_modifier", "armor_trim_modifier"
   );
 
-  /** Builds a context suitable for the given serializer name. */
+  /**
+   * Builds a context suitable for the given serializer name.
+   * @apiNote  There is no {@code ContextKey.ID} entry: 1.21 moved the recipe ID onto {@code RecipeHolder} and no
+   *           recipe loadable reads one any more (M8 section 1). The ID is still taken so the debug string can name
+   *           which fixture failed, which is the only thing the ID was doing for this test.
+   */
   public static TypedMap contextFor(String typeName, ResourceLocation id) {
-    TypedMapBuilder builder = TypedMapBuilder.builder().put(ContextKey.ID, id).put(ContextKey.DEBUG, "characterization test " + id);
+    TypedMapBuilder builder = TypedMapBuilder.builder().put(ContextKey.DEBUG, "characterization test " + id);
     if (NEEDS_TYPED_SERIALIZER.contains(typeName)) {
       RecipeType<?> dummyType = new RecipeType<>() {
         @Override

@@ -2,7 +2,11 @@
   "translation_key": "translation_key",
   "icon": {
     "item": "minecraft:iron_ingot",
-    "nbt": "{test:1}"
+    "components": {
+      "minecraft:custom_data": {
+        "test": 1
+      }
+    }
   },
   "sortIndex": 55,
   "tool_slot": {
