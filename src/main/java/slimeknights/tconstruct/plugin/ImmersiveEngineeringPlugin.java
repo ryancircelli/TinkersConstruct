@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.AxisDirection;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -18,10 +19,10 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.HitResult.Type;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import slimeknights.tconstruct.common.TinkerTags.Fluids;
 import slimeknights.tconstruct.common.config.Config;
 import slimeknights.tconstruct.library.modifiers.fluid.FluidEffectContext;
@@ -50,17 +51,24 @@ public class ImmersiveEngineeringPlugin {
     });
   }
 
-  /** Chem thrower effect that redirects to our fluid effect API */
+  /**
+   * Chem thrower effect that redirects to our fluid effect API
+   * @apiNote  Immersive Engineering's effect callbacks gained a projectile parameter, which is the
+   *           {@link ChemthrowerShotEntity} that landed the hit - the caller now hands over the one thing the 1.20
+   *           code could not identify among the projectiles it found by bounding box. It is deliberately unused: the
+   *           effect scales with every projectile in the area, so the box search stays, and using the parameter would
+   *           be a behaviour change rather than a port.
+   */
   @RequiredArgsConstructor
   private static class FluidEffectChemThrowerEffect extends ChemthrowerEffect {
     private final boolean runBlock;
     private final boolean runEntity;
 
     @Override
-    public void applyToBlock(Level world, HitResult mop, @Nullable Player shooter, ItemStack thrower, Fluid fluid) {}
+    public void applyToBlock(Level world, HitResult mop, @Nullable Player shooter, Entity projectile, ItemStack thrower, Fluid fluid) {}
 
     @Override
-    public void applyToEntity(LivingEntity target, @Nullable Player shooter, ItemStack thrower, Fluid fluid) {}
+    public void applyToEntity(LivingEntity target, @Nullable Player shooter, Entity projectile, ItemStack thrower, Fluid fluid) {}
 
     /** Consumes the fluid projectiles used for this action */
     private static void consumeProjectiles(List<ChemthrowerShotEntity> projectiles, float consumed, double projectileValue) {
@@ -76,7 +84,7 @@ public class ImmersiveEngineeringPlugin {
     }
 
     @Override
-    public void applyToEntity(LivingEntity target, @Nullable Player shooter, ItemStack thrower, FluidStack fluid) {
+    public void applyToEntity(LivingEntity target, @Nullable Player shooter, Entity projectile, ItemStack thrower, FluidStack fluid) {
       // skip for the block tag
       if (!runEntity) {
         return;
@@ -96,7 +104,7 @@ public class ImmersiveEngineeringPlugin {
       int amount = (int) (projectileValue * projectiles.size());
       if (amount > 0) {
         // run the effect and consume projectiles
-        float consumed = recipe.applyToEntity(new FluidStack(fluid, amount), 1,
+        float consumed = recipe.applyToEntity(fluid.copyWithAmount(amount), 1,
           FluidEffectContext.builder(target.level()).user(shooter).stack(thrower).target(target),
           FluidAction.EXECUTE);
         consumeProjectiles(projectiles, consumed, projectileValue);
@@ -109,7 +117,7 @@ public class ImmersiveEngineeringPlugin {
     }
 
     @Override
-    public void applyToBlock(Level world, HitResult mop, @Nullable Player shooter, ItemStack thrower, FluidStack fluid) {
+    public void applyToBlock(Level world, HitResult mop, @Nullable Player shooter, Entity projectile, ItemStack thrower, FluidStack fluid) {
       // skip for the entity tag or wrongly passed hit types
       if (!runBlock || mop.getType() != Type.BLOCK) {
         return;
@@ -136,7 +144,7 @@ public class ImmersiveEngineeringPlugin {
       int amount = (int) (projectileValue * projectiles.size());
       if (amount > 0) {
         // run the effect and consume projectiles
-        float consumed = recipe.applyToBlock(new FluidStack(fluid, amount), 1,
+        float consumed = recipe.applyToBlock(fluid.copyWithAmount(amount), 1,
           FluidEffectContext.builder(world).user(shooter).stack(thrower).block(hitResult),
           FluidAction.EXECUTE);
         consumeProjectiles(projectiles, consumed, projectileValue);

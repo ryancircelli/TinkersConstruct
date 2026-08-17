@@ -9,7 +9,7 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ProjectileWeaponItem;
-import net.minecraftforge.common.util.Lazy;
+import net.neoforged.neoforge.common.util.Lazy;
 import slimeknights.mantle.data.loadable.Loadable;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.util.JsonHelper;
@@ -108,7 +108,7 @@ public class FlexItemTypes {
     /* Simple armor type with a flat texture */
     register("basic_armor", data -> {
       ResourceLocation name = JsonHelper.getResourceLocation(data, "texture_name");
-      SoundEvent sound = Loadables.SOUND_EVENT.getOrDefault(data, "equip_sound", SoundEvents.ARMOR_EQUIP_GENERIC);
+      SoundEvent sound = Loadables.SOUND_EVENT.getOrDefault(data, "equip_sound", SoundEvents.ARMOR_EQUIP_GENERIC.value());
       ArmorItem.Type slot = TinkerLoadables.ARMOR_SLOT.getIfPresent(data, "slot");
       return (IToolItemFactory<ModifiableArmorItem>)(props, builder) -> add(ARMOR_ITEMS, new ModifiableArmorItem(new DummyArmorMaterial(name, sound), slot, props, ToolDefinition.create(builder.getRegistryName())));
     });
@@ -117,7 +117,7 @@ public class FlexItemTypes {
     Loadable<List<ArmorTextureSupplier>> ARMOR_TEXTURES = ArmorTextureSupplier.LOADER.list(1);
     register("multilayer_armor", data -> {
       ResourceLocation name = JsonHelper.getResourceLocation(data, "model_name");
-      SoundEvent sound = Loadables.SOUND_EVENT.getOrDefault(data, "equip_sound", SoundEvents.ARMOR_EQUIP_GENERIC);
+      SoundEvent sound = Loadables.SOUND_EVENT.getOrDefault(data, "equip_sound", SoundEvents.ARMOR_EQUIP_GENERIC.value());
       ArmorItem.Type slot = TinkerLoadables.ARMOR_SLOT.getIfPresent(data, "slot");
       return (IToolItemFactory<MultilayerArmorItem>)(props, builder) -> add(ARMOR_ITEMS, new MultilayerArmorItem(new DummyArmorMaterial(name, sound), slot, props, ToolDefinition.create(builder.getRegistryName())));
     });

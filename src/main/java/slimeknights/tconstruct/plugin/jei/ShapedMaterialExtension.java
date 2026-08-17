@@ -4,9 +4,9 @@ import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.ICraftingGridHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICraftingCategoryExtension;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import slimeknights.mantle.client.SafeClientAccess;
 import slimeknights.tconstruct.library.recipe.ingredient.MaterialValueIngredient;
 import slimeknights.tconstruct.library.recipe.material.MaterialRecipeCache;
@@ -20,49 +20,45 @@ import java.util.stream.IntStream;
 
 /**
  * Logic to show {@link ShapedMaterialRecipe} in JEI
+ * @apiNote  A singleton since JEI 19, which shares one extension instance across every recipe of a class and hands
+ *           each method the {@link RecipeHolder} it applies to; see {@link MaterialsCraftingExtension}.
  * @deprecated use {@link ShapedMaterialsExtension}
  */
 @Deprecated
-public class ShapedMaterialExtension implements ICraftingCategoryExtension {
-  private final ShapedMaterialRecipe recipe;
-  private final ItemStack plainResult;
-  private final List<ItemStack> result;
-  private final int[] materialSlots;
-  public ShapedMaterialExtension(ShapedMaterialRecipe recipe) {
-    this.recipe = recipe;
+public enum ShapedMaterialExtension implements ICraftingCategoryExtension<ShapedMaterialRecipe> {
+  INSTANCE;
+
+  @Override
+  public int getWidth(RecipeHolder<ShapedMaterialRecipe> recipeHolder) {
+    return recipeHolder.value().getWidth();
+  }
+
+  @Override
+  public int getHeight(RecipeHolder<ShapedMaterialRecipe> recipeHolder) {
+    return recipeHolder.value().getHeight();
+  }
+
+  @Override
+  public void setRecipe(RecipeHolder<ShapedMaterialRecipe> recipeHolder, IRecipeLayoutBuilder builder, ICraftingGridHelper craftingGridHelper, IFocusGroup focusGroup) {
+    ShapedMaterialRecipe recipe = recipeHolder.value();
+    ItemStack plainResult = recipe.getResultItem(Objects.requireNonNull(SafeClientAccess.getRegistryAccess()));
+
     MaterialValueIngredient materials = recipe.getMaterial();
-    plainResult = recipe.getResultItem(Objects.requireNonNull(SafeClientAccess.getRegistryAccess()));
+    List<ItemStack> result;
     if (materials != null) {
-      this.result = MaterialRecipeCache.getAllRecipes().stream().filter(materials::test).flatMap(mat -> {
+      result = MaterialRecipeCache.getAllRecipes().stream().filter(materials::test).flatMap(mat -> {
         ItemStack stack = plainResult.copy();
         recipe.setMaterial(stack, mat.getMaterial().getVariant());
         // add one copy of the stack per item in the nested ingredient, so the lengths match up
         return IntStream.range(0, mat.getIngredient().getItems().length).mapToObj(i -> stack);
       }).toList();
     } else {
-      this.result = List.of(plainResult);
+      result = List.of(plainResult);
     }
     List<Ingredient> inputs = recipe.getIngredients();
-    this.materialSlots = IntStream.range(0, inputs.size()).filter(i -> inputs.get(i) instanceof MaterialValueIngredient).toArray();
-  }
+    // 1.21: Ingredient is final and a custom ingredient rides inside it, so the instanceof moves onto getCustomIngredient
+    int[] materialSlots = IntStream.range(0, inputs.size()).filter(i -> inputs.get(i).getCustomIngredient() instanceof MaterialValueIngredient).toArray();
 
-  @Override
-  public int getWidth() {
-    return recipe.getWidth();
-  }
-
-  @Override
-  public int getHeight() {
-    return recipe.getHeight();
-  }
-
-  @Override
-  public ResourceLocation getRegistryName() {
-    return recipe.getId();
-  }
-
-  @Override
-  public void setRecipe(IRecipeLayoutBuilder builder, ICraftingGridHelper craftingGridHelper, IFocusGroup focusGroup) {
-    MaterialsCraftingExtension.setRecipe(this, builder, craftingGridHelper, recipe, result, plainResult, materialSlots);
+    MaterialsCraftingExtension.setRecipe(getWidth(recipeHolder), getHeight(recipeHolder), builder, craftingGridHelper, recipeHolder, result, plainResult, materialSlots);
   }
 }
