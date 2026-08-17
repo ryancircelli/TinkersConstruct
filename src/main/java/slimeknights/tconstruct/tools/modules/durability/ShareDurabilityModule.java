@@ -117,6 +117,9 @@ public record ShareDurabilityModule(LazyModifier shield, LevelingInt grant, Leve
           }
           // update the durability bar
           shield.getHook(ModifierHooks.CAPACITY_BAR).addAmount(choice, entry, granted * amount);
+          // the choice tool is a second stack we do not otherwise touch, so nothing else will commit it;
+          // without this the local tool paid the durability and the choice tool never received the shield
+          choice.updateStack();
         }
       }
     }

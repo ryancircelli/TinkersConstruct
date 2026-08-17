@@ -267,6 +267,9 @@ public class InteractionHandler {
           Entity target = event.getTarget();
           if (!tool.isBroken() && ToolAttackUtil.isAttackable(attacker, target)) {
             ToolAttackUtil.performAttack(tool, ToolAttackContext.attacker(attacker).target(target).slot(EquipmentSlot.CHEST, InteractionHand.MAIN_HAND).defaultCooldown().toolAttributes(tool).build());
+            // the attack damages the chestplate through this instance; performAttack takes a view and never commits,
+            // so without this the unarmed chestplate attack was free. ToolAttackUtil.attackEntity(ItemStack) does the same.
+            tool.updateStack();
             event.setCanceled(true);
           }
         }
@@ -334,6 +337,9 @@ public class InteractionHandler {
         }
         // cleanup drawtime on the tool
         GeneralInteractionModifierHook.finishUsing(tool);
+        // finishUsing clears the active modifier and drawtime, and any stopInteract hook above may have written too;
+        // neither says so, so the stop always commits. Without it the armor stayed "mid interaction" forever.
+        tool.updateStack();
         return true;
       }
     }
@@ -519,6 +525,9 @@ public class InteractionHandler {
               entity.stopUsingItem();
               entity.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + entity.level().random.nextFloat() * 0.4F);
             }
+            // damageAnimated takes a view and never commits. This block replaces vanilla's own shield damage
+            // (setShieldDamage(0) above), so without this a Tinkers' shield took no durability damage at all.
+            tool.updateStack();
           }
         }
       } else {

@@ -186,7 +186,10 @@ public class CombatFishingHook extends FishingHook implements ProjectileWithKnoc
       }
       // must be modifiable
       if (stack.is(TinkerTags.Items.MODIFIABLE)) {
-        ToolDamageUtil.damageAnimated(ToolStack.mutable(stack), 1, living, hand);
+        // damageAnimated takes a view and never commits, so the rod's damage only reaches the stack when we say so
+        ToolStack tool = ToolStack.mutable(stack);
+        ToolDamageUtil.damageAnimated(tool, 1, living, hand);
+        tool.updateStack();
       }
     }
   }

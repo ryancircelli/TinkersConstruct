@@ -134,6 +134,9 @@ public class CreativeSlotItem extends Item {
               tool.rebuildStats();
             }
           }
+          // the persistent data write and the modifier add/remove/rebuild above are all local to the tool,
+          // so without this the creative slot item changed nothing at all
+          tool.updateStack();
           if (amount > 0) {
             FluidTransferHelper.playUISound(player, SoundEvents.ENCHANTMENT_TABLE_USE);
           } else {

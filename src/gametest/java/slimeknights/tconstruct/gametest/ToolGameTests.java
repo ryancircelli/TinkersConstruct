@@ -8,16 +8,27 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.animal.Cow;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import slimeknights.tconstruct.TConstruct;
+import slimeknights.tconstruct.library.modifiers.hook.interaction.EntityInteractionModifierHook;
+import slimeknights.tconstruct.library.modifiers.hook.interaction.GeneralInteractionModifierHook;
+import slimeknights.tconstruct.library.tools.capability.BlockItemProviderCapability;
+import slimeknights.tconstruct.library.tools.capability.BlockItemProviderModifierHook;
 import slimeknights.tconstruct.library.tools.helper.ToolDamageUtil;
 import slimeknights.tconstruct.library.tools.helper.ToolHarvestLogic;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.stat.ToolStats;
+import slimeknights.tconstruct.tools.TinkerTools;
+import slimeknights.tconstruct.tools.data.ModifierIds;
+import slimeknights.tconstruct.tools.logic.InteractionHandler;
 
 /**
  * In-game behavior tests for tools: part swaps preserving persistent modifier data, repair kit restoration,
@@ -113,6 +124,80 @@ public class ToolGameTests {
     // the explicit rotation above is belt-and-suspenders rather than load bearing for the hit face itself
     int harvested = ToolHarvestLogic.runBlockBreak(stack, ToolStack.mutable(stack), stone, absoluteCenter, Direction.SOUTH, player, null);
     helper.assertTrue(harvested == 9, "AoE hammer did not break exactly the 9 blocks of a 3x3 pattern (broke " + harvested + ")");
+    helper.succeed();
+  }
+
+  /**
+   * Left clicking an entity damages the tool, and that damage reaches the <em>stack</em>.
+   * <p>
+   * {@link EntityInteractionModifierHook#leftClickEntity} takes a mutable tool and falls through to
+   * {@code ToolAttackUtil.attackEntity(IToolStackView, Player, Entity)},
+   * the view overload, which damages the tool but never commits. Asserting on the tool instance would pass either
+   * way - only reading the damage back off the stack distinguishes a committed write from a lost one.
+   */
+  @GameTest(template = GameTestFixtures.TEMPLATE)
+  public static void leftClickEntityDamageReachesTheStack(GameTestHelper helper) {
+    ToolStack tool = GameTestFixtures.createPickaxe();
+    ItemStack stack = tool.createStack();
+    helper.assertTrue(ToolStack.from(stack).getDamage() == 0, "test pickaxe started out damaged");
+
+    ServerPlayer player = GameTestFixtures.createFakePlayer(helper, "left_click_entity_test");
+    player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+    Cow target = helper.spawn(EntityType.COW, new BlockPos(2, 2, 2));
+
+    EntityInteractionModifierHook.leftClickEntity(stack, player, target);
+    helper.assertTrue(ToolStack.from(stack).getDamage() > 0, "attacking an entity left the stack undamaged, so the tool's damage never reached it");
+    helper.succeed();
+  }
+
+  /**
+   * Ending an armor interaction clears the interaction data off the <em>stack</em>.
+   * <p>
+   * {@link InteractionHandler#stopArmorInteract} ends with {@link GeneralInteractionModifierHook#finishUsing}, which
+   * removes the active modifier and drawtime from the tool's persistent data. Uncommitted, the armor stayed "mid
+   * interaction" on the stack forever.
+   */
+  @GameTest(template = GameTestFixtures.TEMPLATE)
+  public static void stopArmorInteractClearsDrawtimeOnTheStack(GameTestHelper helper) {
+    ItemStack helmet = new ItemStack(TinkerTools.travelersGear.get(ArmorItem.Type.HELMET));
+    ToolStack tool = ToolStack.mutable(helmet);
+    tool.getPersistentData().putInt(GeneralInteractionModifierHook.KEY_DRAWTIME, 20);
+    tool.updateStack();
+    helper.assertTrue(ToolStack.from(helmet).getPersistentData().getInt(GeneralInteractionModifierHook.KEY_DRAWTIME) == 20,
+                      "test helmet did not start with a drawtime");
+
+    ServerPlayer player = GameTestFixtures.createFakePlayer(helper, "stop_armor_interact_test");
+    player.setItemSlot(EquipmentSlot.HEAD, helmet);
+    helper.assertTrue(InteractionHandler.stopArmorInteract(player, EquipmentSlot.HEAD), "stopArmorInteract did not recognise the helmet");
+
+    helper.assertTrue(ToolStack.from(helmet).getPersistentData().getInt(GeneralInteractionModifierHook.KEY_DRAWTIME) == 0,
+                      "the drawtime was still on the stack, so finishUsing's clear was lost");
+    helper.succeed();
+  }
+
+  /**
+   * Providing a block item off a tool damages the tool, and that damage reaches the <em>stack</em>.
+   * <p>
+   * {@link BlockItemProviderModifierHook.CapabilityImpl#consume} runs the hook that
+   * {@link slimeknights.tconstruct.library.modifiers.modules.behavior.BlockItemProviderModule} implements, and that
+   * module damages the tool through a view which never commits. The shipped {@code glowing} modifier provides a glow
+   * block for 5 durability, so uncommitted the glow block was free.
+   */
+  @GameTest(template = GameTestFixtures.TEMPLATE)
+  public static void blockItemProviderConsumeDamagesTheStack(GameTestHelper helper) {
+    ToolStack tool = GameTestFixtures.createPickaxe();
+    tool.addModifier(ModifierIds.glowing, 1);
+    ItemStack stack = tool.createStack();
+    helper.assertTrue(ToolStack.from(stack).getDamage() == 0, "test pickaxe started out damaged");
+
+    ToolStack bound = ToolStack.mutable(stack);
+    BlockItemProviderCapability capability = new BlockItemProviderModifierHook.CapabilityImpl(bound, bound);
+    ItemStack provided = capability.getBlockItemStack(stack, null);
+    helper.assertTrue(!provided.isEmpty(), "the glowing modifier provided no block item to consume");
+
+    capability.consume(stack, provided, null);
+    helper.assertTrue(ToolStack.from(stack).getDamage() > 0,
+                      "providing a block off the tool left the stack undamaged, so the tool's damage never reached it");
     helper.succeed();
   }
 }

@@ -9,6 +9,7 @@ import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
+import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 
 import javax.annotation.Nullable;
 
@@ -37,7 +38,21 @@ public interface BlockItemProviderModifierHook {
      */
     boolean consumeBlockItem(IToolStackView tool, ModifierEntry modifier, ItemStack backingStack, @Nullable LivingEntity entity);
 
-    record CapabilityImpl(IToolStackView tool) implements BlockItemProviderCapability {
+    /**
+     * @param tool    Tool to provide and consume blocks through.
+     * @param commit  Tool to commit after a consume, or null when the caller owns the commit. {@link #consume} damages
+     *                the tool through a hook that takes a view and never commits, so somebody has to; which one it is
+     *                depends on who built this. The capability provider hands out a tool bound to the queried stack and
+     *                nothing else will write it, so that instance commits here. A modifier that already holds the tool
+     *                for an ongoing operation - see {@code ExchangingModifier} - commits it itself once the operation
+     *                finishes, and passes null.
+     */
+    record CapabilityImpl(IToolStackView tool, @Nullable ToolStack commit) implements BlockItemProviderCapability {
+        /** Creates an instance whose caller owns the commit */
+        public CapabilityImpl(IToolStackView tool) {
+            this(tool, null);
+        }
+
         @Override
         public ItemStack getBlockItemStack(ItemStack capStack, @Nullable LivingEntity entity) {
             for (ModifierEntry entry : tool.getModifiers()) {
@@ -59,6 +74,11 @@ public interface BlockItemProviderModifierHook {
         public void consume(ItemStack capStack, ItemStack backingStack, @Nullable LivingEntity entity) {
             for (ModifierEntry entry : tool.getModifiers()) {
                 if (entry.getHook(ModifierHooks.BLOCK_ITEM_PROVIDER).consumeBlockItem(tool, entry, backingStack, entity)) {
+                    // consumeBlockItem takes a view and never commits - BlockItemProviderModule damages the tool there -
+                    // so without this the shipped glowing modifier's glow block cost no durability
+                    if (commit != null) {
+                        commit.updateStack();
+                    }
                     return;
                 }
             }
@@ -70,5 +90,5 @@ public interface BlockItemProviderModifierHook {
      * Provider making every modifiable tool a block item provider. Unconditional, as it was in 1.20: the hook itself
      * returns an empty stack when no modifier provides blocks.
      */
-    ToolCapabilityProvider.IToolCapabilityProvider<BlockItemProviderCapability> PROVIDER = (stack, tool) -> new CapabilityImpl(tool);
+    ToolCapabilityProvider.IToolCapabilityProvider<BlockItemProviderCapability> PROVIDER = (stack, tool) -> new CapabilityImpl(tool, tool);
 }

@@ -479,6 +479,8 @@ public class ModifierEvents {
                   target.stopUsingItem();
                   entity.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + entity.level().random.nextFloat() * 0.4F);
                 }
+                // damageAnimated takes a view and never commits, so reflecting a projectile was free without this
+                tool.updateStack();
               }
             }
           }
