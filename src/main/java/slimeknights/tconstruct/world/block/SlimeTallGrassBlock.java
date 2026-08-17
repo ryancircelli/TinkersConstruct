@@ -1,6 +1,7 @@
 package slimeknights.tconstruct.world.block;
 
 import com.google.common.collect.Lists;
+import com.mojang.serialization.MapCodec;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -12,23 +13,32 @@ import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.IForgeShearable;
-import net.minecraftforge.common.PlantType;
+import net.neoforged.neoforge.common.IShearable;
 import slimeknights.tconstruct.world.TinkerWorld;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class SlimeTallGrassBlock extends BushBlock implements IForgeShearable {
+public class SlimeTallGrassBlock extends BushBlock implements IShearable {
 
   private static final VoxelShape SHAPE = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D);
 
   @Getter
   private final FoliageType foliageType;
+  // built in the constructor rather than a field initializer or static CODEC: BushBlock#codec() is abstract and
+  // this block's constructor takes more than the Properties simpleCodec(Constructor) assumes, and building it
+  // here (rather than an initializer above) avoids reading foliageType before its own constructor assignment runs
+  private final MapCodec<SlimeTallGrassBlock> codec;
   public SlimeTallGrassBlock(Properties properties, FoliageType foliageType) {
     super(properties);
     this.foliageType = foliageType;
+    this.codec = simpleCodec(props -> new SlimeTallGrassBlock(props, foliageType));
+  }
+
+  @Override
+  protected MapCodec<? extends SlimeTallGrassBlock> codec() {
+    return codec;
   }
 
   @Deprecated
@@ -37,16 +47,9 @@ public class SlimeTallGrassBlock extends BushBlock implements IForgeShearable {
     return SHAPE;
   }
 
-  /* Forge/MC callbacks */
   @Nonnull
   @Override
-  public PlantType getPlantType(BlockGetter world, BlockPos pos) {
-    return TinkerWorld.SLIME_PLANT_TYPE;
-  }
-
-  @Nonnull
-  @Override
-  public List<ItemStack> onSheared(@Nullable Player player, ItemStack item, Level world, BlockPos pos, int fortune) {
+  public List<ItemStack> onSheared(@Nullable Player player, ItemStack item, Level world, BlockPos pos) {
     return Lists.newArrayList(new ItemStack(this, 1));
   }
 

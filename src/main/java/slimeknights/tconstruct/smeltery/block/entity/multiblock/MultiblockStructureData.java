@@ -75,7 +75,8 @@ public class MultiblockStructureData {
     innerX = maxInside.getX() - minInside.getX() + 1;
     innerY = maxInside.getY() - minInside.getY() + 1;
     innerZ = maxInside.getZ() - minInside.getZ() + 1;
-    bounds = new AABB(minInside, maxInside.offset(1, 1, 1));
+    // new AABB(BlockPos, BlockPos) is gone; encapsulatingFullBlocks is the min..max+1 box it built by hand
+    bounds = AABB.encapsulatingFullBlocks(minInside, maxInside);
   }
 
   /**

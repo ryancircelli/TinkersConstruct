@@ -6,22 +6,21 @@ import lombok.Setter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.common.util.NonNullConsumer;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
-import net.minecraftforge.fluids.capability.templates.EmptyFluidHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.neoforge.fluids.capability.templates.EmptyFluidHandler;
 import slimeknights.mantle.block.entity.MantleBlockEntity;
-import slimeknights.mantle.util.WeakConsumerWrapper;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.recipe.alloying.IMutableAlloyTank;
+import slimeknights.tconstruct.library.utils.NeighborCapabilityCache;
 
 import javax.annotation.Nullable;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Alloy tank that takes inputs from neighboring blocks
@@ -40,15 +39,17 @@ public class MixerAlloyTank implements IMutableAlloyTank {
   private int temperature = 0;
 
   // side tank cache
-  /** Cache of tanks for each of the sides */
-  private final Map<Direction,LazyOptional<IFluidHandler>> inputs = new EnumMap<>(Direction.class);
-  /** Map of invalidation listeners for each side */
-  private final Map<Direction,NonNullConsumer<LazyOptional<IFluidHandler>>> listeners = new EnumMap<>(Direction.class);
+  /** Handler found on each side, absent from the map for a side that has not been looked at since the last refresh */
+  private final Map<Direction,IFluidHandler> inputs = new EnumMap<>(Direction.class);
+  /** Cache per side, kept for the lifetime of this tank so the level can tell us when a side's handler changes */
+  private final Map<Direction,NeighborCapabilityCache<IFluidHandler>> caches = new EnumMap<>(Direction.class);
   /** Map of tank index to tank on the side */
   @Nullable
   private IFluidHandler[] indexedList = null;
 
   // state
+  /** Sides looked at since the last refresh; a side is in here whether or not it turned out to have a tank */
+  private final Set<Direction> checked = EnumSet.noneOf(Direction.class);
   /** If true, tanks are marked for refresh later */
   private boolean needsRefresh = true;
   /** Number of currently held tanks */
@@ -69,9 +70,9 @@ public class MixerAlloyTank implements IMutableAlloyTank {
         int nextTank = 0;
         for (Direction direction : Direction.values()) {
           if (direction != Direction.DOWN) {
-            LazyOptional<IFluidHandler> handler = inputs.getOrDefault(direction, LazyOptional.empty());
-            if (handler.isPresent()) {
-              indexedList[nextTank] = handler.orElse(EmptyFluidHandler.INSTANCE);
+            IFluidHandler handler = inputs.get(direction);
+            if (handler != null) {
+              indexedList[nextTank] = handler;
               nextTank++;
             }
           }
@@ -136,28 +137,19 @@ public class MixerAlloyTank implements IMutableAlloyTank {
     if (needsRefresh) {
       for (Direction direction : Direction.values()) {
         // update each direction we are missing
-        if (direction != Direction.DOWN && !inputs.containsKey(direction)) {
+        if (direction != Direction.DOWN && !checked.contains(direction)) {
+          checked.add(direction);
           BlockPos target = parent.getBlockPos().relative(direction);
           // limit by blocks as that gives the modpack more control, say they want to allow only scorched tanks
           if (world.getBlockState(target).is(TinkerTags.Blocks.ALLOYER_TANKS)) {
-            BlockEntity te = world.getBlockEntity(target);
-            if (te != null) {
+            // the cache carries the invalidation listener the LazyOptional used to; refresh(dir) is what it runs
+            IFluidHandler handler = caches.computeIfAbsent(direction, dir -> new NeighborCapabilityCache<>(
+              Capabilities.FluidHandler.BLOCK, () -> !this.parent.isRemoved(), () -> refresh(dir)))
+              .get(world, target, direction.getOpposite());
+            if (handler != null) {
               // if we found a tank, increment the number of tanks
-              LazyOptional<IFluidHandler> capability = te.getCapability(ForgeCapabilities.FLUID_HANDLER, direction.getOpposite());
-              if (capability.isPresent()) {
-                // attach a listener so we know when the side invalidates
-                capability.addListener(listeners.computeIfAbsent(direction, dir -> new WeakConsumerWrapper<>(this, (self, handler) -> {
-                  if (handler == self.inputs.get(dir)) {
-                    refresh(dir, false);
-                  }
-                })));
-                inputs.put(direction, capability);
-                currentTanks++;
-              } else {
-                inputs.put(direction, LazyOptional.empty());
-              }
-            } else {
-              inputs.put(direction, LazyOptional.empty());
+              inputs.put(direction, handler);
+              currentTanks++;
             }
           }
         }
@@ -167,18 +159,22 @@ public class MixerAlloyTank implements IMutableAlloyTank {
   }
 
   /**
-   * Called on block update or when a capability invalidates to mark that a direction needs updates
+   * Called on block update or when a side's handler invalidates to mark that a direction needs updates.
+   * <p>
+   * 1.20 took a {@code checkInput} flag so the capability-listener path could skip the "were we holding one" check:
+   * that listener fired for one exact handler, so it was known to be the stored one. A {@link NeighborCapabilityCache}
+   * listener fires for the position instead and can arrive when this tank holds nothing from that side, so the check
+   * is unconditional now and the flag is gone.
    * @param direction  Side updating
-   * @param checkInput If true, validates that the side contains an input before reducing tank count. False when invalidated through the capability
-   * */
-  public void refresh(Direction direction, boolean checkInput) {
+   */
+  public void refresh(Direction direction) {
     if (direction == Direction.DOWN) {
       return;
     }
-    if (!checkInput || (inputs.containsKey(direction) && inputs.get(direction).isPresent())) {
+    if (inputs.remove(direction) != null) {
       currentTanks--;
     }
-    inputs.remove(direction);
+    checked.remove(direction);
     needsRefresh = true;
     indexedList = null;
   }

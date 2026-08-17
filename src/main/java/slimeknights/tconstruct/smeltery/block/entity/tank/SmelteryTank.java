@@ -3,12 +3,13 @@ package slimeknights.tconstruct.smeltery.block.entity.tank;
 import com.google.common.collect.Lists;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import slimeknights.mantle.block.entity.MantleBlockEntity;
 import slimeknights.tconstruct.common.network.TinkerNetwork;
 import slimeknights.tconstruct.library.fluid.IMultitankListChange;
@@ -165,7 +166,7 @@ public class SmelteryTank<T extends MantleBlockEntity & ISmelteryTankHandler> im
 
     // check if we already have the given liquid
     for (FluidStack fluid : fluids) {
-      if (fluid.isFluidEqual(resource)) {
+      if (FluidStack.isSameFluidSameComponents(fluid, resource)) {
         // yup. add it
         fluid.grow(usable);
         parent.notifyFluidsChanged(FluidChange.CHANGED, fluid);
@@ -234,7 +235,7 @@ public class SmelteryTank<T extends MantleBlockEntity & ISmelteryTankHandler> im
     ListIterator<FluidStack> iter = fluids.listIterator();
     while (iter.hasNext()) {
       FluidStack fluid = iter.next();
-      if (fluid.isFluidEqual(toDrain)) {
+      if (FluidStack.isSameFluidSameComponents(fluid, toDrain)) {
         // if found, determine how much we can drain
         int drainable = Math.min(toDrain.getAmount(), fluid.getAmount());
 
@@ -284,19 +285,17 @@ public class SmelteryTank<T extends MantleBlockEntity & ISmelteryTankHandler> im
     this.fluids.addAll(fluids);
     contained = fluids.stream().mapToInt(FluidStack::getAmount).reduce(0, Integer::sum);
     FluidStack newFirst = getFluidInTank(0);
-    if (!oldFirst.isFluidEqual(newFirst)) {
+    if (!FluidStack.isSameFluidSameComponents(oldFirst, newFirst)) {
       parent.notifyFluidsChanged(FluidChange.ORDER_CHANGED, newFirst);
       tankListChange.run();
     }
   }
 
   /** Writes the tank to NBT */
-  public CompoundTag write(CompoundTag nbt) {
+  public CompoundTag write(CompoundTag nbt, HolderLookup.Provider registries) {
     ListTag list = new ListTag();
     for (FluidStack liquid : fluids) {
-      CompoundTag fluidTag = new CompoundTag();
-      liquid.writeToNBT(fluidTag);
-      list.add(fluidTag);
+      list.add(liquid.save(registries));
     }
     nbt.put(TAG_FLUIDS, list);
     nbt.putInt(TAG_CAPACITY, capacity);
@@ -304,13 +303,13 @@ public class SmelteryTank<T extends MantleBlockEntity & ISmelteryTankHandler> im
   }
 
   /** Reads the tank from NBT */
-  public void read(CompoundTag tag) {
+  public void read(CompoundTag tag, HolderLookup.Provider registries) {
     ListTag list = tag.getList(TAG_FLUIDS, Tag.TAG_COMPOUND);
     fluids.clear();
     contained = 0;
     for (int i = 0; i < list.size(); i++) {
       CompoundTag fluidTag = list.getCompound(i);
-      FluidStack fluid = FluidStack.loadFluidStackFromNBT(fluidTag);
+      FluidStack fluid = FluidStack.parseOptional(registries, fluidTag);
       if (!fluid.isEmpty()) {
         fluids.add(fluid);
         contained += fluid.getAmount();

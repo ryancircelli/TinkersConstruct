@@ -76,9 +76,8 @@ public class FaucetBlock extends Block implements EntityBlock {
     return SHAPES.get(state.getValue(FACING));
   }
 
-  @SuppressWarnings("deprecation")
   @Override
-  public boolean isPathfindable(BlockState state, BlockGetter worldIn, BlockPos pos, PathComputationType type) {
+  protected boolean isPathfindable(BlockState state, PathComputationType type) {
     return false;
   }
 
@@ -97,9 +96,12 @@ public class FaucetBlock extends Block implements EntityBlock {
     return BlockEntityHelper.serverTicker(pLevel, type, TinkerSmeltery.faucet.get(), FaucetBlockEntity.SERVER_TICKER);
   }
 
-  @SuppressWarnings("deprecation")
+  /**
+   * A faucet toggles the same way whatever the player is holding, which is the case
+   * {@code useWithoutItem} alone covers: the default {@code useItemOn} passes through to it.
+   */
   @Override
-  public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+  protected InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
     if (player.isShiftKeyDown()) {
       return InteractionResult.PASS;
     }
@@ -113,10 +115,9 @@ public class FaucetBlock extends Block implements EntityBlock {
     if (worldIn.isClientSide()) {
       return;
     }
-    getFaucet(worldIn, pos).ifPresent(faucet -> {
-      faucet.neighborChanged(fromPos);
-      faucet.handleRedstone(worldIn.hasNeighborSignal(pos));
-    });
+    // the faucet used to drop its cached input/output handler here; a BlockCapabilityCache is refreshed by the level
+    // when the neighbor changes, so redstone is all this hook has left to do
+    getFaucet(worldIn, pos).ifPresent(faucet -> faucet.handleRedstone(worldIn.hasNeighborSignal(pos)));
   }
 
   @SuppressWarnings("deprecation")

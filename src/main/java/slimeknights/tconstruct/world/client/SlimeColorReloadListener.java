@@ -5,7 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraftforge.fml.ModLoader;
+import net.neoforged.fml.ModLoader;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.world.block.FoliageType;
 
@@ -27,7 +27,8 @@ public class SlimeColorReloadListener extends SimplePreparableReloadListener<int
    */
   @Override
   protected int[] prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
-    if (!ModLoader.isLoadingStateValid()) {
+    // isLoadingStateValid is gone; hasErrors is its 1.21 equivalent - both guard "don't touch resources if mod loading itself is broken"
+    if (ModLoader.hasErrors()) {
       return new int[0];
     }
     try {
