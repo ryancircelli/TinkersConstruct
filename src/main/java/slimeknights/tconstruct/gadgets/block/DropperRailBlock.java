@@ -13,6 +13,7 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import slimeknights.mantle.inventory.EmptyItemHandler;
+import slimeknights.mantle.util.CapabilityHelper;
 
 public class DropperRailBlock extends RailBlock {
 
@@ -26,13 +27,16 @@ public class DropperRailBlock extends RailBlock {
       return;
     }
     BlockEntity tileEntity = world.getBlockEntity(pos.below());
-    if (tileEntity == null || !tileEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN).isPresent()) {
+    if (tileEntity == null || CapabilityHelper.itemHandler(tileEntity, Direction.DOWN) == null) {
       return;
     }
 
-    // todo: fix this optional usage
+    // cart is an entity, not a stack/block entity, so it stays on the raw LazyOptional API - CapabilityHelper only covers those two receivers
     IItemHandler itemHandlerCart = cart.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP).orElse(EmptyItemHandler.INSTANCE);
-    IItemHandler itemHandlerTE = tileEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP).orElse(EmptyItemHandler.INSTANCE);
+    IItemHandler itemHandlerTE = CapabilityHelper.itemHandler(tileEntity, Direction.UP);
+    if (itemHandlerTE == null) {
+      itemHandlerTE = EmptyItemHandler.INSTANCE;
+    }
 
     for (int i = 0; i < itemHandlerCart.getSlots(); i++) {
       ItemStack itemStack = itemHandlerCart.extractItem(i, 1, true);
