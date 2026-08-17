@@ -169,7 +169,8 @@ public class StatOverrideModifier extends NoLevelsModifier implements ToolStatsM
   /* Helpers */
 
   /**
-   * Gets the tag for the given group key, creating if it needed
+   * Gets the tag for the given group key, creating if it needed.
+   * The tag is a copy of the tool's data, so {@link #putTag(IToolStackView, ResourceLocation, CompoundTag)} stores any edit.
    * @param tool       Tool instance
    * @param groupKey   Group key
    * @param createTag  If true, creates the tag if missing
@@ -178,18 +179,30 @@ public class StatOverrideModifier extends NoLevelsModifier implements ToolStatsM
   @Nullable
   private static CompoundTag getTag(IToolStackView tool, ResourceLocation groupKey, boolean createTag) {
     // first, find the proper tag, create if missing
-    ModDataNBT data = tool.getPersistentData();
-    CompoundTag nbt;
+    IModDataView data = tool.getPersistentData();
     if (data.contains(groupKey, Tag.TAG_COMPOUND)) {
       return data.getCompound(groupKey);
-    } else if (createTag) {
-      nbt = new CompoundTag();
-      data.put(groupKey, nbt);
-      return nbt;
-    } else {
-      // if setting a value to 0 and no tag, nothing to do
-      return null;
     }
+    // if setting a value to the neutral value and no tag, nothing to do
+    return createTag ? new CompoundTag() : null;
+  }
+
+  /**
+   * Stores a tag from {@link #getTag(IToolStackView, ResourceLocation, boolean)} back on the tool
+   * @param tool      Tool instance
+   * @param groupKey  Group key
+   * @param nbt       Edited tag
+   * @return  True if the group still holds an override, meaning the modifier is required
+   */
+  private static boolean putTag(IToolStackView tool, ResourceLocation groupKey, CompoundTag nbt) {
+    ModDataNBT data = tool.getPersistentData();
+    // a group with no overrides left is stored as no group at all
+    if (nbt.isEmpty()) {
+      data.remove(groupKey);
+      return false;
+    }
+    data.put(groupKey, nbt);
+    return true;
   }
 
   /** Gets the given stat from Tag */
@@ -222,15 +235,10 @@ public class StatOverrideModifier extends NoLevelsModifier implements ToolStatsM
     String name = stat.getName().toString();
     if (value != neutralValue) {
       nbt.putFloat(name, value);
-      return true;
+    } else {
+      nbt.remove(name);
     }
-    // remove the value
-    nbt.remove(name);
-    if (nbt.getAllKeys().isEmpty()) {
-      tool.getPersistentData().remove(groupKey);
-      return false;
-    }
-    return true;
+    return putTag(tool, groupKey, nbt);
   }
 
   /**
@@ -240,35 +248,26 @@ public class StatOverrideModifier extends NoLevelsModifier implements ToolStatsM
    * @param value  New value
    */
   public <T> boolean set(IToolStackView tool, IToolStat<T> stat, T value) {
-    // first, find the proper tag, create if missing
-    ModDataNBT data = tool.getPersistentData();
     boolean storeValue;
     if (stat instanceof INumericToolStat) {
       storeValue = ((Number)value).floatValue() != 0;
     } else {
       storeValue = value != stat.getDefaultValue();
     }
-    // create tag if needed
+    // first, find the proper tag, create if needed
     CompoundTag nbt = getTag(tool, KEY_BONUS, storeValue);
     if (nbt == null) {
       return false;
     }
-    // if we have something to store, do so
+    // if we have something to store, do so, else remove the value
     String name = stat.getName().toString();
-    if (storeValue) {
-      Tag tag = stat.write(value);
-      if (tag != null) {
-        nbt.put(name, tag);
-        return true;
-      }
+    Tag tag = storeValue ? stat.write(value) : null;
+    if (tag != null) {
+      nbt.put(name, tag);
+    } else {
+      nbt.remove(name);
     }
-    // remove the value if nothing to store
-    nbt.remove(name);
-    if (nbt.getAllKeys().isEmpty()) {
-      data.remove(StatOverrideModifier.KEY_BONUS);
-      return false;
-    }
-    return true;
+    return putTag(tool, StatOverrideModifier.KEY_BONUS, nbt);
   }
 
   /**
@@ -315,11 +314,7 @@ public class StatOverrideModifier extends NoLevelsModifier implements ToolStatsM
     }
     // remove the value
     nbt.remove(stat.getName().toString());
-    if (nbt.getAllKeys().isEmpty()) {
-      tool.getPersistentData().remove(StatOverrideModifier.KEY_BONUS);
-      return false;
-    }
-    return true;
+    return putTag(tool, StatOverrideModifier.KEY_BONUS, nbt);
   }
 
   @FunctionalInterface

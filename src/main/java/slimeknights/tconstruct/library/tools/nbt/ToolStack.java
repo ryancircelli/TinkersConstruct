@@ -140,26 +140,48 @@ public class ToolStack implements IToolStackView {
   }
 
   /**
+   * Installs the given tag on the given stack. Every write this class makes to a stack's NBT goes through here.
+   * <p>
+   * Assigns the field rather than calling {@link ItemStack#setTag(CompoundTag)} because Forge routes that setter's
+   * "keep the damage value in sync" step through {@code Item#getDamage(ItemStack)} and {@code Item#setDamage(ItemStack, int)},
+   * both of which our tools implement in terms of this class. Going through the setter therefore re-enters
+   * {@code ToolStack} and writes {@link #TAG_BROKEN} and {@link #TAG_DAMAGE} into the very tag being installed,
+   * changing the NBT of every stack this class produces.
+   * <p>
+   * {@code Item#verifyTagAfterLoad} is not a reason to bypass the setter, despite what the older comments on these
+   * call sites claimed: on 1.20 it runs only from {@code ItemStack(CompoundTag)}, that is when a stack is read back
+   * from disk or the network, never from the setter.
+   * @param stack  Stack to write to
+   * @param tag    Tag to install
+   */
+  private static void writeTag(ItemStack stack, CompoundTag tag) {
+    stack.tag = tag;
+  }
+
+  /**
    * Creates a tool stack from an item stack
-   * @param stack    Base stack
-   * @param copyNbt  If true, NBT is copied from the stack
+   * @param stack      Base stack
+   * @param copyNbt    If true, NBT is copied from the stack
+   * @param createTag  If true, a stack with no NBT is given the tag this tool will use, so writes made through the
+   *                   tool land on the stack. Only for factories handing out a writable tool.
    * @return  Tool stack
    */
-  private static ToolStack from(ItemStack stack, boolean copyNbt) {
+  private static ToolStack from(ItemStack stack, boolean copyNbt, boolean createTag) {
     Item item = stack.getItem();
     ToolDefinition definition = item instanceof IModifiable mod
                                 ? mod.getToolDefinition()
                                 : ToolDefinition.EMPTY;
     CompoundTag nbt = stack.getTag();
     if (nbt == null) {
+      // a stack with no NBT reads as an empty tool either way, so the tag is only worth creating for a writer
       nbt = new CompoundTag();
       if (!copyNbt) {
         // only a wrongly made tool will have an empty definition. check preferred to a tag check as tags may not be loaded when this is first called
         if (definition != ToolDefinition.EMPTY) {
-          // bypass the setter as vanilla insists on setting damage values there, along with verifying the tag
-          // both are things we will do later, doing so now causes us to recursively call this method (though not infinite)
-          stack.tag = nbt;
-          // no need to set the damage value, if the tool wanted it set the stack would have had a tag already
+          if (createTag) {
+            writeTag(stack, nbt);
+            // no need to set the damage value, if the tool wanted it set the stack would have had a tag already
+          }
         } else {
           switch (Config.COMMON.logInvalidToolStack.get()) {
             case STACKTRACE ->
@@ -176,12 +198,26 @@ public class ToolStack implements IToolStackView {
   }
 
   /**
-   * Creates a tool stack from the given item stack, not copying NBT
+   * Creates a read only view of the given item stack, not copying NBT and not changing the stack in any way.
+   * Prefer this over {@link #mutable(ItemStack)} whenever the tool is only read, as it prevents accidentally editing a tool you do not own.
+   * A stack with no NBT yields a view of an empty tool that the stack does not share; take {@link #mutable(ItemStack)} if the tool has to write.
    * @param stack  Stack
-   * @return  Tool stack
+   * @return  Read only view of the stack
    */
-  public static ToolStack from(ItemStack stack) {
-    return from(stack, false);
+  public static IToolStackView from(ItemStack stack) {
+    return from(stack, false, false);
+  }
+
+  /**
+   * Creates a mutable tool stack from the given item stack, not copying NBT.
+   * The returned instance shares NBT with the stack, so every change made through it is immediately visible on {@code stack}.
+   * A stack with no NBT is given one, as otherwise there would be nothing for the changes to be visible on.
+   * Use {@link #from(ItemStack)} if you only need to read the tool, or {@link #copyFrom(ItemStack)} if you need to edit a tool without changing the stack.
+   * @param stack  Stack
+   * @return  Mutable tool stack sharing NBT with the passed stack
+   */
+  public static ToolStack mutable(ItemStack stack) {
+    return from(stack, false, true);
   }
 
   /**
@@ -190,7 +226,7 @@ public class ToolStack implements IToolStackView {
    * @return  Tool stack
    */
   public static ToolStack copyFrom(ItemStack stack) {
-    return from(stack, true);
+    return from(stack, true, false);
   }
 
   /**
@@ -257,8 +293,7 @@ public class ToolStack implements IToolStackView {
   /** Creates an item stack from this tool stack */
   public ItemStack createStack(int size) {
     ItemStack stack = new ItemStack(item, size);
-    // set the raw tag to avoid going through verifyTagAfterLoad and rebuilding stats again
-    stack.tag = nbt;
+    writeTag(stack, nbt);
     // damage value is already enforced via the stack creation above
     return stack;
   }
@@ -287,13 +322,8 @@ public class ToolStack implements IToolStackView {
     if (stack.getItem() != item) {
       throw new IllegalArgumentException("Wrong item in stack");
     }
-    // set the raw tag to avoid going through verifyTagAfterLoad and rebuilding stats again
     // TODO: is there any reason we copy NBT here? might be worth never copying
-    if (copyNBT) {
-      stack.tag = nbt.copy();
-    } else {
-      stack.tag = nbt;
-    }
+    writeTag(stack, copyNBT ? nbt.copy() : nbt);
     // ensure the damage value is set on the stack for the sake of stacking, since bypassing the vanilla setter skips that
     if (!stack.tag.contains(TAG_DAMAGE, Tag.TAG_ANY_NUMERIC) && stack.getItem().isDamageable(stack)) {
       stack.tag.putInt(TAG_DAMAGE, 0);
@@ -825,7 +855,7 @@ public class ToolStack implements IToolStackView {
       return;
     }
     // time to initialize
-    ToolStack.from(stack).ensureHasData();
+    ToolStack.mutable(stack).ensureHasData();
   }
 
   /**

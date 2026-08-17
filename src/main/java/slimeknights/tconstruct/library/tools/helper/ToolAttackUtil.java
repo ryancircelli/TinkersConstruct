@@ -136,7 +136,7 @@ public class ToolAttackUtil {
 
   /** Core logic for attacking, meant to be called from {@link Item#onLeftClickEntity(ItemStack, Player, Entity)} */
   public static boolean attackEntity(ItemStack stack, Player attacker, Entity targetEntity) {
-    return attackEntity(ToolStack.from(stack), attacker, targetEntity);
+    return attackEntity(ToolStack.mutable(stack), attacker, targetEntity);
   }
 
   /** Core logic for attacking, meant to be called from {@link Item#onLeftClickEntity(ItemStack, Player, Entity)} when a tool stack is needed for other uses. */

@@ -125,7 +125,7 @@ public class ShapedMaterialsRecipe extends ShapedRecipe implements MaterialsCraf
       for (MaterialVariantId extraMaterial : extraMaterials) {
         builder.add(extraMaterial);
       }
-      ToolStack.from(stack).setMaterials(builder.build());
+      ToolStack.mutable(stack).setMaterials(builder.build());
     }
   }
 
@@ -150,7 +150,7 @@ public class ShapedMaterialsRecipe extends ShapedRecipe implements MaterialsCraf
       }
       // add extra materials
       builder.add(extraMaterials);
-      ToolStack.from(stack).setMaterials(builder.build());
+      ToolStack.mutable(stack).setMaterials(builder.build());
     }
     return stack;
   }

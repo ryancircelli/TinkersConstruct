@@ -103,21 +103,15 @@ public class CreativeSlotItem extends Item {
     if (slotType != null && !toolItem.isEmpty() && toolItem.is(TinkerTags.Items.MODIFIABLE)) {
       if (!player.level().isClientSide || (player.isCreative() && player.containerMenu.menuType == null)) {
         if (canApply(player)) {
-          ToolStack tool = ToolStack.from(toolItem);
+          ToolStack tool = ToolStack.mutable(toolItem);
           // do nothing if the tool already has 0 slots and we are removing
           if (tool.getFreeSlots(slotType) + amount < 0) {
             return true;
           }
 
-          // find the tool data
+          // find the tool data, this is a copy so it has to be stored again below
           ModDataNBT persistentData = tool.getPersistentData();
-          CompoundTag slots;
-          if (persistentData.contains(CreativeSlotModifier.KEY_SLOTS, Tag.TAG_COMPOUND)) {
-            slots = persistentData.getCompound(CreativeSlotModifier.KEY_SLOTS);
-          } else {
-            slots = new CompoundTag();
-            persistentData.put(CreativeSlotModifier.KEY_SLOTS, slots);
-          }
+          CompoundTag slots = persistentData.getCompound(CreativeSlotModifier.KEY_SLOTS);
 
           // add the slot
           String name = slotType.getName();
@@ -135,12 +129,16 @@ public class CreativeSlotItem extends Item {
             // if no slots exist anymore, remove the creative modifier
             persistentData.remove(CreativeSlotModifier.KEY_SLOTS);
             tool.removeModifier(creative, currentLevel);
-          } else if (currentLevel == 0) {
-            // add creative modifier if needed
-            tool.addModifier(creative, 1);
           } else {
-            // neither add or removing modifier, just build it
-            tool.rebuildStats();
+            // store the slots before rebuilding, the rebuild reads them back off the tool
+            persistentData.put(CreativeSlotModifier.KEY_SLOTS, slots);
+            if (currentLevel == 0) {
+              // add creative modifier if needed
+              tool.addModifier(creative, 1);
+            } else {
+              // neither add or removing modifier, just build it
+              tool.rebuildStats();
+            }
           }
           if (amount > 0) {
             FluidTransferHelper.playUISound(player, SoundEvents.ENCHANTMENT_TABLE_USE);

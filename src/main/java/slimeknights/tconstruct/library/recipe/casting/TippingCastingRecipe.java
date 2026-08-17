@@ -64,7 +64,7 @@ public class TippingCastingRecipe extends PotionCastingRecipe {
     ItemStack result = inv.getStack().copy();
     CompoundTag tag = inv.getFluidTag();
     if (tag != null) {
-      ToolStack.from(result).getPersistentData().putString(modifier, tag.getString(PotionUtils.TAG_POTION));
+      ToolStack.mutable(result).getPersistentData().putString(modifier, tag.getString(PotionUtils.TAG_POTION));
     }
     return result;
   }

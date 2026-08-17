@@ -3,11 +3,13 @@ package slimeknights.tconstruct.library.tools.nbt;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Tiers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.fixture.MaterialFixture;
 import slimeknights.tconstruct.fixture.ToolDefinitionFixture;
 import slimeknights.tconstruct.library.modifiers.ModifierFixture;
@@ -45,15 +47,68 @@ class ToolStackTest extends ToolItemTest {
   @Test
   void from_findToolCoreDefinition() {
     ItemStack stack = new ItemStack(tool);
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     assertThat(tool.getDefinition()).isEqualTo(tool.getDefinition());
   }
 
   @Test
   void from_shareNBT() {
-    ToolStack tool = ToolStack.from(testItemStack);
+    ToolStack tool = ToolStack.mutable(testItemStack);
     tool.setDamage(10);
     assertThat(testItemStack.getDamageValue()).overridingErrorMessage("ToolStack damage was not transferred to the original stack").isEqualTo(10);
+  }
+
+  @Test
+  void from_sharesTheLiveToolWithMutable() {
+    // from and mutable are the same live view of the same stack, they just differ in what the type lets you do
+    IToolStackView view = ToolStack.from(testItemStack);
+    ToolStack mutable = ToolStack.mutable(testItemStack);
+    assertThat(view.isSameStack(testItemStack)).isTrue();
+    assertThat(mutable.isSameStack(testItemStack)).isTrue();
+    mutable.setDamage(10);
+    assertThat(view.getDamage()).overridingErrorMessage("Read only view did not see a write made through the mutable tool").isEqualTo(10);
+  }
+
+  @Test
+  void from_doesNotCreateTheStacksTag() {
+    // the read path makes no change to the stack at all, including on a tagless tool; mutable is the factory that writes
+    ItemStack stack = new ItemStack(tool);
+    // vanilla gives a damageable stack a tag on construction, clear it directly as the setter would just put it back
+    stack.tag = null;
+    assertThat(stack.getTag()).isNull();
+    IToolStackView view = ToolStack.from(stack);
+    assertThat(stack.getTag()).overridingErrorMessage("Reading a tagless tool wrote a tag onto the stack").isNull();
+    // the view reads as an empty tool over a tag the stack does not share, so it is not the stack's tool
+    assertThat(view.getStats()).isEqualTo(StatsNBT.EMPTY);
+    assertThat(view.isSameStack(stack)).isFalse();
+  }
+
+  @Test
+  void mutable_stillCreatesTheStacksTag() {
+    // a writable tool has to have somewhere to write, so this factory keeps the tag creating side effect
+    ItemStack stack = new ItemStack(tool);
+    // vanilla gives a damageable stack a tag on construction, clear it directly as the setter would just put it back
+    stack.tag = null;
+    assertThat(stack.getTag()).isNull();
+    ToolStack mutable = ToolStack.mutable(stack);
+    assertThat(stack.getTag()).overridingErrorMessage("Taking a mutable tagless tool no longer initializes the stack tag").isNotNull();
+    assertThat(mutable.isSameStack(stack)).isTrue();
+  }
+
+  @Test
+  void from_readOnlyViewCanStillSetDamage() {
+    // IToolStackView is read only with respect to materials and modifiers only, damage remains writable through it
+    IToolStackView view = ToolStack.from(testItemStack);
+    view.setDamage(10);
+    assertThat(testItemStack.getDamageValue()).isEqualTo(10);
+  }
+
+  @Test
+  void from_readOnlyViewCanStillEditPersistentData() {
+    // IToolStackView hands out mutable persistent data, so this write is invisible at the type level
+    IToolStackView view = ToolStack.from(testItemStack);
+    view.getPersistentData().putInt(TConstruct.getResource("test"), 5);
+    assertThat(ToolStack.from(testItemStack).getPersistentData().getInt(TConstruct.getResource("test"))).isEqualTo(5);
   }
 
   @Test
@@ -65,7 +120,7 @@ class ToolStackTest extends ToolItemTest {
 
   @Test
   void copy_notSharedNBT() {
-    ToolStack tool = ToolStack.from(testItemStack);
+    ToolStack tool = ToolStack.mutable(testItemStack);
     ToolStack copy = tool.copy();
     tool.setDamage(10);
     assertThat(copy.getDamage()).overridingErrorMessage("Copied ToolStack damage was transferred to the original stack").isEqualTo(0);
@@ -151,13 +206,13 @@ class ToolStackTest extends ToolItemTest {
     assertThat(nbt).isNotNull();
     nbt.putInt(ToolStack.TAG_DAMAGE, 9999);
 
-    ToolStack tool = ToolStack.from(testItemStack);
+    IToolStackView tool = ToolStack.from(testItemStack);
     assertThat(tool.getDamage()).isLessThanOrEqualTo(tool.getStats().getInt(ToolStats.DURABILITY));
   }
 
   @Test
   void damage_setDamageBreaksTool() {
-    ToolStack tool = ToolStack.from(testItemStack);
+    ToolStack tool = ToolStack.mutable(testItemStack);
     assertThat(tool.isBroken()).isFalse();
     tool.setDamage(99999);
     assertThat(tool.isBroken()).isTrue();
@@ -169,7 +224,7 @@ class ToolStackTest extends ToolItemTest {
     assertThat(nbt).isNotNull();
     nbt.putBoolean(ToolStack.TAG_BROKEN, true);
 
-    ToolStack tool = ToolStack.from(testItemStack);
+    ToolStack tool = ToolStack.mutable(testItemStack);
     assertThat(tool.isBroken()).isTrue();
     tool.setDamage(10);
     assertThat(tool.isBroken()).isFalse();
@@ -177,7 +232,7 @@ class ToolStackTest extends ToolItemTest {
 
   @Test
   void damage_damageTool() {
-    ToolStack tool = ToolStack.from(testItemStack);
+    ToolStack tool = ToolStack.mutable(testItemStack);
     int oldDamage = tool.getDamage();
     ToolDamageUtil.directDamage(tool, 100, null, null);
     assertThat(tool.getDamage()).isEqualTo(oldDamage + 100);
@@ -185,7 +240,7 @@ class ToolStackTest extends ToolItemTest {
 
   @Test
   void damage_repairTool() {
-    ToolStack tool = ToolStack.from(testItemStack);
+    ToolStack tool = ToolStack.mutable(testItemStack);
     tool.setDamage(50);
     int oldDamage = tool.getDamage();
     ToolDamageUtil.repair(tool, 25);
@@ -194,7 +249,7 @@ class ToolStackTest extends ToolItemTest {
 
   @Test
   void broken_quickCheck() {
-    ToolStack tool = ToolStack.from(testItemStack);
+    ToolStack tool = ToolStack.mutable(testItemStack);
     tool.breakTool();
     ItemStack stack = tool.createStack();
     assertThat(ToolDamageUtil.isBroken(stack)).isTrue();
@@ -240,7 +295,7 @@ class ToolStackTest extends ToolItemTest {
     ItemStack stack = new ItemStack(Items.DIAMOND_PICKAXE);
     stack.getOrCreateTag().put(ToolStack.TAG_STATS, testStatsNBT.serializeToNBT());
 
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     StatsNBT readStats = tool.getStats();
     assertThat(readStats).isNotEqualTo(StatsNBT.EMPTY);
     assertThat(readStats).isEqualTo(testStatsNBT);
@@ -251,7 +306,7 @@ class ToolStackTest extends ToolItemTest {
     ItemStack stack = new ItemStack(Items.DIAMOND_PICKAXE);
     stack.setDamageValue(100);
 
-    ToolStack tool = ToolStack.from(stack);
+    ToolStack tool = ToolStack.mutable(stack);
     tool.setStats(StatsNBT.builder().set(ToolStats.DURABILITY, 50f).build());
     assertThat(tool.getDamageRaw()).isEqualTo(50);
     assertThat(tool.isBroken()).isTrue();
@@ -279,7 +334,7 @@ class ToolStackTest extends ToolItemTest {
     MaterialNBT setMaterials = MaterialNBT.of(MaterialFixture.MATERIAL_WITH_HEAD, MaterialFixture.MATERIAL_WITH_HANDLE, MaterialFixture.MATERIAL_WITH_EXTRA);
     stack.getOrCreateTag().put(ToolStack.TAG_MATERIALS, setMaterials.serializeToNBT());
 
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     MaterialNBT readMaterials = tool.getMaterials();
     assertThat(readMaterials).isNotEqualTo(MaterialNBT.EMPTY);
     assertThat(readMaterials).isEqualTo(setMaterials);
@@ -287,7 +342,7 @@ class ToolStackTest extends ToolItemTest {
 
   @Test
   void materials_replaceMaterial() {
-    ToolStack toolStack = ToolStack.from(testItemStack);
+    ToolStack toolStack = ToolStack.mutable(testItemStack);
     assertThat(toolStack.getMaterials().size()).isEqualTo(3);
     assertThat(toolStack.getMaterial(0).get()).isEqualTo(MaterialFixture.MATERIAL_WITH_HEAD);
     assertThat(toolStack.getMaterial(1).get()).isEqualTo(MaterialFixture.MATERIAL_WITH_HANDLE);
@@ -306,7 +361,7 @@ class ToolStackTest extends ToolItemTest {
 
   @Test
   void modifiers_addModifier() {
-    ToolStack toolStack = ToolStack.from(testItemStack);
+    ToolStack toolStack = ToolStack.mutable(testItemStack);
     assertThat(toolStack.getUpgrades().getLevel(ModifierFixture.TEST_1)).isEqualTo(0);
     toolStack.addModifier(ModifierFixture.TEST_1, 1);
     assertThat(toolStack.getUpgrades().getLevel(ModifierFixture.TEST_1)).isEqualTo(1);
@@ -314,7 +369,7 @@ class ToolStackTest extends ToolItemTest {
 
   @Test
   void modifiers_serialize() {
-    ToolStack toolStack = ToolStack.from(testItemStack);
+    ToolStack toolStack = ToolStack.mutable(testItemStack);
     toolStack.addModifier(ModifierFixture.TEST_1, 1);
 
     CompoundTag nbt = toolStack.getNbt();
@@ -329,7 +384,7 @@ class ToolStackTest extends ToolItemTest {
     ModifierNBT setModifiers = ModifierNBT.EMPTY.withModifier(ModifierFixture.TEST_1, 1);
     testItemStack.getOrCreateTag().put(ToolStack.TAG_UPGRADES, setModifiers.serializeToNBT());
 
-    ToolStack tool = ToolStack.from(testItemStack);
+    IToolStackView tool = ToolStack.from(testItemStack);
     ModifierNBT readModifiers = tool.getUpgrades();
     assertThat(readModifiers).isNotEqualTo(ModifierNBT.EMPTY);
     assertThat(readModifiers).isEqualTo(setModifiers);
@@ -337,7 +392,7 @@ class ToolStackTest extends ToolItemTest {
 
   @Test
   void allMods_serialize() {
-    ToolStack toolStack = ToolStack.from(testItemStack);
+    ToolStack toolStack = ToolStack.mutable(testItemStack);
     ModifierNBT setModifiers = ModifierNBT.EMPTY.withModifier(ModifierFixture.TEST_1, 1);
     toolStack.setModifiers(setModifiers);
 
@@ -353,7 +408,7 @@ class ToolStackTest extends ToolItemTest {
     ModifierNBT setModifiers = ModifierNBT.EMPTY.withModifier(ModifierFixture.TEST_1, 1);
     testItemStack.getOrCreateTag().put(ToolStack.TAG_MODIFIERS, setModifiers.serializeToNBT());
 
-    ToolStack tool = ToolStack.from(testItemStack);
+    IToolStackView tool = ToolStack.from(testItemStack);
     ModifierNBT readModifiers = tool.getModifiers();
     assertThat(readModifiers).isNotEqualTo(ModifierNBT.EMPTY);
     assertThat(readModifiers).isEqualTo(setModifiers);
@@ -380,7 +435,7 @@ class ToolStackTest extends ToolItemTest {
     modData.setSlots(SlotType.UPGRADE, 1);
     testItemStack.getOrCreateTag().put(ToolStack.TAG_PERSISTENT_MOD_DATA, modData.getData());
 
-    ToolStack toolStack = ToolStack.from(testItemStack);
+    IToolStackView toolStack = ToolStack.from(testItemStack);
     assertThat(toolStack.getPersistentData().getData()).isEqualTo(modData.getData());
   }
 
@@ -401,8 +456,26 @@ class ToolStackTest extends ToolItemTest {
     modData.setSlots(SlotType.UPGRADE, 1);
     testItemStack.getOrCreateTag().put(ToolStack.TAG_VOLATILE_MOD_DATA, modData.getData());
 
-    ToolStack toolStack = ToolStack.from(testItemStack);
+    IToolStackView toolStack = ToolStack.from(testItemStack);
     assertThat(toolStack.getVolatileData()).isEqualTo(modData);
+  }
+
+  @Test
+  void persistentModData_editingAReadTagDoesNotReachTheStack() {
+    ResourceLocation key = TConstruct.getResource("test");
+    CompoundTag stored = new CompoundTag();
+    stored.putInt("value", 1);
+    ToolStack toolStack = ToolStack.mutable(testItemStack);
+    toolStack.getPersistentData().put(key, stored);
+
+    // editing the tag the read handed back leaves the stack alone
+    CompoundTag read = toolStack.getPersistentData().getCompound(key);
+    read.putInt("value", 2);
+    assertThat(testItemStack.getOrCreateTag().getCompound(ToolStack.TAG_PERSISTENT_MOD_DATA).getCompound(key.toString()).getInt("value")).isEqualTo(1);
+
+    // storing it is what puts it on the stack
+    toolStack.getPersistentData().put(key, read);
+    assertThat(testItemStack.getOrCreateTag().getCompound(ToolStack.TAG_PERSISTENT_MOD_DATA).getCompound(key.toString()).getInt("value")).isEqualTo(2);
   }
 
 

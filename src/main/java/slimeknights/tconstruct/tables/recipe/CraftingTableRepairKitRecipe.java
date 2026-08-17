@@ -112,7 +112,7 @@ public class CraftingTableRepairKitRecipe extends CustomRecipe {
     }
 
     // first identify materials and durability
-    ToolStack tool = ToolStack.from(inputs.tool);
+    ToolStack tool = ToolStack.mutable(inputs.tool);
     // vanilla says 25% durability per ingot, repair kits are worth 2 ingots
     float repairAmount = getRepairAmount(tool, inputs.repairKit);
     if (repairAmount <= 0) {

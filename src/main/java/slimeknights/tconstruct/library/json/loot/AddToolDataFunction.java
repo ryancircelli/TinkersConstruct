@@ -56,7 +56,7 @@ public class AddToolDataFunction extends LootItemConditionalFunction {
   @Override
   protected ItemStack run(ItemStack stack, LootContext context) {
     if (stack.is(TinkerTags.Items.MODIFIABLE)) {
-      ToolStack tool = ToolStack.from(stack);
+      ToolStack tool = ToolStack.mutable(stack);
       ToolDefinition definition = tool.getDefinition();
       if (definition.hasMaterials() && !materials.isEmpty()) {
         tool.setMaterials(RandomMaterial.build(ToolMaterialHook.stats(definition), materials, context.getRandom()));

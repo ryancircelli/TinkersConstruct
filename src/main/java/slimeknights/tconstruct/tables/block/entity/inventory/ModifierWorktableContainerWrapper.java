@@ -39,7 +39,7 @@ public class ModifierWorktableContainerWrapper implements ITinkerableContainer.M
   @Override
   public ToolStack getTinkerable() {
     if (tool == null) {
-      tool = ToolStack.from(getTinkerableStack());
+      tool = ToolStack.mutable(getTinkerableStack());
     }
     return tool;
   }

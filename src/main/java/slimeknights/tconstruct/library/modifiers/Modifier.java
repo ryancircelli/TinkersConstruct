@@ -334,7 +334,7 @@ public class Modifier implements IdAwareObject {
    * @return  Tool stack
    */
   @Nullable
-  public static ToolStack getHeldTool(@Nullable LivingEntity living, InteractionHand hand) {
+  public static IToolStackView getHeldTool(@Nullable LivingEntity living, InteractionHand hand) {
     return getHeldTool(living, Util.getSlotType(hand));
   }
 
@@ -344,7 +344,7 @@ public class Modifier implements IdAwareObject {
    * @return  Tool stack
    */
   @Nullable
-  public static ToolStack getHeldTool(@Nullable LivingEntity living, EquipmentSlot slot) {
+  public static IToolStackView getHeldTool(@Nullable LivingEntity living, EquipmentSlot slot) {
     if (living == null) {
       return null;
     }
@@ -352,7 +352,7 @@ public class Modifier implements IdAwareObject {
     if (stack.isEmpty() || !stack.is(TinkerTags.Items.MODIFIABLE)) {
       return null;
     }
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     return tool.isBroken() ? null : tool;
   }
 

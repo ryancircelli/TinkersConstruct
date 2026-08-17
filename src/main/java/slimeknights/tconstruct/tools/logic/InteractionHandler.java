@@ -87,7 +87,7 @@ public class InteractionHandler {
     }
     if (!player.getCooldowns().isOnCooldown(stack.getItem())) {
       // actual interaction hook
-      ToolStack tool = ToolStack.from(stack);
+      IToolStackView tool = ToolStack.from(stack);
       Entity target = event.getTarget();
       for (ModifierEntry entry : tool.getModifierList()) {
         // exit on first successful result
@@ -111,7 +111,7 @@ public class InteractionHandler {
         // from this point on, we are taking over interaction logic, to ensure chestplate hooks run in the right order
         event.setCanceled(true);
 
-        ToolStack tool = ToolStack.from(chestplate);
+        IToolStackView tool = ToolStack.from(chestplate);
         Entity target = event.getTarget();
         InteractionHand hand = event.getHand();
 
@@ -178,7 +178,7 @@ public class InteractionHandler {
         // no turning back, from this point we are fully in charge of interaction logic (since we need to ensure order of the hooks)
 
         // begin interaction
-        ToolStack tool = ToolStack.from(chestplate);
+        IToolStackView tool = ToolStack.from(chestplate);
         InteractionHand hand = event.getHand();
         BlockHitResult trace = event.getHitVec();
         UseOnContext context = new UseOnContext(player, hand, trace);
@@ -243,7 +243,7 @@ public class InteractionHandler {
     }
 
     // first, run the modifier hook
-    ToolStack tool = ToolStack.from(chestplate);
+    IToolStackView tool = ToolStack.from(chestplate);
     for (ModifierEntry entry : tool.getModifierList()) {
       InteractionResult result = entry.getHook(ModifierHooks.GENERAL_INTERACT).onToolUse(tool, entry, player, hand, InteractionSource.ARMOR);
       if (result.consumesAction()) {
@@ -263,7 +263,7 @@ public class InteractionHandler {
       if (attacker.getMainHandItem().isEmpty()) {
         ItemStack chestplate = attacker.getItemBySlot(EquipmentSlot.CHEST);
         if (chestplate.is(TinkerTags.Items.UNARMED)) {
-          ToolStack tool = ToolStack.from(chestplate);
+          ToolStack tool = ToolStack.mutable(chestplate);
           Entity target = event.getTarget();
           if (!tool.isBroken() && ToolAttackUtil.isAttackable(attacker, target)) {
             ToolAttackUtil.performAttack(tool, ToolAttackContext.attacker(attacker).target(target).slot(EquipmentSlot.CHEST, InteractionHand.MAIN_HAND).defaultCooldown().toolAttributes(tool).build());
@@ -288,7 +288,7 @@ public class InteractionHandler {
     if (!player.isSpectator()) {
       ItemStack helmet = player.getItemBySlot(slotType);
       if (helmet.is(TinkerTags.Items.ARMOR)) {
-        ToolStack tool = ToolStack.from(helmet);
+        IToolStackView tool = ToolStack.from(helmet);
         for (ModifierEntry entry : tool.getModifierList()) {
           if (entry.getHook(ModifierHooks.ARMOR_INTERACT).startInteract(tool, entry, player, slotType, modifierKey)) {
             // store data so we know when interaction started
@@ -314,7 +314,7 @@ public class InteractionHandler {
     if (!player.isSpectator()) {
       ItemStack helmet = player.getItemBySlot(slotType);
       if (helmet.is(TinkerTags.Items.ARMOR)) {
-        ToolStack tool = ToolStack.from(helmet);
+        ToolStack tool = ToolStack.mutable(helmet);
         // fetch interaction data if present
         int chargeTime = 0;
         ModifierEntry activeModifier = ModifierEntry.EMPTY;
@@ -423,7 +423,7 @@ public class InteractionHandler {
     UseOnContext context = new UseOnContext(player, hand, new BlockHitResult(Util.toHitVec(pos, direction), direction, pos, false));
 
     // run modifier hooks
-    ToolStack tool = ToolStack.from(stack);
+    IToolStackView tool = ToolStack.from(stack);
     List<ModifierEntry> modifiers = tool.getModifierList();
     for (ModifierEntry entry : modifiers) {
       InteractionResult result = entry.getHook(ModifierHooks.BLOCK_INTERACT).beforeBlockUse(tool, entry, context, InteractionSource.LEFT_CLICK);
@@ -483,7 +483,7 @@ public class InteractionHandler {
     LivingEntity entity = event.getEntity();
     ItemStack activeStack = entity.getUseItem();
     if (!activeStack.isEmpty() && activeStack.is(TinkerTags.Items.MODIFIABLE)) {
-      ToolStack tool = ToolStack.from(activeStack);
+      ToolStack tool = ToolStack.mutable(activeStack);
       // first check block angle
       if (!tool.isBroken() && canBlock(event.getEntity(), event.getDamageSource().getSourcePosition(), tool)) {
         // TODO: hook for conditioning block amount based on on damage type

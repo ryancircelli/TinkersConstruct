@@ -1,6 +1,7 @@
 package slimeknights.tconstruct.library.tools.item;
 
 import org.junit.jupiter.api.Test;
+import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.stat.ToolStats;
 
@@ -40,7 +41,7 @@ public class ToolItemDurabilityTest extends ToolItemTest {
 
   @Test
   void testMaxDamageBreaksTool() {
-    ToolStack tool = ToolStack.from(testItemStack);
+    ToolStack tool = ToolStack.mutable(testItemStack);
     int statDurability = tool.getStats().getInt(ToolStats.DURABILITY);
 
     tool.setDamage(statDurability);
@@ -51,7 +52,7 @@ public class ToolItemDurabilityTest extends ToolItemTest {
 
   @Test
   void testMoreThanMaxDamageBreaksTool() {
-    ToolStack tool = ToolStack.from(testItemStack);
+    IToolStackView tool = ToolStack.from(testItemStack);
     int statDurability = tool.getStats().getInt(ToolStats.DURABILITY);
 
     testItemStack.setDamageValue(99999999);
