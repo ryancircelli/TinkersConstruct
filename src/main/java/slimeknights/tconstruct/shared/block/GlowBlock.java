@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.shared.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -25,6 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class GlowBlock extends Block {
+  public static final MapCodec<GlowBlock> CODEC = simpleCodec(GlowBlock::new);
 
   public static final DirectionProperty FACING = BlockStateProperties.FACING;
 
@@ -32,6 +34,11 @@ public class GlowBlock extends Block {
     super(properties);
     this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.DOWN));
     this.drops = BuiltInLootTables.EMPTY;
+  }
+
+  @Override
+  public MapCodec<? extends GlowBlock> codec() {
+    return CODEC;
   }
 
   private static final Map<Direction, VoxelShape> BOUNDS = new EnumMap<>(Direction.class);

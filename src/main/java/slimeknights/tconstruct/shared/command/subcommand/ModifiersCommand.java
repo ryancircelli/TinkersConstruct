@@ -105,7 +105,7 @@ public class ModifiersCommand {
       // first remove hook, primarily for removing raw NBT which is highly discouraged using
       int newLevel = currentLevel - removeLevel;
       if (newLevel <= 0) {
-        modifier.getHook(ModifierHooks.RAW_DATA).removeRawData(tool, modifier, tool.getRestrictedNBT());
+        modifier.getHook(ModifierHooks.RAW_DATA).removeRawData(tool, modifier, tool.getRawData());
       }
 
       // remove the actual modifier

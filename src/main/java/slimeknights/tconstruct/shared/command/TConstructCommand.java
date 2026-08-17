@@ -6,9 +6,9 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import slimeknights.mantle.command.argument.TagSourceArgument;
 import slimeknights.mantle.registration.deferred.ArgumentTypeDeferredRegister;
 import slimeknights.tconstruct.TConstruct;
@@ -38,9 +38,14 @@ public class TConstructCommand {
   public static final DynamicCommandExceptionType COMPONENT_ERROR = new DynamicCommandExceptionType(error -> (Component)error);
   private static final ArgumentTypeDeferredRegister ARGUMENT_TYPE = new ArgumentTypeDeferredRegister(TConstruct.MOD_ID);
 
-  /** Registers all TConstruct command related content */
-  public static void init() {
-    ARGUMENT_TYPE.register(FMLJavaModLoadingContext.get().getModEventBus());
+  /**
+   * Registers all TConstruct command related content
+   * @param modBus  Mod event bus, which the loader hands to the mod constructor rather than exposing through a static
+   *                context: {@code FMLJavaModLoadingContext} is gone and a bus now belongs to a {@code ModContainer}.
+   *                Argument types are a registry, so they must be registered on the mod bus, not {@link NeoForge#EVENT_BUS}.
+   */
+  public static void init(IEventBus modBus) {
+    ARGUMENT_TYPE.register(modBus);
     ARGUMENT_TYPE.registerSingleton("slot_type", SlotTypeArgument.class, SlotTypeArgument::slotType);
     ARGUMENT_TYPE.registerSingleton("tool_stat", ToolStatArgument.class, ToolStatArgument::stat);
     ARGUMENT_TYPE.registerSingleton("modifier", ModifierArgument.class, ModifierArgument::modifier);
@@ -53,7 +58,7 @@ public class TConstructCommand {
     TagSourceArgument.registerCustom(MaterialRegistry.getTagSource());
 
     // add command listener
-    MinecraftForge.EVENT_BUS.addListener(TConstructCommand::registerCommand);
+    NeoForge.EVENT_BUS.addListener(TConstructCommand::registerCommand);
   }
 
   /** Registers a sub command for the root Mantle command */

@@ -7,6 +7,7 @@ import net.minecraft.data.CachedOutput;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.PackOutput.Target;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.MultiPackResourceManager;
@@ -14,7 +15,7 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import slimeknights.mantle.data.GenericDataProvider;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.data.GenericNBTProvider;
@@ -61,7 +62,9 @@ public class StructureUpdater extends GenericNBTProvider {
   @Nullable
   private CompletableFuture<?> process(ResourceLocation location, Resource resource, CachedOutput cache) {
     try {
-      CompoundTag inputNBT = NbtIo.readCompressed(resource.open());
+      // 1.21 requires an explicit NbtAccounter on every read; structures are trusted mod files so we allow the same
+      // unlimited heap the vanilla structure loader uses.
+      CompoundTag inputNBT = NbtIo.readCompressed(resource.open(), NbtAccounter.unlimitedHeap());
       CompoundTag converted = updateNBT(inputNBT);
       if (!converted.equals(inputNBT)) {
         Class<? extends DataFixer> fixerClass = DataFixers.getDataFixer().getClass();

@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.shared.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
@@ -12,9 +13,16 @@ import slimeknights.mantle.client.model.connected.ConnectedModelRegistry;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 public class ClearGlassPaneBlock extends BetterPaneBlock implements IMultipartConnectedBlock {
+  public static final MapCodec<ClearGlassPaneBlock> CODEC = simpleCodec(ClearGlassPaneBlock::new);
+
   public ClearGlassPaneBlock(Properties builder) {
     super(builder);
     this.registerDefaultState(IMultipartConnectedBlock.defaultConnections(this.defaultBlockState()));
+  }
+
+  @Override
+  public MapCodec<? extends ClearGlassPaneBlock> codec() {
+    return CODEC;
   }
 
   @Override
@@ -24,7 +32,7 @@ public class ClearGlassPaneBlock extends BetterPaneBlock implements IMultipartCo
   }
 
   @Override
-  public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor world, BlockPos currentPos, BlockPos facingPos) {
+  protected BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor world, BlockPos currentPos, BlockPos facingPos) {
     BlockState state = super.updateShape(stateIn, facing, facingState, world, currentPos, facingPos);
     return getConnectionUpdate(state, facing, facingState);
   }

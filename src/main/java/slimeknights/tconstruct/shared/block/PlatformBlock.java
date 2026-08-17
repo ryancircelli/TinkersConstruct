@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.shared.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Plane;
@@ -31,6 +32,7 @@ import static net.minecraft.world.level.block.state.properties.BlockStatePropert
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WEST;
 
 public class PlatformBlock extends Block implements SimpleWaterloggedBlock {
+  public static final MapCodec<PlatformBlock> CODEC = simpleCodec(PlatformBlock::new);
   private static final VoxelShape[] SHAPES = new VoxelShape[64];
   private static final BooleanProperty[] DIRECTIONS = { DOWN, UP, NORTH, SOUTH, WEST, EAST };
 
@@ -91,6 +93,11 @@ public class PlatformBlock extends Block implements SimpleWaterloggedBlock {
   public PlatformBlock(Properties props) {
     super(props);
     this.registerDefaultState(this.stateDefinition.any().setValue(WATERLOGGED, false));
+  }
+
+  @Override
+  public MapCodec<? extends PlatformBlock> codec() {
+    return CODEC;
   }
 
   @Override
