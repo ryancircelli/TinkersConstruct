@@ -11,7 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.common.ToolActions;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.modifiers.hook.interaction.GeneralInteractionModifierHook;
 import slimeknights.tconstruct.library.tools.helper.ModifierUtil;
@@ -19,6 +18,7 @@ import slimeknights.tconstruct.library.tools.helper.ToolDamageUtil;
 import slimeknights.tconstruct.library.tools.item.ranged.ModifiableCrossbowItem;
 import slimeknights.tconstruct.library.tools.item.ranged.ModifiableLauncherItem;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
+import slimeknights.tconstruct.tools.TinkerToolActions;
 
 /** Properties for tinker tools */
 public class TinkerItemProperties {
@@ -83,10 +83,10 @@ public class TinkerItemProperties {
   private static final ItemPropertyFunction CAST = (stack, level, holder, seed) -> {
     // must be a fishing rod, and the player must be fishing
     // does player check first since its the fastest, avoids NBT parsing
-    if (holder instanceof Player player && player.fishing != null && stack.canPerformAction(ToolActions.FISHING_ROD_CAST)) {
+    if (holder instanceof Player player && player.fishing != null && stack.canPerformAction(TinkerToolActions.FISHING_ROD_CAST)) {
       // must be in a hand, but if both hands have fishing rods, must be the one in the main hand
       ItemStack mainhand = holder.getMainHandItem();
-      if (mainhand == stack || holder.getOffhandItem() == stack && !mainhand.canPerformAction(ToolActions.FISHING_ROD_CAST)) {
+      if (mainhand == stack || holder.getOffhandItem() == stack && !mainhand.canPerformAction(TinkerToolActions.FISHING_ROD_CAST)) {
         return 1;
       }
     }

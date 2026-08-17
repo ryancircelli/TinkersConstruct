@@ -5,7 +5,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.UseAnim;
 import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.common.ToolActions;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.loadable.record.SingletonLoader;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
@@ -17,6 +16,7 @@ import slimeknights.tconstruct.library.modifiers.modules.ModifierModule;
 import slimeknights.tconstruct.library.module.HookProvider;
 import slimeknights.tconstruct.library.module.ModuleHook;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
+import slimeknights.tconstruct.tools.TinkerToolActions;
 
 import java.util.List;
 
@@ -45,7 +45,7 @@ public enum BlockingModule implements ModifierModule, GeneralInteractionModifier
 
   @Override
   public boolean canPerformAction(IToolStackView tool, ModifierEntry entry, ToolAction toolAction) {
-    return toolAction == ToolActions.SHIELD_BLOCK;
+    return toolAction == TinkerToolActions.SHIELD_BLOCK;
   }
 
   @Override

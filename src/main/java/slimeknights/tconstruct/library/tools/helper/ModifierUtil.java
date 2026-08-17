@@ -20,7 +20,6 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.common.ToolActions;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
@@ -32,6 +31,7 @@ import slimeknights.tconstruct.library.tools.item.ranged.ModifiableLauncherItem;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.stat.ToolStats;
+import slimeknights.tconstruct.tools.TinkerToolActions;
 import slimeknights.tconstruct.tools.TinkerTools;
 
 import javax.annotation.Nonnull;
@@ -199,7 +199,7 @@ public final class ModifierUtil {
    * Allows your tool to block while charging up.
    */
   public static UseAnim blockWhileCharging(IToolStackView tool, UseAnim fallback) {
-    return canPerformAction(tool, ToolActions.SHIELD_BLOCK) ? UseAnim.BLOCK : fallback;
+    return canPerformAction(tool, TinkerToolActions.SHIELD_BLOCK) ? UseAnim.BLOCK : fallback;
   }
 
   /** Calculates inaccuracy from the conditional tool stat. */
@@ -248,9 +248,9 @@ public final class ModifierUtil {
       ItemStack stack = living.getMainHandItem();
       InteractionHand hand = InteractionHand.MAIN_HAND;
       // must be able to cast
-      if (!stack.canPerformAction(ToolActions.FISHING_ROD_CAST)) {
+      if (!stack.canPerformAction(TinkerToolActions.FISHING_ROD_CAST)) {
         stack = living.getOffhandItem();
-        if (!stack.canPerformAction(ToolActions.FISHING_ROD_CAST)) {
+        if (!stack.canPerformAction(TinkerToolActions.FISHING_ROD_CAST)) {
           return null;
         }
         hand = InteractionHand.OFF_HAND;
