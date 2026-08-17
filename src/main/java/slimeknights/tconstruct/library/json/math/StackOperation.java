@@ -3,7 +3,7 @@ package slimeknights.tconstruct.library.json.math;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import it.unimi.dsi.fastutil.floats.FloatStack;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 
 /** Interface representing a simple operation performed on the stack */
 public interface StackOperation {
@@ -41,10 +41,10 @@ public interface StackOperation {
   }
 
   /** Serializes this operation to the network */
-  void toNetwork(FriendlyByteBuf buffer);
+  void toNetwork(RegistryFriendlyByteBuf buffer);
 
   /** Reads an operation from the network */
-  static StackOperation fromNetwork(FriendlyByteBuf buffer) {
+  static StackOperation fromNetwork(RegistryFriendlyByteBuf buffer) {
     int type = buffer.readVarInt();
     if (type == PostFixOperator.VALUE_INDEX) {
       return new PushConstantOperation(buffer.readFloat());

@@ -1,11 +1,11 @@
 package slimeknights.tconstruct.library.data.tinkering;
 
 import com.google.gson.JsonObject;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.PackOutput.Target;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -13,10 +13,15 @@ import slimeknights.mantle.data.GenericDataProvider;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
 
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-/** Data generator for mappings from enchantments to modifiers */
+/**
+ * Data generator for mappings from enchantments to modifiers
+ * @apiNote  1.21 moved enchantments into a datapack registry, so there is no {@code BuiltInRegistries.ENCHANTMENT} to
+ *           name one from and no {@link Enchantment} instance to pass at datagen time. Every method that took an
+ *           enchantment now takes its {@link ResourceKey}, matching how {@code ModifierManager} keys the map it reads
+ *           back. The JSON itself is unchanged, as it always stored the ID as a string.
+ */
 public abstract class AbstractEnchantmentToModifierProvider extends GenericDataProvider {
   /** Compiled JSON to save, no need to do anything fancier, it already does merging for us */
   private final JsonObject enchantmentMap = new JsonObject();
@@ -43,13 +48,13 @@ public abstract class AbstractEnchantmentToModifierProvider extends GenericDataP
   }
 
   /** Adds the given enchantment */
-  protected void add(Enchantment enchantment, ModifierId modifierId) {
+  protected void add(ResourceKey<Enchantment> enchantment, ModifierId modifierId) {
     add(enchantment, modifierId, false);
   }
 
   /** Adds the given enchantment, allowing making the modifier optional */
-  protected void add(Enchantment enchantment, ModifierId modifierId, boolean optionalModifier) {
-    String key = Objects.requireNonNull(BuiltInRegistries.ENCHANTMENT.getKey(enchantment)).toString();
+  protected void add(ResourceKey<Enchantment> enchantment, ModifierId modifierId, boolean optionalModifier) {
+    String key = enchantment.location().toString();
     if (enchantmentMap.has(key) || enchantmentMap.has(key + '?')) {
       throw new IllegalArgumentException("Duplicate enchantment " + key);
     }

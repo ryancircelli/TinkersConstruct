@@ -1,6 +1,5 @@
 package slimeknights.tconstruct.library.tools.item.ranged;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -19,7 +18,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.ForgeEventFactory;
+import net.neoforged.neoforge.event.EventHooks;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.Sounds;
 import slimeknights.tconstruct.common.TinkerTags;
@@ -112,8 +111,8 @@ public class ModifiableBowItem extends ModifiableLauncherItem {
     // if we have ballista capabilities, use the broader predicate
     boolean isBallista = isBallista(tool);
     ItemStack ammo = BowAmmoModifierHook.getAmmo(tool, bow, player, isBallista ? getSupportedBallistaAmmo() : getSupportedHeldProjectiles());
-    // ask forge if it has any different opinions
-    InteractionResultHolder<ItemStack> override = ForgeEventFactory.onArrowNock(bow, level, player, hand, !ammo.isEmpty());
+    // ask NeoForge if it has any different opinions
+    InteractionResultHolder<ItemStack> override = EventHooks.onArrowNock(bow, level, player, hand, !ammo.isEmpty());
     if (override != null) {
       return override;
     }
@@ -131,7 +130,9 @@ public class ModifiableBowItem extends ModifiableLauncherItem {
     // store either ammo or boolean as requested
     if (!ammo.isEmpty()) {
       if (storeDrawingItem) {
-        tool.getPersistentData().put(KEY_DRAWBACK_AMMO, ammo.save(new CompoundTag()));
+        // the stack goes through the registry aware codec now, as an item stack no longer knows how to write itself.
+        // The compound still has the "id" the drawback model reads
+        tool.getPersistentData().put(KEY_DRAWBACK_AMMO, ammo.save(level.registryAccess()));
       } else {
         // boolean is enough to get detected by the property override, but won't bother the model
         tool.getPersistentData().putBoolean(KEY_DRAWBACK_AMMO, true);
@@ -147,6 +148,8 @@ public class ModifiableBowItem extends ModifiableLauncherItem {
         tool.getPersistentData().putInt(KEY_BALLISTA, flag);
       }
     }
+    // drawtime and the drawback ammo above are edits, and they only reach the stack when we say so
+    tool.updateStack();
     player.startUsingItem(hand);
     if (!level.isClientSide) {
       level.playSound(null, player.getX(), player.getY(), player.getZ(), Sounds.LONGBOW_CHARGE.getSound(), SoundSource.PLAYERS, 0.75F, 1.0F);
@@ -156,9 +159,17 @@ public class ModifiableBowItem extends ModifiableLauncherItem {
 
   @Override
   public void releaseUsing(ItemStack bow, Level level, LivingEntity living, int timeLeft) {
-    // call the stop using hook
+    // the body has half a dozen ways out and all of them come after modifier hooks that may have written, so the
+    // commit lives here rather than being repeated at each return
     ToolStack tool = ToolStack.mutable(bow);
-    int duration = getUseDuration(bow);
+    releaseUsing(tool, bow, level, living, timeLeft);
+    tool.updateStack();
+  }
+
+  /** Body of {@link #releaseUsing(ItemStack, Level, LivingEntity, int)}, on a tool that the caller commits */
+  private void releaseUsing(ToolStack tool, ItemStack bow, Level level, LivingEntity living, int timeLeft) {
+    // call the stop using hook
+    int duration = getUseDuration(bow, living);
     for (ModifierEntry entry : tool.getModifiers()) {
       entry.getHook(ModifierHooks.TOOL_USING).beforeReleaseUsing(tool, entry, living, duration, timeLeft, ModifierEntry.EMPTY);
     }
@@ -182,10 +193,10 @@ public class ModifiableBowItem extends ModifiableLauncherItem {
     ItemStack foundAmmo = BowAmmoModifierHook.getAmmo(tool, bow, living, ammoPredicate);
     boolean hasAmmo = !foundAmmo.isEmpty() || creative && !tool.getVolatileData().getBoolean(BowAmmoModifierHook.SKIP_INVENTORY_AMMO);
 
-    // ask forge its thoughts on shooting
+    // ask NeoForge its thoughts on shooting
     int chargeTime = duration - timeLeft;
     if (player != null) {
-      chargeTime = ForgeEventFactory.onArrowLoose(bow, level, player, chargeTime, hasAmmo);
+      chargeTime = EventHooks.onArrowLoose(bow, level, player, chargeTime, hasAmmo);
     }
 
     // no ammo? no charge? nothing to do
@@ -238,7 +249,8 @@ public class ModifiableBowItem extends ModifiableLauncherItem {
       float waterInertia = 0.6f;
       SoundEvent sound = SoundEvents.ARROW_SHOOT;
       if (thrownTool) {
-        sound = SoundEvents.TRIDENT_THROW;
+        // TRIDENT_THROW is one of the sounds vanilla registers as a holder; the plain event is what playSound wants here
+        sound = SoundEvents.TRIDENT_THROW.value();
         IToolStackView thrown = ToolStack.from(ammo);
         float thrownVelocity = ConditionalStatModifierHook.getModifiedStat(thrown, living, ToolStats.VELOCITY);
         power *= thrownVelocity * ConditionalStatModifierHook.getModifiedStat(thrown, living, ToolStats.DRAW_SPEED) / 1.5f;
@@ -258,7 +270,8 @@ public class ModifiableBowItem extends ModifiableLauncherItem {
           thrown.setOriginalSlot(originalSlot);
           arrow = thrown;
         } else {
-          arrow = arrowItem.createArrow(level, ammo, living);
+          // the bow is passed as the firing weapon now, which is how 1.21 tells an arrow what shot it
+          arrow = arrowItem.createArrow(level, ammo, living, bow);
         }
         float angle = startAngle + (10 * arrowIndex);
         arrow.shootFromRotation(living, living.getXRot() + angle, living.getYRot(), 0, power * 3.0F, inaccuracy);
@@ -276,7 +289,7 @@ public class ModifiableBowItem extends ModifiableLauncherItem {
         EntityModifierCapability.getCapability(arrow).addModifiers(modifiers);
 
         // fetch the persistent data for the arrow as modifiers may want to store data
-        ModDataNBT arrowData = PersistentDataCapability.getOrWarn(arrow);
+        ModDataNBT arrowData = PersistentDataCapability.getData(arrow);
 
         // if infinite, skip pickup
         if (creative) {

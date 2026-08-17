@@ -6,11 +6,14 @@ package slimeknights.tconstruct.library.utils;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.locale.Language;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FastColor;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.DyeColor;
@@ -18,14 +21,14 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeI18n;
-import net.minecraftforge.common.crafting.conditions.ICondition;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoadingContext;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.fml.ModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import slimeknights.mantle.client.SafeClientAccess;
 import slimeknights.mantle.util.DataLoadedConditionContext;
 import slimeknights.tconstruct.TConstruct;
 
@@ -60,6 +63,35 @@ public class Util {
   }
 
   /**
+   * Gets the registries needed to read or write an {@link net.minecraft.world.item.ItemStack} or a
+   * {@link net.neoforged.neoforge.fluids.FluidStack} as NBT.
+   * <p>
+   * 1.21 replaced every {@code ItemStack.of(tag)} and {@code stack.save(tag)} with a codec, and every codec entry
+   * point wants a {@link HolderLookup.Provider} because a stack's data components can name a dynamic registry - a
+   * stored item's enchantments are {@code Holder<Enchantment>} and enchantments are datapack content in 1.21. Most
+   * callers thread one in from the level or the datagen future, and should; the callers this exists for cannot,
+   * because the thing they are reading is buried inside another codec's opaque payload. Tinkers stores a modifier's
+   * items and fluids inside the tool's persistent mod data, which is one {@link CompoundTag} field of
+   * {@code tconstruct:tool}, so by the time the component codec runs with registry access in hand the inner compound
+   * has already been encoded, and there is no plumbing that reaches back out.
+   * <p>
+   * Falling back to {@link RegistryAccess#EMPTY} rather than throwing is deliberate: the only way to reach it is to
+   * read a tool outside a world entirely, which is a test or a broken load, and a stack that loses its enchantments
+   * there is better than a crash. It is still worth a look if it shows up in a log.
+   */
+  public static HolderLookup.Provider registryAccess() {
+    MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+    if (server != null) {
+      return server.registryAccess();
+    }
+    RegistryAccess client = SafeClientAccess.getRegistryAccess();
+    if (client != null) {
+      return client;
+    }
+    return RegistryAccess.EMPTY;
+  }
+
+  /**
    * Gets the currently active mod, assuming its not Tinkers
    * @return  Currently active mod ID
    */
@@ -72,9 +104,16 @@ public class Util {
    * Checks if the given key can be translated
    * @param key  Key to check
    * @return  True if it can be translated
+   * @implNote  NeoForge dropped Forge's {@code ForgeI18n}, which existed to make this lookup safe off the client.
+   *            {@link Language} is the side safe replacement rather than the client only
+   *            {@link net.minecraft.client.resources.language.I18n}: the static language instance defaults to the
+   *            jar's {@code en_us} on a dedicated server, and on the client the language manager injects the selected
+   *            language into it, so this answers the same question on both sides. Several callers here (item display
+   *            names in particular) do run server side, so the client only variant would be a crash rather than a
+   *            style choice.
    */
   public static boolean canTranslate(String key) {
-    return !ForgeI18n.getPattern(key).equals(key);
+    return Language.getInstance().has(key);
   }
 
   /**
@@ -174,34 +213,16 @@ public class Util {
     return (color & 0xFF00FF00) | (((color & 0x00FF0000) >> 16) & 0x000000FF) | (((color & 0x000000FF) << 16) & 0x00FF0000);
   }
 
-  /** Calculates the given color */
-  private static int calcColor(DyeColor color) {
-    float[] diffuse = color.getTextureDiffuseColors();
-    return FastColor.ARGB32.color(255, Math.round(255 * diffuse[0]), Math.round(255 * diffuse[1]), Math.round(255 * diffuse[2]));
-  }
-
-  /** Array of tints for each dye color */
-  private static final int[] DYE_TINTS;
-  static {
-    DyeColor[] colors = DyeColor.values();
-    DYE_TINTS = new int[colors.length];
-    for (DyeColor color : colors) {
-      int id = color.getId();
-      // protect against dumb mods extending dye colors array
-      if (id >= 0 && id < DYE_TINTS.length) {
-        DYE_TINTS[color.getId()] = calcColor(color);
-      }
-    }
-  }
-
-  /** Gets the diffuse color for the given dye color */
+  /**
+   * Gets the diffuse color for the given dye color
+   * @implNote  1.20's {@code DyeColor#getTextureDiffuseColors} returned a {@code float[]} unpacked from a packed int,
+   *            so this used to precompute and cache the repacked ARGB per color. 1.21 exposes the packed opaque ARGB
+   *            int directly through {@link DyeColor#getTextureDiffuseColor()}, making this a field read; the cache
+   *            array and the ID bounds checks guarding it (which existed because mods extend the enum) are gone with
+   *            it. The values are identical, as the 1.20 round trip through floats was lossless.
+   */
   public static int getColor(DyeColor color) {
-    int id = color.getId();
-    // protect against dumb mods extending dye colors array
-    if (id >= 0 && id < DYE_TINTS.length) {
-      return DYE_TINTS[id];
-    }
-    return calcColor(color);
+    return color.getTextureDiffuseColor();
   }
 
   /** Gets the slot type from a hand */
@@ -261,15 +282,17 @@ public class Util {
     return new ClientboundBlockEntityDataPacket(be.getBlockPos(), be.getType(), tagFunction.apply(be));
   }
 
-  /** Cache of neo forge status, to make lookups faster in hot code */
-  private static Boolean IS_NEO_FORGE = null;
-
-  /** Checks if we are currently running on NeoForge as opposed to Forge. Allows branching solutions for each loader if needed */
+  /**
+   * Checks if we are currently running on NeoForge as opposed to Forge. Allows branching solutions for each loader if needed
+   * @implNote  In 1.20 the two loaders were distinguishable at runtime because NeoForge still published itself under
+   *            the mod ID {@code forge}, so this sniffed the container's display name. That ambiguity is over: 1.21
+   *            NeoForge registers as {@code neoforge} and there is no Forge for this version, so this jar can only
+   *            ever be running on NeoForge. The pair is kept rather than deleted so the handful of loader specific
+   *            branches elsewhere still compile and simply fold away as dead code, and so the methods are still here
+   *            if a second loader ever needs to be told apart again.
+   */
   public static boolean isNeo() {
-    if (IS_NEO_FORGE == null) {
-      IS_NEO_FORGE = ModList.get().getModContainerById("forge").filter(mod -> mod.getModInfo().getDisplayName().equals("NeoForge")).isPresent();
-    }
-    return IS_NEO_FORGE;
+    return true;
   }
 
   /** Checks if we are currently running on Forge as opposed to NeoForge. Allows branching solutions for each loader if needed */

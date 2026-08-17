@@ -40,6 +40,8 @@ public abstract class GenericNBTProvider implements DataProvider {
   }
 
   /** Saves the given image to the given location */
+  // Hashing#sha1 is deprecated in newer Guava, but the datagen cache format is sha1 so this has to match vanilla
+  @SuppressWarnings({"UnstableApiUsage", "deprecation"})
   protected CompletableFuture<?> saveNBT(CachedOutput cache, ResourceLocation location, CompoundTag data) {
     return CompletableFuture.runAsync(() -> {
       try {

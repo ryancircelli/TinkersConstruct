@@ -1,7 +1,5 @@
 package slimeknights.tconstruct.library.tools;
 
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
@@ -10,7 +8,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.tools.helper.ModifierUtil;
 import slimeknights.tconstruct.tools.TinkerTools;
@@ -35,11 +32,6 @@ public class IndestructibleItemEntity extends ItemEntity {
     this.setYRot(this.random.nextFloat() * 360.0F);
     this.setDeltaMovement(this.random.nextDouble() * 0.2D - 0.1D, 0.2D, this.random.nextDouble() * 0.2D - 0.1D);
     this.setItem(stack);
-  }
-
-  @Override
-  public Packet<ClientGamePacketListener> getAddEntityPacket() {
-    return NetworkHooks.getEntitySpawningPacket(this);
   }
 
   /** Copies the pickup delay from another entity */
@@ -67,7 +59,7 @@ public class IndestructibleItemEntity extends ItemEntity {
   }
 
   /**
-   * Creates an indestructible item entity from the given item stack (if needed). Intended to be called in {@link net.minecraftforge.common.extensions.IForgeItem#createEntity(Level, Entity, ItemStack)}
+   * Creates an indestructible item entity from the given item stack (if needed). Intended to be called in {@link net.neoforged.neoforge.common.extensions.IItemExtension#createEntity(Level, Entity, ItemStack)}
    * @param world     World instance
    * @param original  Original entity
    * @param stack     Stack to drop

@@ -1,22 +1,27 @@
 package slimeknights.tconstruct.library.tools.helper;
 
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 
 import static net.minecraft.world.damagesource.CombatRules.getDamageAfterAbsorb;
 
 /**
- * Utinet.minecraft.world.damagesource.CombatRulesation logic
+ * Utility for armor calculation logic
  */
 public class ArmorUtil {
   private ArmorUtil() {}
 
   /**
-   * Inverse of {@link net.minecraft.world.damagesource.CombatRules#getDamageAfterAbsorb(float, float, float)}  with respect to damage
+   * Inverse of {@link net.minecraft.world.damagesource.CombatRules#getDamageAfterAbsorb(LivingEntity, float, DamageSource, float, float)} with respect to damage.
    * @param damage     Damage returned by the vanilla function, must be 0 or more
    * @param armor      Total armor value, tested between 0 and 30
    * @param toughness  Total toughness value, tested between 0 and 20
    * @return  Original damage to be dealt
+   * @apiNote  This is the closed form inverse of the armor curve as vanilla computed it before 1.21 added the
+   * {@code EnchantmentHelper#modifyArmorEffectiveness} step to that method. An armor effectiveness enchantment on the
+   * attacker's weapon therefore makes this only an approximate inverse; without one the two cancel exactly as before.
    */
   public static float getDamageBeforeArmorAbsorb(float damage, float armor, float toughness) {
     if (damage <= 0) {
@@ -65,13 +70,15 @@ public class ArmorUtil {
     return damage / (1f - (Mth.clamp(enchantModifiers, 0f, 20f) / 25f));
   }
 
-  /** Same as {@link #getDamageForEvent(float, float, float, float, float, float)} but sets the cap to 20f */
-  public static float getDamageForEvent(float originalDamage, float armor, float toughness, float vanillaModifiers, float finalModifiers) {
-    return getDamageForEvent(originalDamage, armor, toughness, vanillaModifiers, finalModifiers, 20f);
+  /** Same as {@link #getDamageForEvent(LivingEntity, DamageSource, float, float, float, float, float, float)} but sets the cap to 20f */
+  public static float getDamageForEvent(LivingEntity entity, DamageSource source, float originalDamage, float armor, float toughness, float vanillaModifiers, float finalModifiers) {
+    return getDamageForEvent(entity, source, originalDamage, armor, toughness, vanillaModifiers, finalModifiers, 20f);
   }
 
   /**
-   * Calculates the final damage for use in {@link net.minecraftforge.event.entity.living.LivingHurtEvent}. Requires applying several inverse functions to cancel out vanilla formulas that are applied later
+   * Calculates the final damage for use in {@link net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent}. Requires applying several inverse functions to cancel out vanilla formulas that are applied later
+   * @param entity             Entity being damaged, needed as 1.21 armor absorption is entity sensitive
+   * @param source             Damage source, needed as 1.21 armor absorption depends on the attacker's weapon
    * @param originalDamage     Original damage to be dealt
    * @param armor              Armor amount on the player
    * @param toughness          Armor toughness attribute
@@ -79,8 +86,11 @@ public class ArmorUtil {
    * @param finalModifiers     Armor modifiers from modifiers and vanilla
    * @param modifierCap        Maximum protection value allowed
    * @return  Damage to return in the event
+   * @apiNote  The entity and damage source are new parameters in 1.21: {@code CombatRules#getDamageAfterAbsorb} takes
+   * both now, as the armor curve may be softened by an enchantment on the attacker's weapon. Passing them straight
+   * through keeps the forward pass here identical to the one vanilla runs after the event.
    */
-  public static float getDamageForEvent(float originalDamage, float armor, float toughness, float vanillaModifiers, float finalModifiers, float modifierCap) {
+  public static float getDamageForEvent(LivingEntity entity, DamageSource source, float originalDamage, float armor, float toughness, float vanillaModifiers, float finalModifiers, float modifierCap) {
     // if we are changing no values, nothing to do
     if (vanillaModifiers == finalModifiers && modifierCap == 20) {
       return originalDamage;
@@ -92,7 +102,7 @@ public class ArmorUtil {
     float damage = originalDamage;
     // if there is no armor value though, no work is needed
     if (armor > 0) {
-      damage = getDamageAfterAbsorb(damage, armor, toughness);
+      damage = getDamageAfterAbsorb(entity, damage, source, armor, toughness);
     }
 
     // next, we want to apply our modifiers bonus M(x), it works out to be a reduction between 0 and 80%

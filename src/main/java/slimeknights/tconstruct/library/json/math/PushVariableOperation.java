@@ -2,7 +2,7 @@ package slimeknights.tconstruct.library.json.math;
 
 import com.google.gson.JsonPrimitive;
 import it.unimi.dsi.fastutil.floats.FloatStack;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 
 /** Stack operation which pushes a variable from the context */
 record PushVariableOperation(int index) implements StackOperation {
@@ -18,7 +18,7 @@ record PushVariableOperation(int index) implements StackOperation {
   }
 
   @Override
-  public void toNetwork(FriendlyByteBuf buffer) {
+  public void toNetwork(RegistryFriendlyByteBuf buffer) {
     buffer.writeVarInt(PostFixOperator.VARIABLE_INDEX);
     buffer.writeVarInt(index);
   }

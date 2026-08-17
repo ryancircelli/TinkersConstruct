@@ -1,5 +1,7 @@
 package slimeknights.tconstruct.library.json.predicate;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.LivingEntity;
 import slimeknights.mantle.data.loadable.Loadables;
@@ -17,7 +19,9 @@ public record HasMobEffectPredicate(MobEffect effect) implements LivingEntityPre
 
   @Override
   public boolean matches(LivingEntity living) {
-    return living.hasEffect(effect);
+    // 1.21 takes a holder here; mob effects are still a static registry, so the holder is a lookup away and
+    // Loadables.MOB_EFFECT is untouched. Same mapping Mantle's own predicate makes (M5 §3).
+    return living.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect));
   }
 
   @Override

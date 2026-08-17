@@ -4,7 +4,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import it.unimi.dsi.fastutil.floats.FloatStack;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.Mth;
 
 /** Represents 2 argument stack operations */
@@ -167,7 +167,7 @@ public enum PostFixOperator implements StackOperation {
   }
 
   @Override
-  public void toNetwork(FriendlyByteBuf buffer) {
+  public void toNetwork(RegistryFriendlyByteBuf buffer) {
     // comment on buffer internals: the indices of this enum and StackNetworkType match up until divide,
     // so writing our ordinal allows us to read an ordinal for the other enum
     buffer.writeEnum(this);

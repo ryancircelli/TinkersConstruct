@@ -11,8 +11,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.bus.api.Event;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.TriState;
 import slimeknights.tconstruct.library.modifiers.hook.interaction.InteractionSource;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
@@ -30,11 +31,48 @@ public abstract class TinkerToolEvent extends Event {
   }
 
   /**
-   * Event fired when a kama tries to harvest a crop. Set result to {@link Result#ALLOW} if you handled the harvest yourself. Set the result to {@link Result#DENY} if the block cannot be harvested.
+   * Base class for tool events where a listener may perform the action in place of the tool's built in behavior.
+   * Replaces the tri-state {@code Event.Result} which no longer exists in the NeoForge event bus.
    */
-  @HasResult
+  public static abstract class Overridable extends TinkerToolEvent {
+    /** Override set by the listeners, see {@link #getOverride()} */
+    private TriState override = TriState.DEFAULT;
+
+    protected Overridable(ItemStack stack, IToolStackView tool) {
+      super(stack, tool);
+    }
+
+    /**
+     * Gets the override set by the listeners.
+     * {@link TriState#DEFAULT} means no listener handled the action, so the tool should run its built in behavior.
+     * {@link TriState#TRUE} means a listener performed the action successfully, {@link TriState#FALSE} means a listener determined the action is impossible.
+     * In both non-default cases the tool's built in behavior must be skipped.
+     */
+    public TriState getOverride() {
+      return override;
+    }
+
+    /**
+     * Marks this action as handled by the listener, preventing the tool's built in behavior from running.
+     * @param override  {@link TriState#TRUE} if the action succeeded, {@link TriState#FALSE} if the action is impossible.
+     *                  {@link TriState#DEFAULT} restores the tool's built in behavior, notably letting a listener undo an earlier listener's override.
+     */
+    public void setOverride(TriState override) {
+      this.override = override;
+    }
+
+    /** Fires this event on {@link NeoForge#EVENT_BUS} and returns the resulting override */
+    public TriState fire() {
+      return NeoForge.EVENT_BUS.post(this).getOverride();
+    }
+  }
+
+  /**
+   * Event fired when a kama tries to harvest a crop.
+   * Set the override to {@link TriState#TRUE} if you handled the harvest yourself. Set it to {@link TriState#FALSE} if the block cannot be harvested.
+   */
   @Getter
-  public static class ToolHarvestEvent extends TinkerToolEvent {
+  public static class ToolHarvestEvent extends Overridable {
     /** Item context, note this is the original context, so some information (such as position) may not be accurate */
     private final UseOnContext context;
     private final ServerLevel world;
@@ -73,20 +111,14 @@ public abstract class TinkerToolEvent extends Event {
     public Player getPlayer() {
       return context.getPlayer();
     }
-
-    /** Fires this event and posts the result */
-    public Result fire() {
-      MinecraftForge.EVENT_BUS.post(this);
-      return this.getResult();
-    }
   }
 
   /**
-   * Event fired when a kama or scythe tries to shear an entity
+   * Event fired when a kama or scythe tries to shear an entity.
+   * Set the override to {@link TriState#TRUE} if you handled the shearing yourself. Set it to {@link TriState#FALSE} if the entity cannot be sheared.
    */
-  @HasResult
   @Getter
-  public static class ToolShearEvent extends TinkerToolEvent {
+  public static class ToolShearEvent extends Overridable {
     private final Level world;
     private final Player player;
     private final Entity target;
@@ -97,12 +129,6 @@ public abstract class TinkerToolEvent extends Event {
       this.player = player;
       this.target = target;
       this.fortune = fortune;
-    }
-
-    /** Fires this event and posts the result */
-    public Result fire() {
-      MinecraftForge.EVENT_BUS.post(this);
-      return this.getResult();
     }
   }
 }
