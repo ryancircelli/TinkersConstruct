@@ -13,8 +13,6 @@ import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
-import net.minecraftforge.common.TierSortingRegistry;
-import net.minecraftforge.common.loot.LootModifierManager;
 import slimeknights.mantle.client.TooltipKey;
 import slimeknights.mantle.data.loadable.Loadable;
 import slimeknights.mantle.data.loadable.Loadables;
@@ -30,7 +28,7 @@ import slimeknights.tconstruct.library.recipe.melting.IMeltingContainer.OreRateT
 import slimeknights.tconstruct.library.tools.item.IModifiable;
 import slimeknights.tconstruct.library.tools.part.IMaterialItem;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
-import slimeknights.tconstruct.library.utils.GsonLoadable;
+import slimeknights.tconstruct.library.utils.HarvestTiers;
 
 import java.util.Set;
 
@@ -62,15 +60,21 @@ public class TinkerLoadables {
   public static final StringLoadable<SimpleParticleType> SIMPLE_PARTICLE = instance(Loadables.PARTICLE_TYPE, SimpleParticleType.class, "Expected particle type to be instance of SimpleParticleType");
   public static final StringLoadable<BlockItem> BLOCK_ITEM = instance(Loadables.ITEM, BlockItem.class, "Expected item to be instance of BlockItem");
 
-  /** Tier loadable from the forge tier sorting registry */
+  /**
+   * Tier loadable, reading a tier by its ID.
+   * @apiNote  1.21 deleted Forge's {@code TierSortingRegistry}, and vanilla never had a tier registry of any kind:
+   *           a {@link Tier} in 1.21 is a bare interface with no name and no ordering, as both moved into the
+   *           {@code #minecraft:incorrect_for_*_tool} block tags. Tinkers needs a name and an order regardless, so it
+   *           owns them itself in {@link HarvestTiers}, which already held the ordering half.
+   */
   public static final StringLoadable<Tier> TIER = Loadables.RESOURCE_LOCATION.xmap((id, error) -> {
-    Tier tier = TierSortingRegistry.byName(id);
+    Tier tier = HarvestTiers.byId(id);
     if (tier != null) {
       return tier;
     }
     throw error.create("Unknown harvest tier " + id);
   }, (tier, error) -> {
-    ResourceLocation id = TierSortingRegistry.getName(tier);
+    ResourceLocation id = HarvestTiers.getId(tier);
     if (id != null) {
       return id;
     }
@@ -78,8 +82,13 @@ public class TinkerLoadables {
   });
 
   /* Loot tables */
-  /** Loadable for a loot entry instance */
-  public static final Loadable<LootPoolEntryContainer> LOOT_ENTRY = new GsonLoadable<>(LootModifierManager.GSON_INSTANCE, LootPoolEntryContainer.class);
+  /**
+   * Loadable for a loot entry instance.
+   * @apiNote  1.20 had to bridge to gson through {@code LootModifierManager.GSON_INSTANCE} because loot entries had no
+   *           codec. 1.21 gives them {@code LootPoolEntries.CODEC}, which is what Mantle's constant now wraps, so this
+   *           is an alias rather than a second implementation. Prefer {@link Loadables#LOOT_ENTRY} in new code.
+   */
+  public static final Loadable<LootPoolEntryContainer> LOOT_ENTRY = Loadables.LOOT_ENTRY;
 
   /** Loadble requiring the argument to be an instance of the passed class */
   @SuppressWarnings("unchecked")  // The type works when deserializing, so it works when serializing

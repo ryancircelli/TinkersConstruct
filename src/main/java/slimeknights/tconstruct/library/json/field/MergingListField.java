@@ -3,7 +3,7 @@ package slimeknights.tconstruct.library.json.field;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.GsonHelper;
 import slimeknights.mantle.data.loadable.field.LoadableField;
 import slimeknights.mantle.data.loadable.field.NullableField;
@@ -60,7 +60,7 @@ public record MergingListField<T,P>(LoadableField<T,T> field, String key, Functi
   }
 
   @Override
-  public List<T> decode(FriendlyByteBuf buffer, TypedMap context) {
+  public List<T> decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
     ImmutableList.Builder<T> builder = ImmutableList.builder();
     int size = buffer.readVarInt();
     for (int i = 0; i < size; i++) {
@@ -70,7 +70,7 @@ public record MergingListField<T,P>(LoadableField<T,T> field, String key, Functi
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer, P parent) {
+  public void encode(RegistryFriendlyByteBuf buffer, P parent) {
     List<T> list = getter.apply(parent);
     buffer.writeVarInt(list.size());
     for (T value : list) {

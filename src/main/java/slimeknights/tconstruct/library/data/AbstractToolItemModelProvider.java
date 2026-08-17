@@ -4,6 +4,8 @@ import com.google.common.collect.Streams;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.PackOutput.Target;
@@ -13,13 +15,13 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec2;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.ApiStatus.NonExtendable;
 import slimeknights.mantle.data.GenericDataProvider;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.registration.object.EnumObject;
 import slimeknights.mantle.registration.object.IdAwareObject;
-import slimeknights.tconstruct.library.tools.item.ranged.ModifiableCrossbowItem;
+import slimeknights.tconstruct.library.tools.definition.ModifiableArmorMaterial;
 import slimeknights.tconstruct.library.tools.item.ranged.ModifiableLauncherItem;
 
 import javax.annotation.Nullable;
@@ -148,7 +150,9 @@ public abstract class AbstractToolItemModelProvider extends GenericDataProvider 
       // add the arrow to pulling 3, ToolModel handles not showing it when it has no ammo
       {
         JsonObject ammo = new JsonObject();
-        ammo.addProperty("key", ModifiableCrossbowItem.KEY_CROSSBOW_AMMO.toString());
+        // KEY_CROSSBOW_AMMO (a persistent-data key) is gone with the persistent-data field it named; ammo is
+        // minecraft:charged_projectiles now, so the "key" the client model reads is that component's own id.
+        ammo.addProperty("key", BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(DataComponents.CHARGED_PROJECTILES).toString());
         ammo.addProperty("flip", flipAmmo);
         ammo.addProperty("left", leftAmmo);
         ammo.add("offset", serializeVec2(ammoOffset));
@@ -264,7 +268,7 @@ public abstract class AbstractToolItemModelProvider extends GenericDataProvider 
 
   /** Adds broken and blocking models for the armor set */
   protected void armor(String name, EnumObject<ArmorItem.Type,? extends Item> armor, String... textures) throws IOException {
-    armor(name, armor, ArmorItem.Type.values(), textures);
+    armor(name, armor, ModifiableArmorMaterial.ARMOR_TYPES, textures);
   }
 
   /** Creates models for fishing rods cast and broken */
@@ -294,7 +298,7 @@ public abstract class AbstractToolItemModelProvider extends GenericDataProvider 
   /** Creates a resource location under this mod */
   @SuppressWarnings("removal")
   protected ResourceLocation resource(String name) {
-    return new ResourceLocation(modId, name);
+    return ResourceLocation.fromNamespaceAndPath(modId, name);
   }
 
   /** Creates a model with display from the given target */

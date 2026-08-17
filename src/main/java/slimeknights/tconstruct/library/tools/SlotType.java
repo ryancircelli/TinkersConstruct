@@ -6,7 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
@@ -106,7 +106,7 @@ public final class SlotType {
   }
 
   /** Reads the slot type from the packet buffer */
-  public static SlotType read(FriendlyByteBuf buffer) {
+  public static SlotType read(RegistryFriendlyByteBuf buffer) {
     return getOrCreate(buffer.readUtf());
   }
 
@@ -154,8 +154,25 @@ public final class SlotType {
   }
 
   /** Writes this slot type to the packet buffer */
-  public void write(FriendlyByteBuf buffer) {
+  public void write(RegistryFriendlyByteBuf buffer) {
     buffer.writeUtf(name);
+  }
+
+  /**
+   * Slot types are interned by {@link #getOrCreate(String)}, so identity was always the right comparison and inheriting
+   * {@link Object#equals} gave the right answer. 1.21 still needs these declared: a slot type is the value of the
+   * {@code tconstruct:creative_slot} data component, and NeoForge rejects a component value whose class does not
+   * override both, since a component map compares its entries by value. Without them the whole Tinkers creative tab
+   * failed to build and the JEI plugin failed to register a single category.
+   */
+  @Override
+  public boolean equals(Object other) {
+    return this == other || (other instanceof SlotType type && name.equals(type.name));
+  }
+
+  @Override
+  public int hashCode() {
+    return name.hashCode();
   }
 
   @Override
@@ -190,12 +207,12 @@ public final class SlotType {
       }
 
       @Override
-      public SlotCount decode(FriendlyByteBuf buffer, TypedMap context) {
+      public SlotCount decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
         return new SlotCount(SlotType.read(buffer), buffer.readVarInt());
       }
 
       @Override
-      public void encode(FriendlyByteBuf buffer, SlotCount slots) {
+      public void encode(RegistryFriendlyByteBuf buffer, SlotCount slots) {
         slots.type().write(buffer);
         buffer.writeVarInt(slots.count());
       }
@@ -224,7 +241,7 @@ public final class SlotType {
 
       @Nullable
       @Override
-      public SlotCount decode(FriendlyByteBuf buffer, TypedMap context) {
+      public SlotCount decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
         int count = buffer.readVarInt();
         if (count == 0) {
           return null;
@@ -233,7 +250,7 @@ public final class SlotType {
       }
 
       @Override
-      public void encode(FriendlyByteBuf buffer, P parent) {
+      public void encode(RegistryFriendlyByteBuf buffer, P parent) {
         SlotCount slotCount = getter.apply(parent);
         if (slotCount == null) {
           buffer.writeVarInt(0);

@@ -2,7 +2,7 @@ package slimeknights.tconstruct.library.json.variable;
 
 import com.google.gson.JsonPrimitive;
 import it.unimi.dsi.fastutil.floats.FloatStack;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import slimeknights.mantle.data.registry.GenericLoaderRegistry.IHaveLoader;
 import slimeknights.mantle.util.LogicHelper;
 import slimeknights.tconstruct.library.json.math.ModifierFormula;
@@ -123,7 +123,7 @@ public interface VariableFormula<T extends IHaveLoader> {
         }
 
         @Override
-        public void toNetwork(FriendlyByteBuf buffer) {
+        public void toNetwork(RegistryFriendlyByteBuf buffer) {
           throw new UnsupportedOperationException();
         }
       }

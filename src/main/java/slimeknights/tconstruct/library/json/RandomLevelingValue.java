@@ -1,7 +1,5 @@
 package slimeknights.tconstruct.library.json;
 
-import com.google.gson.JsonObject;
-import net.minecraft.network.FriendlyByteBuf;
 import slimeknights.mantle.data.loadable.primitive.FloatLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.tconstruct.TConstruct;
@@ -29,39 +27,6 @@ public record RandomLevelingValue(float flat, float perLevel, float randomBonus)
     }
     return value;
   }
-
-  /** @deprecated use {@link #LOADABLE} with {@link slimeknights.mantle.data.loadable.Loadable#serialize(Object)} or {@link RecordLoadable#serialize(Object)} */
-  @Deprecated(forRemoval = true)
-  public JsonObject serialize() {
-    JsonObject json = new JsonObject();
-    LOADABLE.serialize(this, json);
-    return json;
-  }
-
-  /** @deprecated use {@link #LOADABLE} with {@link RecordLoadable#deserialize(JsonObject)} */
-  @Deprecated(forRemoval = true)
-  public static RandomLevelingValue deserialize(JsonObject json) {
-    return LOADABLE.deserialize(json);
-  }
-
-  /** @deprecated use {@link #LOADABLE} with {@link slimeknights.mantle.data.loadable.Loadable#getIfPresent(JsonObject, String)} */
-  @Deprecated(forRemoval = true)
-  public static RandomLevelingValue get(JsonObject parent, String key) {
-    return LOADABLE.getIfPresent(parent, key);
-  }
-
-  /** @deprecated use {@link #LOADABLE} with {@link slimeknights.mantle.data.loadable.Loadable#encode(FriendlyByteBuf, Object)} */
-  @Deprecated(forRemoval = true)
-  public void toNetwork(FriendlyByteBuf buffer) {
-    LOADABLE.encode(buffer, this);
-  }
-
-  /** @deprecated use {@link #LOADABLE} with {@link slimeknights.mantle.data.loadable.Loadable#decode(FriendlyByteBuf)} */
-  @Deprecated(forRemoval = true)
-  public static RandomLevelingValue fromNetwork(FriendlyByteBuf buffer) {
-    return LOADABLE.decode(buffer);
-  }
-
 
   /* Helpers */
 

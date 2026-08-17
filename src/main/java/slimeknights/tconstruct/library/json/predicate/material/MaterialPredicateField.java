@@ -2,7 +2,7 @@ package slimeknights.tconstruct.library.json.predicate.material;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import slimeknights.mantle.data.loadable.field.LoadableField;
 import slimeknights.mantle.data.predicate.IJsonPredicate;
 import slimeknights.mantle.util.typed.TypedMap;
@@ -61,12 +61,12 @@ public record MaterialPredicateField<P>(String key, Function<P, IJsonPredicate<M
   }
 
   @Override
-  public IJsonPredicate<MaterialVariantId> decode(FriendlyByteBuf buffer, TypedMap context) {
+  public IJsonPredicate<MaterialVariantId> decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
     return MaterialPredicate.LOADER.decode(buffer, context);
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer, P parent) {
+  public void encode(RegistryFriendlyByteBuf buffer, P parent) {
     MaterialPredicate.LOADER.encode(buffer, getter.apply(parent));
   }
 }

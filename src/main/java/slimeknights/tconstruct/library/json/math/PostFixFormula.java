@@ -8,7 +8,7 @@ import it.unimi.dsi.fastutil.floats.AbstractFloatList;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.GsonHelper;
 import slimeknights.mantle.util.JsonHelper;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
@@ -75,12 +75,12 @@ public record PostFixFormula(List<StackOperation> operations, int numArguments) 
   }
 
   /** Reads a formula from the network */
-  public static PostFixFormula fromNetwork(FriendlyByteBuf buffer, int numArguments) {
+  public static PostFixFormula fromNetwork(RegistryFriendlyByteBuf buffer, int numArguments) {
     return fromNetwork(buffer, buffer.readShort(), numArguments);
   }
 
-  /** Common logic between {@link #fromNetwork(FriendlyByteBuf, int)} and {@link ModifierFormula#fromNetwork(FriendlyByteBuf, int, FallbackFormula)} */
-  static PostFixFormula fromNetwork(FriendlyByteBuf buffer, short size, int numArguments) {
+  /** Common logic between {@link #fromNetwork(RegistryFriendlyByteBuf, int)} and {@link ModifierFormula#fromNetwork(RegistryFriendlyByteBuf, int, FallbackFormula)} */
+  static PostFixFormula fromNetwork(RegistryFriendlyByteBuf buffer, short size, int numArguments) {
     ImmutableList.Builder<StackOperation> builder = ImmutableList.builder();
     for (int i = 0; i < size; i++) {
       builder.add(StackOperation.fromNetwork(buffer));
@@ -90,7 +90,7 @@ public record PostFixFormula(List<StackOperation> operations, int numArguments) 
 
   /** Writes this formula to the network */
   @Override
-  public void toNetwork(FriendlyByteBuf buffer) {
+  public void toNetwork(RegistryFriendlyByteBuf buffer) {
     buffer.writeShort(operations.size());
     for (StackOperation operation : operations) {
       operation.toNetwork(buffer);

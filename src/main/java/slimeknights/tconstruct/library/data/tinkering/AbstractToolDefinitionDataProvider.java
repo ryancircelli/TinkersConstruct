@@ -19,6 +19,7 @@ import slimeknights.tconstruct.library.tools.definition.module.ToolModule;
 import slimeknights.tconstruct.tools.modules.ArmorModuleBuilder;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,16 +95,17 @@ public abstract class AbstractToolDefinitionDataProvider extends GenericDataProv
   @SuppressWarnings("UnusedReturnValue")
   protected class ArmorDataBuilder {
     private final ResourceLocation name;
-    private final ToolDefinitionDataBuilder[] builders;
+    /** @apiNote Keyed rather than indexed by ordinal for the reason {@link ModifiableArmorMaterial} gives: 1.21 added a fifth {@link ArmorItem.Type} and a four-length array indexed by ordinal writes past its end for it */
+    private final Map<ArmorItem.Type,ToolDefinitionDataBuilder> builders;
     private final List<ArmorItem.Type> slotTypes;
     private ArmorDataBuilder(ModifiableArmorMaterial armorMaterial) {
       this.name = armorMaterial.getId();
-      this.builders = new ToolDefinitionDataBuilder[4];
+      this.builders = new EnumMap<>(ArmorItem.Type.class);
       ImmutableList.Builder<ArmorItem.Type> slotTypes = ImmutableList.builder();
       for (ArmorItem.Type slotType : ArmorItem.Type.values()) {
         ToolDefinition definition = armorMaterial.getArmorDefinition(slotType);
         if (definition != null) {
-          this.builders[slotType.ordinal()] = define(definition);
+          this.builders.put(slotType, define(definition));
           slotTypes.add(slotType);
         }
       }
@@ -112,7 +114,7 @@ public abstract class AbstractToolDefinitionDataProvider extends GenericDataProv
 
     /** Gets the builder for the given slot */
     protected ToolDefinitionDataBuilder getBuilder(ArmorItem.Type slotType) {
-      ToolDefinitionDataBuilder builder = builders[slotType.ordinal()];
+      ToolDefinitionDataBuilder builder = builders.get(slotType);
       if (builder == null) {
         throw new IllegalArgumentException("Unsupported slot type " + slotType + " for material " + name);
       }

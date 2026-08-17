@@ -2,15 +2,15 @@ package slimeknights.tconstruct.library.data.tinkering;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.PackOutput.Target;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.conditions.ICondition;
-import net.minecraftforge.common.crafting.conditions.ModLoadedCondition;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 import slimeknights.mantle.data.GenericDataProvider;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.util.JsonHelper;
@@ -38,7 +38,7 @@ public abstract class AbstractMobEquipmentProvider extends GenericDataProvider {
   @Override
   public CompletableFuture<?> run(CachedOutput cache) {
     addEquipment();
-    return allOf(equipment.entrySet().stream().map(entry -> saveJson(cache, new ResourceLocation(modId, entry.getKey()), entry.getValue().serialize())));
+    return allOf(equipment.entrySet().stream().map(entry -> saveJson(cache, ResourceLocation.fromNamespaceAndPath(modId, entry.getKey()), entry.getValue().serialize())));
   }
 
   /** Creates a builder for the given entity */
@@ -113,10 +113,9 @@ public abstract class AbstractMobEquipmentProvider extends GenericDataProvider {
       }
       // serialize equipment
       json.add("equip", MobEquipment.LIST_LOADABLE.serialize(equipment.build()));
-      // serialize conditions
-      if (conditions.length > 0) {
-        json.add("conditions", CraftingHelper.serialize(conditions));
-      }
+      // serialize conditions. MobEquipmentManager tests the object with ICondition#conditionsMatched, which reads
+      // NeoForge's "neoforge:conditions" key, so this must be the matching writer rather than a bare array
+      ICondition.writeConditions(JsonOps.INSTANCE, json, List.of(conditions));
       return json;
     }
   }

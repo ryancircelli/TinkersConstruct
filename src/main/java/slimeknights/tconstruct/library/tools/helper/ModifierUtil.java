@@ -2,8 +2,8 @@ package slimeknights.tconstruct.library.tools.helper;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
@@ -15,11 +15,16 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ToolAction;
+import net.neoforged.neoforge.common.EffectCure;
+import net.neoforged.neoforge.common.EffectCures;
+import net.neoforged.neoforge.common.ItemAbility;
+import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
@@ -29,7 +34,9 @@ import slimeknights.tconstruct.library.modifiers.hook.interaction.GeneralInterac
 import slimeknights.tconstruct.library.tools.definition.module.ToolHooks;
 import slimeknights.tconstruct.library.tools.item.ranged.ModifiableLauncherItem;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
+import slimeknights.tconstruct.library.tools.nbt.ToolDataComponent;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
+import slimeknights.tconstruct.library.tools.nbt.ToolStatsComponent;
 import slimeknights.tconstruct.library.tools.stat.ToolStats;
 import slimeknights.tconstruct.tools.TinkerToolActions;
 import slimeknights.tconstruct.tools.TinkerTools;
@@ -92,19 +99,10 @@ public final class ModifierUtil {
    */
   public static int getModifierLevel(ItemStack stack, ModifierId modifier) {
     if (!stack.isEmpty() && stack.is(TinkerTags.Items.MODIFIABLE)) {
-      CompoundTag nbt = stack.getTag();
-      if (nbt != null && nbt.contains(ToolStack.TAG_MODIFIERS, Tag.TAG_LIST)) {
-        ListTag list = nbt.getList(ToolStack.TAG_MODIFIERS, Tag.TAG_COMPOUND);
-        int size = list.size();
-        if (size > 0) {
-          String key = modifier.toString();
-          for (int i = 0; i < size; i++) {
-            CompoundTag entry = list.getCompound(i);
-            if (key.equals(entry.getString(ModifierEntry.TAG_MODIFIER))) {
-              return entry.getInt(ModifierEntry.TAG_LEVEL);
-            }
-          }
-        }
+      // the effective modifier list is the computed half of the tool, absent until the tool has rebuilt at least once
+      ToolStatsComponent derived = ToolStatsComponent.get(stack);
+      if (derived != null) {
+        return derived.modifiers().getLevel(modifier);
       }
     }
     return 0;
@@ -113,8 +111,7 @@ public final class ModifierUtil {
   /** Checks if the given stack has upgrades */
   public static boolean hasUpgrades(ItemStack stack) {
     if (!stack.isEmpty() && stack.is(TinkerTags.Items.MODIFIABLE)) {
-      CompoundTag nbt = stack.getTag();
-      return nbt != null && !nbt.getList(ToolStack.TAG_UPGRADES, Tag.TAG_COMPOUND).isEmpty();
+      return !ToolDataComponent.get(stack).upgrades().isEmpty();
     }
     return false;
   }
@@ -129,57 +126,63 @@ public final class ModifierUtil {
     return slot.isArmor() || tool.hasTag(TinkerTags.Items.HELD);
   }
 
-  /** Shortcut to get a volatile flag when the tool stack is not needed otherwise */
-  public static boolean checkVolatileFlag(ItemStack stack, ResourceLocation flag) {
-    CompoundTag nbt = stack.getTag();
-    if (nbt != null && nbt.contains(ToolStack.TAG_VOLATILE_MOD_DATA, Tag.TAG_COMPOUND)) {
-      return nbt.getCompound(ToolStack.TAG_VOLATILE_MOD_DATA).getBoolean(flag.toString());
-    }
-    return false;
+  /**
+   * Empty compound handed back when a stack carries no data at all. Never written to; every caller below only reads.
+   * Exists so the shortcuts stay allocation free, which is the entire reason they take a stack instead of a tool.
+   */
+  private static final CompoundTag NO_DATA = new CompoundTag();
+
+  /**
+   * Gets a stack's volatile modifier data without building a tool.
+   * Volatile data lives in the computed half of the tool, so a stack that has never rebuilt has none.
+   */
+  private static CompoundTag volatileData(ItemStack stack) {
+    ToolStatsComponent derived = ToolStatsComponent.get(stack);
+    return derived == null ? NO_DATA : derived.volatileData();
   }
 
-  /** Shortcut to get a persistent flag when the tool stack is not needed otherwise */
+  /** Gets a stack's persistent modifier data without building a tool */
+  private static CompoundTag persistentData(ItemStack stack) {
+    return ToolDataComponent.get(stack).data();
+  }
+
+  /** Shortcut to get a volatile flag when the tool stack is not needed otherwise */
+  public static boolean checkVolatileFlag(ItemStack stack, ResourceLocation flag) {
+    return volatileData(stack).getBoolean(flag.toString());
+  }
+
+  /**
+   * Shortcut to get a persistent flag when the tool stack is not needed otherwise
+   * @implNote  Before 1.21 this read the volatile compound despite its name, so its only caller
+   * ({@code TinkerItemProperties}, asking after {@code ModifiableLauncherItem.KEY_DRAWBACK_AMMO}, which is written to
+   * persistent data) never saw the key. Reads persistent data now, as the name and every caller intend.
+   */
   public static boolean checkPersistentPresent(ItemStack stack, ResourceLocation key) {
-    CompoundTag nbt = stack.getTag();
-    if (nbt != null && nbt.contains(ToolStack.TAG_VOLATILE_MOD_DATA, Tag.TAG_COMPOUND)) {
-      return nbt.getCompound(ToolStack.TAG_VOLATILE_MOD_DATA).contains(key.toString());
-    }
-    return false;
+    return persistentData(stack).contains(key.toString());
   }
 
   /** Shortcut to get a volatile int value when the tool stack is not needed otherwise */
   public static int getVolatileInt(ItemStack stack, ResourceLocation flag) {
-    CompoundTag nbt = stack.getTag();
-    if (nbt != null && nbt.contains(ToolStack.TAG_VOLATILE_MOD_DATA, Tag.TAG_COMPOUND)) {
-      return nbt.getCompound(ToolStack.TAG_VOLATILE_MOD_DATA).getInt(flag.toString());
-    }
-    return 0;
+    return volatileData(stack).getInt(flag.toString());
   }
 
   /** Shortcut to get a volatile int value when the tool stack is not needed otherwise */
   public static int getPersistentInt(ItemStack stack, ResourceLocation flag, int defealtValue) {
-    CompoundTag nbt = stack.getTag();
-    if (nbt != null && nbt.contains(ToolStack.TAG_PERSISTENT_MOD_DATA, Tag.TAG_COMPOUND)) {
-      CompoundTag persistent = nbt.getCompound(ToolStack.TAG_PERSISTENT_MOD_DATA);
-      String flagString = flag.toString();
-      if (persistent.contains(flagString, Tag.TAG_INT)) {
-        return persistent.getInt(flagString);
-      }
+    CompoundTag persistent = persistentData(stack);
+    String flagString = flag.toString();
+    if (persistent.contains(flagString, Tag.TAG_INT)) {
+      return persistent.getInt(flagString);
     }
     return defealtValue;
   }
 
   /** Shortcut to get a persistent string value when the tool stack is not needed otherwise */
   public static String getPersistentString(ItemStack stack, ResourceLocation flag) {
-    CompoundTag nbt = stack.getTag();
-    if (nbt != null && nbt.contains(ToolStack.TAG_PERSISTENT_MOD_DATA, Tag.TAG_COMPOUND)) {
-      return nbt.getCompound(ToolStack.TAG_PERSISTENT_MOD_DATA).getString(flag.toString());
-    }
-    return "";
+    return persistentData(stack).getString(flag.toString());
   }
 
   /** Checks if a tool can perform the given action */
-  public static boolean canPerformAction(IToolStackView tool, ToolAction action) {
+  public static boolean canPerformAction(IToolStackView tool, ItemAbility action) {
     if (!tool.isBroken()) {
       // can the tool do this action inherently?
       if (tool.getHook(ToolHooks.TOOL_ACTION).canPerformAction(tool, action)) {
@@ -270,6 +273,8 @@ public final class ModifierUtil {
             // no cooldown is done on secondary effects like entity hitting
             ToolDamageUtil.damageAnimated(tool, damage, living, hand, cause);
           }
+          // both branches above may have edited the tool, and the stack is the live one on the holder
+          tool.updateStack();
         }
         return hand;
       }
@@ -304,5 +309,38 @@ public final class ModifierUtil {
     if (consumer != null) {
       consumer.accept(entity);
     }
+  }
+
+  /* Effect cures */
+
+  /**
+   * Gets the cure token for an effect that is cured by removing the item that granted it.
+   * <p>
+   * 1.21 deleted curative items: an effect no longer carries a list of {@link ItemStack}s that clear it, it carries a
+   * set of {@link EffectCure} tokens, and a token is interned by name. 1.20's "this effect is cured by exactly this
+   * armor piece" was expressed by putting that piece in the curative list, so naming a token after the item is the
+   * same test with the same granularity - and it survives a save, because the token set is part of what a
+   * {@link net.minecraft.world.effect.MobEffectInstance} serializes.
+   */
+  public static EffectCure curedByItem(Item item) {
+    return EffectCure.get(TConstruct.resourceString("cured_by_item/" + BuiltInRegistries.ITEM.getKey(item)));
+  }
+
+  /**
+   * Gets the cure an item performs, for a caller that used to pass a stack to {@code LivingEntity#curePotionEffects}.
+   * <p>
+   * That method asked every active effect whether the stack was in its curative list; a vanilla effect's list held one
+   * item, the milk bucket, which is now {@link EffectCures#MILK}, and honey is the only other vanilla entry. Anything
+   * else is a Tinkers-granted effect keyed by {@link #curedByItem(Item)}, so the mapping is total for every item that
+   * ever cured anything.
+   */
+  public static EffectCure cureFromItem(Item item) {
+    if (item == Items.MILK_BUCKET) {
+      return EffectCures.MILK;
+    }
+    if (item == Items.HONEY_BOTTLE) {
+      return EffectCures.HONEY;
+    }
+    return curedByItem(item);
   }
 }

@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.datafixers.util.Function3;
 import io.netty.handler.codec.EncoderException;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.GsonHelper;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.registry.GenericLoaderRegistry;
@@ -89,7 +89,7 @@ public record VariableFormulaLoadable<V extends IHaveLoader, F extends VariableF
   }
 
   @Override
-  public F decode(FriendlyByteBuf buffer, TypedMap context) {
+  public F decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
     boolean percent = boostFallback != percentFallback && buffer.readBoolean();
     ImmutableList.Builder<V> builder = ImmutableList.builder();
     int size = buffer.readVarInt();
@@ -101,7 +101,7 @@ public record VariableFormulaLoadable<V extends IHaveLoader, F extends VariableF
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer, F object) throws EncoderException {
+  public void encode(RegistryFriendlyByteBuf buffer, F object) throws EncoderException {
     if (boostFallback != percentFallback) {
       buffer.writeBoolean(object.percent());
     }

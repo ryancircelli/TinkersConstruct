@@ -2,7 +2,6 @@ package slimeknights.tconstruct.library.json.predicate;
 
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.TierSortingRegistry;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.predicate.IJsonPredicate;
 import slimeknights.mantle.data.predicate.block.BlockPredicate;
@@ -14,7 +13,10 @@ public record HarvestTierPredicate(Tier tier) implements BlockPredicate {
 
   @Override
   public boolean matches(BlockState state) {
-    return TierSortingRegistry.isCorrectTierForDrops(tier, state);
+    // 1.21 moved "which blocks does this tier drop" out of Forge's sorting registry and onto the tier itself, as the
+    // #minecraft:incorrect_for_*_tool block tag every Tier now names. This is the same check vanilla's Tool component
+    // makes through Tool.Rule#deniesDrops.
+    return !state.is(tier.getIncorrectBlocksForDrops());
   }
 
   @Override

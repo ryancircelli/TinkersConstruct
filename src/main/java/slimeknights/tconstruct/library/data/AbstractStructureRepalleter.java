@@ -11,13 +11,15 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.PackOutput.Target;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import slimeknights.mantle.data.GenericDataProvider;
 import slimeknights.tconstruct.TConstruct;
 
@@ -40,7 +42,9 @@ public abstract class AbstractStructureRepalleter extends GenericNBTProvider {
   private final ExistingFileHelper existingFileHelper;
   private final String modId;
   public AbstractStructureRepalleter(PackOutput packOutput, ExistingFileHelper existingFileHelper, String modId) {
-    super(packOutput, Target.DATA_PACK, "structures");
+    // 1.21 renamed the datapack structure template folder from "structures" to "structure"; hardcoding the old name
+    // would write files the game never looks at, so take it from the manager that reads them back.
+    super(packOutput, Target.DATA_PACK, StructureTemplateManager.STRUCTURE_RESOURCE_DIRECTORY_NAME);
     this.existingFileHelper = existingFileHelper;
     this.modId = modId;
   }
@@ -67,8 +71,10 @@ public abstract class AbstractStructureRepalleter extends GenericNBTProvider {
     for (Entry<ResourceLocation,Collection<RepaletteTask>> entry : structures.asMap().entrySet()) {
       ResourceLocation original = entry.getKey();
 
-      try (InputStream io = existingFileHelper.getResource(original, PackType.SERVER_DATA, ".nbt", "structures").open()) {
-        CompoundTag inputNBT = NbtIo.readCompressed(io);
+      try (InputStream io = existingFileHelper.getResource(original, PackType.SERVER_DATA, ".nbt", StructureTemplateManager.STRUCTURE_RESOURCE_DIRECTORY_NAME).open()) {
+        // 1.21 requires an accounter on every NBT read. Datagen reads our own structures from disk, so there is no
+        // untrusted input to bound here; the unlimited accounter keeps the old behaviour of reading whatever is there.
+        CompoundTag inputNBT = NbtIo.readCompressed(io, NbtAccounter.unlimitedHeap());
         for (RepaletteTask task : entry.getValue()) {
           // start by fetching the palette, we assume its not randomized
           CompoundTag newStructure = inputNBT.copy();
@@ -92,7 +98,7 @@ public abstract class AbstractStructureRepalleter extends GenericNBTProvider {
             template.load(BuiltInRegistries.BLOCK.asLookup(), newStructure);
             newStructure = template.save(new CompoundTag());
           }
-          tasks.add(saveNBT(cache, new ResourceLocation(modId, task.location), newStructure));
+          tasks.add(saveNBT(cache, ResourceLocation.fromNamespaceAndPath(modId, task.location), newStructure));
         }
       }
       catch (IOException e) {

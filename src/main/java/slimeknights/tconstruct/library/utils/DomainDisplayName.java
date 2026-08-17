@@ -1,8 +1,8 @@
 package slimeknights.tconstruct.library.utils;
 
-import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
-import net.minecraftforge.common.ForgeI18n;
-import net.minecraftforge.fml.ModList;
+import net.minecraft.locale.Language;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.fml.ModList;
 import org.apache.commons.lang3.text.WordUtils;
 import slimeknights.mantle.data.listener.ISafeManagerReloadListener;
 
@@ -32,11 +32,18 @@ public class DomainDisplayName {
     return WordUtils.capitalize(DASH_UNDERSCORE.matcher(domain).replaceAll(" "));
   }
 
-  /** Gets the name for a mod ID, uncached */
+  /**
+   * Gets the name for a mod ID, uncached
+   * @implNote  NeoForge dropped Forge's {@code ForgeI18n.getPattern}. {@link Language#getOrDefault(String)} is the
+   *            replacement with the same contract (returns the key when untranslated) and, unlike the client only
+   *            {@link net.minecraft.client.resources.language.I18n}, it resolves on a dedicated server too: the static
+   *            {@link Language} instance defaults to the jar's {@code en_us} and the client language manager injects
+   *            the selected language into it.
+   */
   private static String nameForUncached(String domain) {
     // first, check if the resource pack translated the thing
     String langKey = "domain." + domain + ".display_name";
-    String translated = ForgeI18n.getPattern(langKey);
+    String translated = Language.getInstance().getOrDefault(langKey);
     if (!translated.equals(langKey)) {
       return translated;
     }
