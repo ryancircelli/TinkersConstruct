@@ -1,0 +1,34 @@
+{
+  "type": "tconstruct:modifier",
+  "allow_crystal": true,
+  "inputs": [
+    {
+      "count": 1,
+      "item": "tconstruct:gold_reinforcement"
+    },
+    {
+      "count": 1,
+      "item": "tconstruct:seared_reinforcement"
+    },
+    {
+      "count": 1,
+      "item": "tconstruct:obsidian_reinforcement"
+    },
+    {
+      "count": 1,
+      "item": "tconstruct:iron_reinforcement"
+    },
+    {
+      "count": 1,
+      "item": "tconstruct:cobalt_reinforcement"
+    }
+  ],
+  "level": 1,
+  "result": "tconstruct:protection",
+  "slots": {
+    "abilities": 1
+  },
+  "tools": {
+    "tag": "tconstruct:modifiable/armor"
+  }
+}

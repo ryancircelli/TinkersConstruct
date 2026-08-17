@@ -1,0 +1,26 @@
+{
+  "type": "tconstruct:swappable_modifier",
+  "allow_crystal": false,
+  "inputs": [
+    {
+      "count": 1,
+      "item": "minecraft:magma_block"
+    },
+    {
+      "count": 1,
+      "item": "minecraft:magma_cream"
+    },
+    {
+      "count": 1,
+      "item": "minecraft:magma_block"
+    }
+  ],
+  "result": {
+    "name": "tconstruct:embellishment",
+    "value": "tconstruct:magma"
+  },
+  "tools": {
+    "tag": "tconstruct:modifiable/embellishment/slime"
+  },
+  "variant_formatter": "tconstruct:material"
+}

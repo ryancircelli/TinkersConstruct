@@ -1,0 +1,18 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:nuggets/duralumin"
+    }
+  ],
+  "type": "tconstruct:melting",
+  "ingredient": {
+    "tag": "c:nuggets/duralumin"
+  },
+  "result": {
+    "amount": 10,
+    "tag": "c:molten_duralumin"
+  },
+  "temperature": 625,
+  "time": 18
+}

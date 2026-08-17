@@ -1,0 +1,19 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "allomancy:zinc_flakes"
+    }
+  ],
+  "type": "tconstruct:melting",
+  "ingredient": {
+    "type": "mantle:item_name",
+    "item": "allomancy:zinc_flakes"
+  },
+  "result": {
+    "amount": 30,
+    "tag": "c:molten_zinc"
+  },
+  "temperature": 420,
+  "time": 27
+}

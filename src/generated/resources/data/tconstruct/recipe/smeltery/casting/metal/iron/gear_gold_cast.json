@@ -1,0 +1,20 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:gears/iron"
+    }
+  ],
+  "type": "tconstruct:casting_table",
+  "cast": {
+    "tag": "tconstruct:casts/multi_use/gear"
+  },
+  "cooling_time": 120,
+  "fluid": {
+    "amount": 360,
+    "tag": "c:molten_iron"
+  },
+  "result": {
+    "tag": "c:gears/iron"
+  }
+}
