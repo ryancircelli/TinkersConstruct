@@ -17,6 +17,7 @@ import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.client.resources.model.SimpleBakedModel;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.RandomSource;
@@ -25,17 +26,18 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.client.model.IQuadTransformer;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.client.model.geometry.IGeometryBakingContext;
-import net.minecraftforge.client.model.geometry.IGeometryLoader;
-import net.minecraftforge.client.model.geometry.IUnbakedGeometry;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.model.IQuadTransformer;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.geometry.IGeometryBakingContext;
+import net.neoforged.neoforge.client.model.geometry.IGeometryLoader;
+import net.neoforged.neoforge.client.model.geometry.IUnbakedGeometry;
+import net.neoforged.neoforge.fluids.FluidStack;
 import slimeknights.mantle.client.model.RetexturedModel;
 import slimeknights.mantle.client.model.RetexturedModel.RetexturedContext;
 import slimeknights.mantle.client.model.util.ColoredBlockModel;
 import slimeknights.mantle.client.model.util.ColoredBlockModel.ColorData;
+import slimeknights.mantle.client.model.util.ColoredBlockModel.UvLockedState;
 import slimeknights.mantle.client.model.util.DynamicBakedWrapper;
 import slimeknights.mantle.client.model.util.ModelHelper;
 import slimeknights.mantle.client.model.util.SimpleBlockModel;
@@ -81,9 +83,9 @@ public class FluidTextureModel implements IUnbakedGeometry<FluidTextureModel> {
   }
 
   @Override
-  public BakedModel bake(IGeometryBakingContext owner, ModelBaker baker, Function<Material,TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides, ResourceLocation modelLocation) {
+  public BakedModel bake(IGeometryBakingContext owner, ModelBaker baker, Function<Material,TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides) {
     // start by baking the model, handing UV lock
-    BakedModel baked = model.bake(owner, baker, spriteGetter, transform, overrides, modelLocation);
+    BakedModel baked = model.bake(owner, baker, spriteGetter, transform, overrides);
 
     // determine which block parts are fluids
     Set<String> fluidTextures = this.fluids.isEmpty() ? Collections.emptySet() : RetexturedModel.getAllRetextured(owner, model, this.fluids);
@@ -94,13 +96,14 @@ public class FluidTextureModel implements IUnbakedGeometry<FluidTextureModel> {
       for (int i = 0; i < size; i++) {
         BlockElement part = elements.get(i);
         long fluidFaces = part.faces.values().stream()
-                                    .filter(face -> fluidTextures.contains(trimTextureName(face.texture)))
+                                    .filter(face -> fluidTextures.contains(trimTextureName(face.texture())))
                                     .count();
         // for simplicity, each part is either a fluid or not. If for some reason it contains both we mark it as a fluid, meaning it may get colored
         // if this is undesired, just use separate elements
         if (fluidFaces > 0) {
           if (fluidFaces < part.faces.size()) {
-            TConstruct.LOG.warn("Mixed fluid and non-fluid elements in model {}, may cause unexpected results", modelLocation);
+            // the bake location is gone in 1.21; the context's own name is what names the offending model now
+            TConstruct.LOG.warn("Mixed fluid and non-fluid elements in model {}, may cause unexpected results", owner.getModelName());
           }
           fluidParts.set(i);
         }
@@ -171,12 +174,15 @@ public class FluidTextureModel implements IUnbakedGeometry<FluidTextureModel> {
       for (int i = 0; i < size; i++) {
         BlockElement element = elements.get(i);
         ColorData colors = LogicHelper.getOrDefault(colorData, i, ColorData.DEFAULT);
+        // the per-element UV lock is a ModelState wrapper now rather than a boolean argument: the face bakery reads the
+        // flag off the state. UvLockedState.of hands back the base state when it already agrees, so an element that
+        // does not override the model's own lock costs nothing.
         if (fluidParts.get(i)) {
-          ColoredBlockModel.bakePart(builder, textured, element, luminosity, spriteGetter, transform.getRotation(), fluidTransformer, colors.isUvLock(defaultUvLock), TankModel.BAKE_LOCATION);
+          ColoredBlockModel.bakePart(builder, textured, element, luminosity, spriteGetter, UvLockedState.of(transform, colors.isUvLock(defaultUvLock)), fluidTransformer);
         } else {
           int partColor = colors.color();
           IQuadTransformer partTransformer = partColor == -1 ? quadTransformer : ColoredBlockModel.applyColorQuadTransformer(partColor).andThen(quadTransformer);
-          ColoredBlockModel.bakePart(builder, textured, element, colors.luminosity(), spriteGetter, transform.getRotation(), partTransformer, colors.isUvLock(defaultUvLock), TankModel.BAKE_LOCATION);
+          ColoredBlockModel.bakePart(builder, textured, element, colors.luminosity(), spriteGetter, UvLockedState.of(transform, colors.isUvLock(defaultUvLock)), partTransformer);
         }
       }
       return builder.build(SimpleBlockModel.getRenderTypeGroup(owner));
@@ -212,7 +218,9 @@ public class FluidTextureModel implements IUnbakedGeometry<FluidTextureModel> {
       @Nullable
       @Override
       public BakedModel resolve(BakedModel originalModel, ItemStack stack, @Nullable ClientLevel world, @Nullable LivingEntity entity, int pSeed) {
-        if (stack.isEmpty() || !stack.hasTag()) {
+        // fast path for a stack with no data at all, which can never carry a texture. The texture is a legacy-named
+        // DataKey, so it lives in CUSTOM_DATA - the same question Mantle's own RetexturedModel override asks.
+        if (stack.isEmpty() || !stack.has(DataComponents.CUSTOM_DATA)) {
           return originalModel;
         }
 

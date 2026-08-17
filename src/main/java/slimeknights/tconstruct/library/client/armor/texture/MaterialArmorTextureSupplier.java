@@ -3,8 +3,6 @@ package slimeknights.tconstruct.library.client.armor.texture;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.Util;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import slimeknights.mantle.data.loadable.Loadables;
@@ -15,8 +13,10 @@ import slimeknights.tconstruct.library.client.materials.MaterialRenderInfo;
 import slimeknights.tconstruct.library.client.materials.MaterialRenderInfoLoader;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
 import slimeknights.tconstruct.library.tools.helper.ModifierUtil;
-import slimeknights.tconstruct.library.tools.nbt.ToolStack;
+import slimeknights.tconstruct.library.tools.nbt.MaterialNBT;
+import slimeknights.tconstruct.library.tools.nbt.ToolDataComponent;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -35,48 +35,48 @@ public abstract class MaterialArmorTextureSupplier implements ArmorTextureSuppli
     return ArmorTexture.EMPTY;
   }
 
-  /** Makes a material getter for the given base and type */
-  public static Function<String,ArmorTexture> materialGetter(ResourceLocation name) {
+  /**
+   * Makes a material getter for the given base and type.
+   * <p>
+   * 1.20 keyed this on the material's string form because that is what the tool's NBT held. 1.21 stores the material
+   * list as parsed {@link MaterialVariantId}s in a data component, so the key is the id itself and the per-frame
+   * string round trip this used to pay is gone.
+   */
+  public static Function<MaterialVariantId,ArmorTexture> materialGetter(ResourceLocation name) {
     // if the base texture does not exist, means we decided to skip this piece. Notably used for skipping some layers of wings
     if (!TEXTURE_VALIDATOR.test(name)) {
       return material -> ArmorTexture.EMPTY;
     }
     // TODO: consider memoizing these functions, as if the same name appears twice in different models we can reuse it
-    return Util.memoize(materialStr -> {
-      if (!materialStr.isEmpty()) {
-        MaterialVariantId material = MaterialVariantId.tryParse(materialStr);
-        int color = -1;
-        int luminosity = 0;
-        if (material != null) {
-          Optional<MaterialRenderInfo> infoOptional = MaterialRenderInfoLoader.INSTANCE.getRenderInfo(material);
-          if (infoOptional.isPresent()) {
-            MaterialRenderInfo info = infoOptional.get();
-            ResourceLocation untinted = info.texture();
-            luminosity = info.luminosity();
-            if (untinted != null) {
-              ArmorTexture texture = tryTexture(name, -1, luminosity, '_' + untinted.getNamespace() + '_' + untinted.getPath());
-              if (texture != ArmorTexture.EMPTY) {
-                return texture;
-              }
-            }
-            color = info.vertexColor();
-            for (String fallback : info.fallbacks()) {
-              ArmorTexture texture = tryTexture(name, color, luminosity, '_' + fallback);
-              if (texture != ArmorTexture.EMPTY) {
-                return texture;
-              }
-            }
+    return Util.memoize(material -> {
+      int color = -1;
+      int luminosity = 0;
+      Optional<MaterialRenderInfo> infoOptional = MaterialRenderInfoLoader.INSTANCE.getRenderInfo(material);
+      if (infoOptional.isPresent()) {
+        MaterialRenderInfo info = infoOptional.get();
+        ResourceLocation untinted = info.texture();
+        luminosity = info.luminosity();
+        if (untinted != null) {
+          ArmorTexture texture = tryTexture(name, -1, luminosity, '_' + untinted.getNamespace() + '_' + untinted.getPath());
+          if (texture != ArmorTexture.EMPTY) {
+            return texture;
           }
         }
-        // base texture guaranteed to exist, else we would not be in this function
-        return new TintedArmorTexture(ArmorTextureSupplier.getTexturePath(name), color, luminosity);
+        color = info.vertexColor();
+        for (String fallback : info.fallbacks()) {
+          ArmorTexture texture = tryTexture(name, color, luminosity, '_' + fallback);
+          if (texture != ArmorTexture.EMPTY) {
+            return texture;
+          }
+        }
       }
-      return ArmorTexture.EMPTY;
+      // base texture guaranteed to exist, else we would not be in this function
+      return new TintedArmorTexture(ArmorTextureSupplier.getTexturePath(name), color, luminosity);
     });
   }
 
   private final ResourceLocation prefix;
-  private final Function<String, ArmorTexture>[] textures;
+  private final Function<MaterialVariantId, ArmorTexture>[] textures;
   @SuppressWarnings("unchecked")
   public MaterialArmorTextureSupplier(ResourceLocation prefix) {
     this.prefix = prefix;
@@ -87,13 +87,14 @@ public abstract class MaterialArmorTextureSupplier implements ArmorTextureSuppli
     };
   }
 
-  /** Gets the material from a given stack */
-  protected abstract String getMaterial(ItemStack stack);
+  /** Gets the material from a given stack, null if the stack names none */
+  @Nullable
+  protected abstract MaterialVariantId getMaterial(ItemStack stack);
 
   @Override
   public ArmorTexture getArmorTexture(ItemStack stack, TextureType textureType, RegistryAccess access) {
-    String material = getMaterial(stack);
-    if (!material.isEmpty()) {
+    MaterialVariantId material = getMaterial(stack);
+    if (material != null) {
       return textures[textureType.ordinal()].apply(material);
     }
     return ArmorTexture.EMPTY;
@@ -117,9 +118,12 @@ public abstract class MaterialArmorTextureSupplier implements ArmorTextureSuppli
       this(base.withSuffix(suffix), key);
     }
 
+    @Nullable
     @Override
-    protected String getMaterial(ItemStack stack) {
-      return ModifierUtil.getPersistentString(stack, key);
+    protected MaterialVariantId getMaterial(ItemStack stack) {
+      // persistent data genuinely holds a string, so this is the one place a parse is still needed
+      String material = ModifierUtil.getPersistentString(stack, key);
+      return material.isEmpty() ? null : MaterialVariantId.tryParse(material);
     }
 
     @Override
@@ -145,13 +149,16 @@ public abstract class MaterialArmorTextureSupplier implements ArmorTextureSuppli
       this(base.withSuffix(variant), index);
     }
 
+    @Nullable
     @Override
-    protected String getMaterial(ItemStack stack) {
-      CompoundTag tag = stack.getTag();
-      if (tag != null && tag.contains(ToolStack.TAG_MATERIALS, Tag.TAG_LIST)) {
-        return tag.getList(ToolStack.TAG_MATERIALS, Tag.TAG_STRING).getString(index);
+    protected MaterialVariantId getMaterial(ItemStack stack) {
+      // 1.21: the material list is a data component, not a string list inside the stack's NBT. Read the component
+      // directly rather than building a ToolStack: this runs per frame per armour layer and nothing else is wanted.
+      MaterialNBT materials = ToolDataComponent.get(stack).materials();
+      if (index < materials.size()) {
+        return materials.get(index).getVariant();
       }
-      return "";
+      return null;
     }
 
     @Override

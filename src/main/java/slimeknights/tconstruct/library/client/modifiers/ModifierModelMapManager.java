@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraftforge.fml.ModLoader;
+import net.neoforged.fml.ModLoader;
 import slimeknights.mantle.data.listener.MergingJsonDataLoader;
 import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.util.JsonHelper;
@@ -55,7 +55,8 @@ public class ModifierModelMapManager extends MergingJsonDataLoader<Builder> {
   public CompletableFuture<Void> reload(PreparationBarrier stage, ResourceManager resourceManager, ProfilerFiller preparationsProfiler, ProfilerFiller reloadProfiler, Executor backgroundExecutor, Executor gameExecutor) {
     // run in the first stage instead of the second stage
     return CompletableFuture.runAsync(() -> {
-      if (ModLoader.isLoadingStateValid()) {
+      // 1.21: ModLoader#isLoadingStateValid is gone; hasErrors is the same question asked the other way round
+      if (!ModLoader.hasErrors()) {
         this.onResourceManagerReload(resourceManager);
       }
     }, backgroundExecutor).thenCompose(stage::wait);
@@ -128,7 +129,7 @@ public class ModifierModelMapManager extends MergingJsonDataLoader<Builder> {
         // for simplicity, treat an array as a compound
         model = CompoundModifierModel.create(CompoundModifierModel.LIST_LOADABLE.convert(value, key.toString(), context.apply(id, key)));
       } else if (value.isJsonPrimitive()) {
-        model = new NormalModifierModel(ModifierModel.blockAtlas(new ResourceLocation(value.getAsString())), null);
+        model = new NormalModifierModel(ModifierModel.blockAtlas(ResourceLocation.parse(value.getAsString())), null);
       } else {
         JsonObject json = value.getAsJsonObject();
         if (!json.has("type")) {
@@ -232,8 +233,13 @@ public class ModifierModelMapManager extends MergingJsonDataLoader<Builder> {
     return modelMap;
   }
 
-  /** Gets a map of modifier models for the given tool, considering the legacy model system */
-  public ModifierModelMap getModelsForTool(Function<Material, TextureAtlasSprite> spriteGetter, List<ResourceLocation> options, List<ResourceLocation> smallRoots, List<ResourceLocation> largeRoots, ResourceLocation modelLocation) {
+  /**
+   * Gets a map of modifier models for the given tool, considering the legacy model system
+   * @param modelName  Name of the model being baked, used only as the subject of the deprecation warning below.
+   *                   Was the bake location in 1.20; that argument no longer reaches a geometry's {@code bake}, so
+   *                   callers pass {@code IGeometryBakingContext#getModelName()}.
+   */
+  public ModifierModelMap getModelsForTool(Function<Material, TextureAtlasSprite> spriteGetter, List<ResourceLocation> options, List<ResourceLocation> smallRoots, List<ResourceLocation> largeRoots, String modelName) {
     ModifierModelMap models = getModelsForTool(spriteGetter, options);
     // if not using the legacy system, we are done
     if (smallRoots.isEmpty() && largeRoots.isEmpty()) {
@@ -246,7 +252,7 @@ public class ModifierModelMapManager extends MergingJsonDataLoader<Builder> {
     }
     // if nothing is on the new system, just return the legacy one with a warning
     if (models.isEmpty()) {
-      TConstruct.LOG.warn("Tool model {} is using deprecated system for modifier models instead of modifier model maps for {}", modelLocation, legacy.keySet());
+      TConstruct.LOG.warn("Tool model {} is using deprecated system for modifier models instead of modifier model maps for {}", modelName, legacy.keySet());
       return ModifierModelMap.create(Map.of(), legacy);
     }
     // have both so we need to combine
@@ -260,7 +266,7 @@ public class ModifierModelMapManager extends MergingJsonDataLoader<Builder> {
     }
     // only warn of legacy usage if we have legacy models
     if (!legacyIds.isEmpty()) {
-      TConstruct.LOG.warn("Tool model {} is using deprecated system for modifier models instead of modifier model maps for {}", modelLocation, legacyIds);
+      TConstruct.LOG.warn("Tool model {} is using deprecated system for modifier models instead of modifier model maps for {}", modelName, legacyIds);
     }
     return ModifierModelMap.create(models.constant(), builder);
   }

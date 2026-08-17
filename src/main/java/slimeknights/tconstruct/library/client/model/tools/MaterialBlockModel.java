@@ -4,7 +4,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
-import com.mojang.math.Transformation;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -21,6 +20,7 @@ import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.client.resources.model.SimpleBakedModel;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -28,14 +28,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.IQuadTransformer;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.client.model.data.ModelProperty;
-import net.minecraftforge.client.model.geometry.IGeometryBakingContext;
-import net.minecraftforge.client.model.geometry.IGeometryLoader;
-import net.minecraftforge.client.model.geometry.IUnbakedGeometry;
+import net.neoforged.neoforge.client.model.IQuadTransformer;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelProperty;
+import net.neoforged.neoforge.client.model.geometry.IGeometryBakingContext;
+import net.neoforged.neoforge.client.model.geometry.IGeometryLoader;
+import net.neoforged.neoforge.client.model.geometry.IUnbakedGeometry;
 import org.jetbrains.annotations.NotNull;
-import slimeknights.mantle.Mantle;
 import slimeknights.mantle.client.model.RetexturedModel;
 import slimeknights.mantle.client.model.RetexturedModel.RetexturedContext;
 import slimeknights.mantle.client.model.util.ColoredBlockModel;
@@ -55,6 +54,7 @@ import slimeknights.tconstruct.library.client.model.ModelProperties;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
 import slimeknights.tconstruct.library.tools.nbt.MaterialIdNBT;
+import slimeknights.tconstruct.library.tools.nbt.ToolComponents;
 import slimeknights.tconstruct.library.tools.part.IMaterialItem;
 
 import javax.annotation.Nonnull;
@@ -76,8 +76,6 @@ import java.util.function.Function;
  */
 @RequiredArgsConstructor
 public class MaterialBlockModel implements IUnbakedGeometry<MaterialBlockModel> {
-  /** Location for dynamic baking */
-  private static final ResourceLocation BAKE_LOCATION = Mantle.getResource("material_block_dynamic");
   /** Loadable for the list of material textures */
   private static final Loadable<Set<String>> MATERIAL = StringLoadable.DEFAULT.set(ArrayLoadable.COMPACT);
   /** Loadable for the list of parts, each a list of material textures */
@@ -116,8 +114,8 @@ public class MaterialBlockModel implements IUnbakedGeometry<MaterialBlockModel> 
   }
 
   @Override
-  public BakedModel bake(IGeometryBakingContext owner, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides, ResourceLocation location) {
-    BakedModel baked = model.bake(owner, baker, spriteGetter, transform, overrides, location);
+  public BakedModel bake(IGeometryBakingContext owner, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides) {
+    BakedModel baked = model.bake(owner, baker, spriteGetter, transform, overrides);
     List<Set<String>> parts = this.parts.stream().map(part -> RetexturedModel.getAllRetextured(owner, model, part)).toList();
 
     // part model - fetches material from NBT field
@@ -214,15 +212,13 @@ public class MaterialBlockModel implements IUnbakedGeometry<MaterialBlockModel> 
       List<BlockElement> elements = model.getElements();
       int size = elements.size();
       IQuadTransformer quadTransformer = SimpleBlockModel.applyTransform(transform, owner.getRootTransform());
-      Transformation transformation = transform.getRotation();
-      boolean uvlock = transform.isUvLocked();
       for (int i = 0; i < size; i++) {
         BlockElement part = elements.get(i);
         // determine if any of the faces needs a tint
         // for simplicity, assume the whole part is tinted if so. Build your model to separate distinct material faces if needed
         TintedSprite tint = null;
         for (BlockElementFace face : part.faces.values()) {
-          TintedSprite faceTint = tints.get(face.texture);
+          TintedSprite faceTint = tints.get(face.texture());
           if (faceTint != null) {
             tint = faceTint;
             break;
@@ -231,9 +227,11 @@ public class MaterialBlockModel implements IUnbakedGeometry<MaterialBlockModel> 
         // apply color if we have it
         if (tint != null) {
           IQuadTransformer partTransformer = tint.color() == -1 ? quadTransformer : quadTransformer.andThen(ColoredBlockModel.applyColorQuadTransformer(tint.color()));
-          ColoredBlockModel.bakePart(builder, retextureContext, part, tint.emissivity(), spriteGetter, transformation, partTransformer, uvlock, BAKE_LOCATION);
+          // 1.20 decomposed the state into a rotation plus the model's own uvlock flag to hand to bakePart; the state
+          // itself is the argument now, and it is the same state the non-tinted branch below has always passed
+          ColoredBlockModel.bakePart(builder, retextureContext, part, tint.emissivity(), spriteGetter, transform, partTransformer);
         } else {
-          SimpleBlockModel.bakePart(builder, retextureContext, part, spriteGetter, transform, quadTransformer, BAKE_LOCATION);
+          SimpleBlockModel.bakePart(builder, retextureContext, part, spriteGetter, transform, quadTransformer);
         }
       }
       return builder.build(SimpleBlockModel.getRenderTypeGroup(owner));
@@ -279,7 +277,9 @@ public class MaterialBlockModel implements IUnbakedGeometry<MaterialBlockModel> 
       if (resolved != originalModel) {
         return resolved;
       }
-      if (stack.isEmpty() || !stack.hasTag()) {
+      // 1.20's hasTag() fast path asked "could this stack carry anything at all"; the materials are read out of
+      // tconstruct:tool, so asking after that component is the same question with a component-era store
+      if (stack.isEmpty() || !stack.has(ToolComponents.TOOL)) {
         return originalModel;
       }
       return baked.getCachedModel(MaterialIdNBT.from(stack));
@@ -388,7 +388,8 @@ public class MaterialBlockModel implements IUnbakedGeometry<MaterialBlockModel> 
         if (resolved != originalModel) {
           return resolved;
         }
-        if (stack.isEmpty() || !stack.hasTag()) {
+        // a part's material is tconstruct:material, so that is the fast path's question here
+        if (stack.isEmpty() || !stack.has(ToolComponents.MATERIAL)) {
           return originalModel;
         }
         return getCachedModel(IMaterialItem.getMaterialFromStack(stack));
@@ -444,7 +445,9 @@ public class MaterialBlockModel implements IUnbakedGeometry<MaterialBlockModel> 
       @Nullable
       @Override
       public BakedModel resolve(BakedModel originalModel, ItemStack stack, @Nullable ClientLevel world, @Nullable LivingEntity entity, int seed) {
-        if (stack.isEmpty() || !stack.hasTag()) {
+        // the anvil reads two different stores below, so its fast path has to clear both: the retextured block is a
+        // legacy-named DataKey and so lives in CUSTOM_DATA, while the material is tconstruct:material
+        if (stack.isEmpty() || (!stack.has(DataComponents.CUSTOM_DATA) && !stack.has(ToolComponents.MATERIAL))) {
           return originalModel;
         }
         Block block = RetexturedHelper.getTexture(stack);
