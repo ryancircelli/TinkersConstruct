@@ -1,12 +1,12 @@
 package slimeknights.tconstruct.library.recipe.modifiers.adding;
 
 import com.google.common.collect.Streams;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.recipe.IMultiRecipe;
 import slimeknights.mantle.recipe.helper.ItemOutput;
@@ -26,20 +26,20 @@ import java.util.stream.Stream;
 /** Combination of {@link MultilevelModifierRecipe} into {@link IncrementalModifierRecipe}. */
 public class MultilevelIncrementalModifierRecipe extends IncrementalModifierRecipe implements IMultiRecipe<IDisplayModifierRecipe> {
   public static final RecordLoadable<MultilevelIncrementalModifierRecipe> LOADER = RecordLoadable.create(
-    ContextKey.ID.requiredField(), INPUT_FIELD, AMOUNT_FIELD, NEEDED_FIELD,
+    INPUT_FIELD, AMOUNT_FIELD, NEEDED_FIELD,
     TOOLS_FIELD, MAX_TOOL_SIZE_FIELD, RESULT_FIELD, LEFTOVER_FIELD, ALLOW_CRYSTAL_FIELD,
     LevelEntry.LOADABLE.list(1).requiredField("levels", r -> r.levels),
     CHECK_TRAIT_LEVEL_FIELD,
     MultilevelIncrementalModifierRecipe::new);
 
   private final List<LevelEntry> levels;
-  protected MultilevelIncrementalModifierRecipe(ResourceLocation id, Ingredient input, int amountPerInput, int neededPerLevel, Ingredient toolRequirement, int maxToolSize, ModifierId result, ItemOutput leftover, boolean allowCrystal, List<LevelEntry> levels, boolean checkTraitLevel) {
-    super(id, input, amountPerInput, neededPerLevel, toolRequirement, maxToolSize, result, levels.get(0).level(), levels.get(0).slots(), leftover, allowCrystal, checkTraitLevel);
+  protected MultilevelIncrementalModifierRecipe(Ingredient input, int amountPerInput, int neededPerLevel, Ingredient toolRequirement, int maxToolSize, ModifierId result, ItemOutput leftover, boolean allowCrystal, List<LevelEntry> levels, boolean checkTraitLevel) {
+    super(input, amountPerInput, neededPerLevel, toolRequirement, maxToolSize, result, levels.get(0).level(), levels.get(0).slots(), leftover, allowCrystal, checkTraitLevel);
     this.levels = levels;
   }
 
   @Override
-  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, RegistryAccess access) {
+  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, HolderLookup.Provider access) {
     ToolStack tool = inv.getTinkerable();
 
     // fetch the amount from the modifier, will be 0 if we have a full level
@@ -108,7 +108,7 @@ public class MultilevelIncrementalModifierRecipe extends IncrementalModifierReci
     if (displayRecipes == null) {
       // this instance is a proper display recipe for the first level entry, for the rest build display instances with unique requirements keys
       DisplayModifierRecipe.Builder builder = DisplayModifierRecipe.builder()
-        .id(getId()).inputs(getInputs()).resultSlots(getResultSlots()).incremental()
+        .inputs(getInputs()).resultSlots(getResultSlots()).incremental()
         .toolWithoutModifier(getToolWithoutModifier()).toolWithModifier(getToolWithModifier());
       displayRecipes = Streams.concat(
         Stream.of(this),

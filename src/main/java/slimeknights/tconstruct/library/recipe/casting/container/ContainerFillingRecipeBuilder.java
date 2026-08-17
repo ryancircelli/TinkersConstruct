@@ -1,21 +1,17 @@
 package slimeknights.tconstruct.library.recipe.casting.container;
 
-import com.google.gson.JsonObject;
 import lombok.AllArgsConstructor;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import slimeknights.mantle.recipe.data.AbstractRecipeBuilder;
 import slimeknights.mantle.recipe.helper.TypeAwareRecipeSerializer;
 import slimeknights.tconstruct.smeltery.TinkerSmeltery;
 
-import javax.annotation.Nullable;
-import java.util.function.Consumer;
-
 /**
- * Builder for a container filling recipe. Takes an arbitrary fluid for a specific amount to fill a Forge {@link net.minecraftforge.fluids.capability.IFluidHandlerItem}
+ * Builder for a container filling recipe. Takes an arbitrary fluid for a specific amount to fill a Forge {@link net.neoforged.neoforge.fluids.capability.IFluidHandlerItem}
  */
 @AllArgsConstructor(staticName = "castingRecipe")
 @SuppressWarnings({"WeakerAccess", "unused"})
@@ -76,34 +72,22 @@ public class ContainerFillingRecipeBuilder extends AbstractRecipeBuilder<Contain
   }
 
   @Override
-  public void save(Consumer<FinishedRecipe> consumer) {
-    this.save(consumer, this.result);
+  public void save(RecipeOutput output) {
+    this.save(output, this.result);
   }
 
+  /**
+   * {@inheritDoc}
+   * @implNote  1.20 wrote the container's registry name straight into the JSON without resolving it, so a recipe could
+   *            name an item belonging to a mod that is not installed. 1.21 serializes through the recipe's own codec,
+   *            which resolves the item as it writes, so the item has to exist here (Mantle M8 section 9 hit the same
+   *            wall for ingredients). A recipe for an absent mod's container has to be written outside the recipe
+   *            pipeline now, the same answer M8 section 6.2 reached for a foreign recipe type.
+   */
   @Override
-  public void save(Consumer<FinishedRecipe> consumerIn, ResourceLocation id) {
-    ResourceLocation advancementId = this.buildOptionalAdvancement(id, "casting");
-    consumerIn.accept(new ContainerFillingRecipeBuilder.Result(id, advancementId));
-  }
-
-  private class Result extends AbstractFinishedRecipe {
-    public Result(ResourceLocation ID, @Nullable ResourceLocation advancementID) {
-      super(ID, advancementID);
-    }
-
-    @Override
-    public RecipeSerializer<?> getType() {
-      return recipeSerializer;
-    }
-
-    @Override
-    public void serializeRecipeData(JsonObject json) {
-      if (!group.isEmpty()) {
-        json.addProperty("group", group);
-      }
-      json.addProperty("fluid_amount", fluidAmount);
-      // TODO: consider another way to spoof this for datagen?
-      json.addProperty("container", result.toString());
-    }
+  public void save(RecipeOutput output, ResourceLocation id) {
+    Item container = BuiltInRegistries.ITEM.getOptional(this.result)
+      .orElseThrow(() -> new IllegalStateException("Container filling recipe " + id + " names unknown item " + this.result));
+    save(output, id, new ContainerFillingRecipe(recipeSerializer, group, fluidAmount, container), "casting");
   }
 }
