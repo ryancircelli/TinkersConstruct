@@ -1,21 +1,20 @@
 package slimeknights.tconstruct.library.tools.layout;
 
 import com.google.common.annotations.VisibleForTesting;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import slimeknights.tconstruct.library.recipe.partbuilder.Pattern;
+import slimeknights.tconstruct.library.utils.LazyDecode;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
 
 /** A single slot in a slot layout */
-@RequiredArgsConstructor
 public class LayoutSlot {
-  public static final LayoutSlot EMPTY = new LayoutSlot(null, "", -1, -1, null);
+  // the cast picks the public constructor; the two five argument constructors are otherwise ambiguous on a null filter
+  public static final LayoutSlot EMPTY = new LayoutSlot(null, "", -1, -1, (Ingredient)null);
 
   /** Icon to display when the slot is empty */
   @Nullable @Getter
@@ -27,9 +26,27 @@ public class LayoutSlot {
   private final int x;
   @Getter
   private final int y;
-  /** Filter to only allow certain items in the slot under this layout */
-  @Nullable @Getter(AccessLevel.PROTECTED) @VisibleForTesting
-  private final Ingredient filter;
+  /**
+   * Filter to only allow certain items in the slot under this layout.
+   * <p>
+   * Deferred rather than decoded with the rest of the slot, see {@link LazyDecode}. An ingredient's 1.21 network form
+   * is a list of item stacks, building an item stack runs the item's load hook, and this slot arrives in a login
+   * packet, before the registries that hook consults have been synced.
+   */
+  @Nullable
+  private final LazyDecode<Ingredient> filter;
+
+  public LayoutSlot(@Nullable Pattern icon, @Nullable String translationKey, int x, int y, @Nullable Ingredient filter) {
+    this(icon, translationKey, x, y, filter == null ? null : LazyDecode.of(Ingredient.CONTENTS_STREAM_CODEC, filter));
+  }
+
+  private LayoutSlot(@Nullable Pattern icon, @Nullable String translationKey, int x, int y, @Nullable LazyDecode<Ingredient> filter) {
+    this.icon = icon;
+    this.translation_key = translationKey;
+    this.x = x;
+    this.y = y;
+    this.filter = filter;
+  }
 
   /** If true, this is an empty slot */
   public boolean isEmpty() {
@@ -45,16 +62,23 @@ public class LayoutSlot {
     return Objects.requireNonNullElse(translation_key, "");
   }
 
+  /** Gets the filter for this slot, decoding it if it arrived off the network. Null if the slot accepts anything */
+  @Nullable
+  @VisibleForTesting
+  protected Ingredient getFilter() {
+    return filter == null ? null : filter.get();
+  }
+
   /** Checks if the given stack is valid for this slot */
   public boolean isValid(ItemStack stack) {
-    return !stack.isEmpty() && (filter == null || filter.test(stack));
+    return !stack.isEmpty() && (filter == null || filter.get().test(stack));
   }
 
 
   /* Buffers */
 
   /** Reads a slot from the packet buffer */
-  public static LayoutSlot read(FriendlyByteBuf buffer) {
+  public static LayoutSlot read(RegistryFriendlyByteBuf buffer) {
     Pattern pattern = null;
     if (buffer.readBoolean()) {
       pattern = new Pattern(buffer.readResourceLocation());
@@ -62,15 +86,15 @@ public class LayoutSlot {
     String name = buffer.readUtf(Short.MAX_VALUE);
     int x = buffer.readVarInt();
     int y = buffer.readVarInt();
-    Ingredient ingredient = null;
+    LazyDecode<Ingredient> ingredient = null;
     if (buffer.readBoolean()) {
-      ingredient = Ingredient.fromNetwork(buffer);
+      ingredient = LazyDecode.read(buffer, Ingredient.CONTENTS_STREAM_CODEC);
     }
     return new LayoutSlot(pattern, name, x, y, ingredient);
   }
 
   /** Writes a slot to the packet buffer */
-  public void write(FriendlyByteBuf buffer) {
+  public void write(RegistryFriendlyByteBuf buffer) {
     if (icon != null) {
       buffer.writeBoolean(true);
       buffer.writeResourceLocation(icon);
@@ -82,7 +106,7 @@ public class LayoutSlot {
     buffer.writeVarInt(y);
     if (filter != null) {
       buffer.writeBoolean(true);
-      filter.toNetwork(buffer);
+      filter.write(buffer);
     } else {
       buffer.writeBoolean(false);
     }

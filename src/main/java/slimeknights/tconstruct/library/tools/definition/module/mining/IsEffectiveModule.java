@@ -3,7 +3,6 @@ package slimeknights.tconstruct.library.tools.definition.module.mining;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.TierSortingRegistry;
 import slimeknights.mantle.data.loadable.primitive.BooleanLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.predicate.IJsonPredicate;
@@ -13,6 +12,7 @@ import slimeknights.tconstruct.library.module.ModuleHook;
 import slimeknights.tconstruct.library.tools.definition.module.ToolHooks;
 import slimeknights.tconstruct.library.tools.definition.module.ToolModule;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
+import slimeknights.tconstruct.library.utils.HarvestTiers;
 
 import java.util.List;
 
@@ -45,6 +45,6 @@ public record IsEffectiveModule(IJsonPredicate<BlockState> predicate, boolean ig
 
   @Override
   public boolean isToolEffective(IToolStackView tool, BlockState state) {
-    return predicate.matches(state) && (ignoreTier || TierSortingRegistry.isCorrectTierForDrops(MiningTierToolHook.getTier(tool), state));
+    return predicate.matches(state) && (ignoreTier || HarvestTiers.isCorrectTierForDrops(MiningTierToolHook.getTier(tool), state));
   }
 }

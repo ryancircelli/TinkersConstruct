@@ -14,9 +14,14 @@ public interface MiningSpeedToolHook {
   /** Updates the mining speed for the tool against the given state */
   float modifyDestroySpeed(IToolStackView tool, BlockState state, float speed);
 
-  /** Gets the mining speed for the tool against the given state */
+  /**
+   * Gets the mining speed for the tool against the given state
+   * @apiNote The guard was {@code !tool.hasTag()} in 1.20, meaning "this stack has no data at all, so do not try to
+   * read stats off it". A component era stack always answers that question about the stats specifically, so it asks
+   * exactly that rather than about the whole stack: a tool whose stats never rebuilt has no mining speed to report.
+   */
   static float getDestroySpeed(ItemStack tool, BlockState state) {
-    if (!tool.hasTag()) {
+    if (!ToolStack.isInitialized(tool)) {
       return 1;
     }
     return getDestroySpeed(ToolStack.from(tool), state);

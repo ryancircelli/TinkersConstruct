@@ -53,10 +53,10 @@ public interface ToolNameHook {
    * @return  Display name including the head material
    */
   static Component getName(ToolDefinition definition, ItemStack stack, @Nullable IToolStackView tool) {
-    // support override name
-    String name = TooltipUtil.getDisplayName(stack);
-    if (!name.isEmpty()) {
-      return Component.literal(name);
+    // support override name. Null rather than an empty string means "no override" now, see TooltipUtil#setDisplayName
+    Component name = TooltipUtil.getDisplayName(stack);
+    if (name != null) {
+      return name;
     }
     return definition.getHook(ToolHooks.DISPLAY_NAME).getDisplayName(definition, stack, tool);
   }
