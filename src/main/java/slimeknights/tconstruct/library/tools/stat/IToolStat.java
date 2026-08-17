@@ -2,7 +2,7 @@ package slimeknights.tconstruct.library.tools.stat;
 
 import com.google.gson.JsonElement;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
@@ -83,10 +83,10 @@ public interface IToolStat<T> {
   JsonElement serialize(T value);
 
   /** Parses this stat from from the network */
-  T fromNetwork(FriendlyByteBuf buffer);
+  T fromNetwork(RegistryFriendlyByteBuf buffer);
 
   /** Writes this stat to the network */
-  void toNetwork(FriendlyByteBuf buffer, T value);
+  void toNetwork(RegistryFriendlyByteBuf buffer, T value);
 
 
   /* Display */

@@ -10,21 +10,27 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
+import com.mojang.serialization.JsonOps;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.conditions.ICondition.IContext;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.event.OnDatapackSyncEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.conditions.ConditionalOps;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.common.conditions.ICondition.IContext;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import slimeknights.tconstruct.common.network.TinkerNetwork;
 import slimeknights.tconstruct.library.recipe.partbuilder.Pattern;
+import slimeknights.tconstruct.library.utils.LazyDecode;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -44,7 +50,7 @@ import java.util.stream.Collectors;
 public class StationSlotLayoutLoader extends SimpleJsonResourceReloadListener {
   public static final String FOLDER = "tinkering/station_layouts";
   public static final Gson GSON = (new GsonBuilder())
-    .registerTypeHierarchyAdapter(Ingredient.class, new IngredientSerializer())
+    .registerTypeAdapter(new TypeToken<LazyDecode<Ingredient>>() {}.getType(), new LazyIngredientSerializer())
     .registerTypeHierarchyAdapter(LayoutIcon.class, LayoutIcon.SERIALIZER)
     .registerTypeAdapter(Pattern.class, Pattern.PARSER)
     .setPrettyPrinting()
@@ -61,8 +67,13 @@ public class StationSlotLayoutLoader extends SimpleJsonResourceReloadListener {
   @Getter
   private List<StationSlotLayout> sortedSlots = Collections.emptyList();
 
-  /** Context for parsing conditions */
-  private IContext conditionContext = IContext.EMPTY;
+  /**
+   * Ops to read conditions with, rebuilt on every reload from {@link AddReloadListenerEvent}.
+   * <p>
+   * NeoForge only injects the condition context into a {@link net.neoforged.neoforge.resource.ContextAwareReloadListener},
+   * which a {@link SimpleJsonResourceReloadListener} is not, so it is taken off the event exactly as it was in 1.20.
+   */
+  private ConditionalOps<JsonElement> conditionalOps = new ConditionalOps<>(RegistryAccess.EMPTY.createSerializationContext(JsonOps.INSTANCE), IContext.EMPTY);
 
   private StationSlotLayoutLoader() {
     super(GSON, FOLDER);
@@ -92,7 +103,8 @@ public class StationSlotLayoutLoader extends SimpleJsonResourceReloadListener {
       try {
         // skip empty objects, allows disabling a slot at a lower datapack
         JsonObject object = GsonHelper.convertToJsonObject(value, "station_layout");
-        if (!object.entrySet().isEmpty() && CraftingHelper.processConditions(object, "conditions", conditionContext)) {
+        // conditions are a codec now, so they are read off the object rather than processed out of a named array
+        if (!object.entrySet().isEmpty() && ICondition.conditionsMatched(conditionalOps, object)) {
           // just need a valid slot information
           StationSlotLayout layout = GSON.fromJson(object, StationSlotLayout.class);
           int size = layout.getInputSlots().size() + (layout.getToolSlot().isHidden() ? 0 : 1);
@@ -136,7 +148,7 @@ public class StationSlotLayoutLoader extends SimpleJsonResourceReloadListener {
   /** Adds the managers as datapack listeners */
   private void addDataPackListeners(final AddReloadListenerEvent event) {
     event.addListener(this);
-    conditionContext = event.getConditionContext();
+    this.conditionalOps = new ConditionalOps<>(event.getRegistryAccess().createSerializationContext(JsonOps.INSTANCE), event.getConditionContext());
   }
 
 
@@ -149,20 +161,25 @@ public class StationSlotLayoutLoader extends SimpleJsonResourceReloadListener {
 
   /** Initializes the tool definition loader */
   public static void init() {
-    MinecraftForge.EVENT_BUS.addListener(INSTANCE::addDataPackListeners);
-    MinecraftForge.EVENT_BUS.addListener(INSTANCE::onDatapackSync);
+    NeoForge.EVENT_BUS.addListener(INSTANCE::addDataPackListeners);
+    NeoForge.EVENT_BUS.addListener(INSTANCE::onDatapackSync);
   }
 
-  /** GSON serializer for ingredients */
-  private static class IngredientSerializer implements JsonSerializer<Ingredient>, JsonDeserializer<Ingredient> {
+  /**
+   * GSON serializer for the deferred slot filter.
+   * <p>
+   * The deferral is a network concern only: a datapack is read on the server with every registry already loaded, so
+   * there is nothing here to be too early for and the ingredient is parsed on the spot. See {@link LazyDecode}.
+   */
+  private static class LazyIngredientSerializer implements JsonSerializer<LazyDecode<Ingredient>>, JsonDeserializer<LazyDecode<Ingredient>> {
     @Override
-    public Ingredient deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-      return Ingredient.fromJson(json);
+    public LazyDecode<Ingredient> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+      return LazyDecode.of(Ingredient.CONTENTS_STREAM_CODEC, Ingredient.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow(JsonSyntaxException::new));
     }
 
     @Override
-    public JsonElement serialize(Ingredient ingredient, Type typeOfSrc, JsonSerializationContext context) {
-      return ingredient.toJson();
+    public JsonElement serialize(LazyDecode<Ingredient> ingredient, Type typeOfSrc, JsonSerializationContext context) {
+      return Ingredient.CODEC.encodeStart(JsonOps.INSTANCE, ingredient.get()).getOrThrow(JsonSyntaxException::new);
     }
   }
 }
