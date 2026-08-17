@@ -1,0 +1,30 @@
+{
+  "type": "tconstruct:enchantment_converting",
+  "inputs": [
+    {
+      "count": 1,
+      "item": "tconstruct:sky_slime_crystal"
+    },
+    {
+      "count": 3,
+      "tag": "c:gems/lapis"
+    }
+  ],
+  "match_book": false,
+  "modifier_predicate": {
+    "type": "mantle:and",
+    "predicates": [
+      {
+        "type": "tconstruct:slot_type",
+        "slot": "upgrades"
+      },
+      {
+        "type": "mantle:inverted",
+        "inverted_type": "tconstruct:tag",
+        "tag": "tconstruct:extract_blacklist/upgrade"
+      }
+    ]
+  },
+  "name": "upgrades",
+  "return_unenchanted": false
+}

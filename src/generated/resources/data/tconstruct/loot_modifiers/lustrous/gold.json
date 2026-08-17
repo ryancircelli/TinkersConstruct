@@ -3,7 +3,7 @@
   "conditions": [
     {
       "condition": "mantle:block_tag",
-      "tag": "forge:ores/gold"
+      "tag": "c:ores/gold"
     },
     {
       "condition": "tconstruct:has_modifier",
@@ -12,15 +12,15 @@
   ],
   "entry": {
     "type": "mantle:tag_preference",
-    "tag": "forge:nuggets/gold"
+    "tag": "c:nuggets/gold"
   },
   "functions": [
     {
       "add": false,
       "count": {
         "type": "minecraft:uniform",
-        "max": 4,
-        "min": 2
+        "max": 4.0,
+        "min": 2.0
       },
       "function": "minecraft:set_count"
     },
@@ -40,7 +40,7 @@
       "condition": {
         "type": "mantle:contains_item",
         "ingredient": {
-          "tag": "forge:ores/gold"
+          "tag": "c:ores/gold"
         }
       }
     }

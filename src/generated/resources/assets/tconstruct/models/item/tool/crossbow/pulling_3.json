@@ -29,7 +29,7 @@
     }
   ],
   "ammo": {
-    "key": "tconstruct:crossbow_ammo",
+    "key": "minecraft:charged_projectiles",
     "flip": true,
     "left": false,
     "offset": [

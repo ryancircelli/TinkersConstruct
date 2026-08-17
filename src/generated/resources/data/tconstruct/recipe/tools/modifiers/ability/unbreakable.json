@@ -1,0 +1,35 @@
+{
+  "type": "tconstruct:modifier",
+  "allow_crystal": true,
+  "check_trait_level": true,
+  "inputs": [
+    {
+      "count": 1,
+      "item": "minecraft:shulker_shell"
+    },
+    {
+      "count": 1,
+      "item": "minecraft:dragon_breath"
+    },
+    {
+      "count": 1,
+      "item": "minecraft:shulker_shell"
+    },
+    {
+      "count": 1,
+      "tag": "c:ingots/netherite"
+    },
+    {
+      "count": 1,
+      "tag": "c:ingots/netherite"
+    }
+  ],
+  "level": 1,
+  "result": "tconstruct:unbreakable",
+  "slots": {
+    "abilities": 1
+  },
+  "tools": {
+    "tag": "tconstruct:modifiable/durability"
+  }
+}

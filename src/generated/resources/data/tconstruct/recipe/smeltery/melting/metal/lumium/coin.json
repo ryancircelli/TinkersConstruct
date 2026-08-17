@@ -1,0 +1,18 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:coins/lumium"
+    }
+  ],
+  "type": "tconstruct:melting",
+  "ingredient": {
+    "tag": "c:coins/lumium"
+  },
+  "result": {
+    "amount": 30,
+    "tag": "c:molten_lumium"
+  },
+  "temperature": 1050,
+  "time": 45
+}

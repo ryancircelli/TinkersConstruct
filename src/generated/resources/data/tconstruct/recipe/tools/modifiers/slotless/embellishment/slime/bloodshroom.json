@@ -1,0 +1,26 @@
+{
+  "type": "tconstruct:swappable_modifier",
+  "allow_crystal": false,
+  "inputs": [
+    {
+      "count": 1,
+      "item": "tconstruct:bloodshroom_planks"
+    },
+    {
+      "count": 1,
+      "item": "tconstruct:blood_slime_sapling"
+    },
+    {
+      "count": 1,
+      "item": "tconstruct:bloodshroom_planks"
+    }
+  ],
+  "result": {
+    "name": "tconstruct:embellishment",
+    "value": "tconstruct:blood"
+  },
+  "tools": {
+    "tag": "tconstruct:modifiable/embellishment/slime"
+  },
+  "variant_formatter": "tconstruct:material"
+}
