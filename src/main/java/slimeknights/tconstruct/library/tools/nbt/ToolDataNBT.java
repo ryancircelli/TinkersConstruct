@@ -25,6 +25,7 @@ public class ToolDataNBT extends ModDataNBT {
    * @param value  New value
    */
   public void setSlots(SlotType type, int value) {
+    edited();
     if (value == 0) {
       getData().remove(type.getName());
     } else {

@@ -5,8 +5,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.tags.TagKey;
+import slimeknights.mantle.data.loadable.Loadable;
+import slimeknights.mantle.data.loadable.primitive.IntLoadable;
+import slimeknights.mantle.data.loadable.primitive.StringLoadable;
+import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.predicate.IJsonPredicate;
 import slimeknights.tconstruct.library.modifiers.IncrementalModifierEntry;
 import slimeknights.tconstruct.library.modifiers.Modifier;
@@ -35,6 +40,46 @@ public class ModifierNBT implements Iterable<ModifierEntry> {
 
   /** Instance containing no modifiers */
   public static final ModifierNBT EMPTY = new ModifierNBT(Collections.emptyList());
+
+  /**
+   * Loadable for a single entry of a stored modifier list.
+   * <p>
+   * This is deliberately not {@link ModifierEntry#LOADABLE}: that one is the datapack spelling, it rejects a level
+   * below 1 and it has no place for the incremental amount, which a stored modifier list has to keep. Every field here
+   * is permissive and an entry that does not make sense reads as {@link ModifierEntry#EMPTY} for {@link #LOADABLE} to
+   * drop, which is what the tag reader did. See {@link MaterialNBT#LOADABLE} for why a stored list may not throw.
+   */
+  private static final RecordLoadable<ModifierEntry> ENTRY = RecordLoadable.create(
+    StringLoadable.DEFAULT.defaultField(ModifierEntry.TAG_MODIFIER, "", true, entry -> entry.getId().toString()),
+    IntLoadable.ANY_FULL.defaultField(ModifierEntry.TAG_LEVEL, 0, true, ModifierEntry::getLevel),
+    IntLoadable.ANY_FULL.defaultField(ModifierEntry.TAG_AMOUNT, 0, entry -> entry.getAmount(0)),
+    IntLoadable.ANY_FULL.defaultField(ModifierEntry.TAG_NEEDED, 0, ModifierEntry::getNeeded),
+    (name, level, amount, needed) -> {
+      ModifierId id = ModifierId.tryParse(name);
+      if (id == null || level <= 0) {
+        return ModifierEntry.EMPTY;
+      }
+      // incremental just has more fields; with both at 0 this hands back the plain entry
+      return IncrementalModifierEntry.of(id, level, amount, needed);
+    });
+
+  /**
+   * Loadable for a modifier list. This is the {@code upgrades} field of the {@code tconstruct:tool} component and the
+   * {@code modifiers} field of {@code tconstruct:tool_stats}, and it is the single definition of how a modifier list is
+   * written in every format: {@link #readFromNBT(Tag)} and {@link #serializeToNBT()} run it through {@link NbtOps}.
+   */
+  public static final Loadable<ModifierNBT> LOADABLE = ENTRY.list(0).flatXmap(
+    list -> {
+      ImmutableList.Builder<ModifierEntry> builder = ImmutableList.builder();
+      for (ModifierEntry entry : list) {
+        if (entry != ModifierEntry.EMPTY) {
+          builder.add(entry);
+        }
+      }
+      List<ModifierEntry> entries = builder.build();
+      return entries.isEmpty() ? EMPTY : new ModifierNBT(entries);
+    },
+    nbt -> nbt.modifiers);
 
   /** Sorted list of modifiers */
   @Getter
@@ -232,24 +277,18 @@ public class ModifierNBT implements Iterable<ModifierEntry> {
     if (listNBT.getElementType() != Tag.TAG_COMPOUND) {
       return EMPTY;
     }
-
-    ImmutableList.Builder<ModifierEntry> builder = ImmutableList.builder();
-    for (int i = 0; i < listNBT.size(); i++) {
-      ModifierEntry entry = ModifierEntry.readFromNBT(listNBT.getCompound(i));
-      if (entry != ModifierEntry.EMPTY) {
-        builder.add(entry);
-      }
-    }
-    return new ModifierNBT(builder.build());
+    return LOADABLE.convert(NbtOps.INSTANCE, inbt, "modifiers");
   }
 
-  /** Writes these modifiers to NBT */
+  /**
+   * Writes these modifiers to NBT.
+   * <p>
+   * Note this no longer writes {@link ModifierEntry#TAG_EFFECTIVE}. That key was a write only cache of the effective
+   * level of an incremental entry: nothing reads it, on either side of the port, and it is derivable from the three
+   * keys next to it. Keeping it would mean the loadable had to write a field it could not read back.
+   */
   public ListTag serializeToNBT() {
-    ListTag list = new ListTag();
-    for (ModifierEntry entry : modifiers) {
-      list.add(entry.serializeToNBT());
-    }
-    return list;
+    return (ListTag)LOADABLE.serialize(NbtOps.INSTANCE, this);
   }
 
 

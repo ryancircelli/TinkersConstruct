@@ -16,9 +16,10 @@ public interface IToolStackView extends IToolContext {
   /* Item stack */
 
   /**
-   * Checks if this tool stack represents the same item stack instance as the passed stack.
-   * In other words, this is a shallow comparison, not deep comparison.
-   * Condition compares based on same stack tag instance. */
+   * Checks if this tool is the one {@link ToolStack#updateStack()} will write to.
+   * In 1.20 this asked whether the tool shared its NBT with the stack, so that writes were mirrored. A tool holds its
+   * own copy of the data now, so the equivalent question is which stack it is bound to.
+   */
   default boolean isSameStack(ItemStack stack) {
     return false;
   }
@@ -55,7 +56,13 @@ public interface IToolStackView extends IToolContext {
   boolean isUnbreakable();
 
   /**
-   * Sets the tools current damage.
+   * Sets the tools current damage. Durability is {@code minecraft:damage} in 1.21, but this is still the way to write
+   * it on a tool, because the value is clamped against the durability stat and decides the broken flag.
+   * <p>
+   * The write is local, like every other write a tool makes: it reaches the item stack when
+   * {@link ToolStack#updateStack(ItemStack)} runs, and a view taken with {@link ToolStack#from(ItemStack)} has nowhere
+   * to write at all. A development run reports either mistake.
+   * <p>
    * Note in general you should use {@link ToolDamageUtil#damage(IToolStackView, int, LivingEntity, ItemStack)} or {@link ToolDamageUtil#repair(IToolStackView, int)} as they handle modifiers.
    * @param damage  New damage
    */
@@ -63,7 +70,9 @@ public interface IToolStackView extends IToolContext {
 
   /**
    * Gets persistent modifier data from the tool.
-   * This data may be edited by modifiers and will persist when stats rebuild
+   * This data may be edited by modifiers and will persist when stats rebuild. Edits are local to this tool until
+   * {@link ToolStack#updateStack(ItemStack)} commits them, so a hook that writes here has to have been handed a tool
+   * somebody is going to commit.
    */
   @Override
   ModDataNBT getPersistentData();

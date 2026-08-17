@@ -6,8 +6,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import slimeknights.mantle.data.loadable.Loadable;
+import slimeknights.mantle.data.loadable.primitive.StringLoadable;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariant;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
@@ -20,7 +22,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNullElse;
 
@@ -32,6 +33,29 @@ import static java.util.Objects.requireNonNullElse;
 public class MaterialNBT implements Iterable<MaterialVariant> {
   /** Instance containing no materials, for errors with parsing NBT */
   public final static MaterialNBT EMPTY = new MaterialNBT(ImmutableList.of());
+
+  /**
+   * Loadable for the material list. This is the {@code materials} field of the {@code tconstruct:tool} component and
+   * the single definition of how a material list is written, in every format: {@link #readFromNBT(Tag)} and
+   * {@link #serializeToNBT()} run it through {@link NbtOps}.
+   * <p>
+   * Parsing is lenient, in exactly the way the tag reader always was: a string that is not a valid material variant ID
+   * reads as {@link IMaterial#UNKNOWN_ID} rather than failing. That leniency is load bearing now in a way it was not
+   * before. A component whose codec throws takes its whole {@code DataComponentPatch} with it, and an item stack whose
+   * patch fails to decode is dropped from the container it was in, so a strict reader would turn "this world names a
+   * material that no longer exists" into "the tool is gone".
+   */
+  public static final Loadable<MaterialNBT> LOADABLE = StringLoadable.DEFAULT.list(0).flatXmap(
+    list -> {
+      if (list.isEmpty()) {
+        return EMPTY;
+      }
+      return new MaterialNBT(list.stream()
+        .map(text -> requireNonNullElse(MaterialVariantId.tryParse(text), IMaterial.UNKNOWN_ID))
+        .map(MaterialVariant::of)
+        .toList());
+    },
+    materials -> materials.list.stream().map(variant -> variant.getVariant().toString()).toList());
 
   /** List of materials contained in this NBT */
   @Getter
@@ -138,13 +162,7 @@ public class MaterialNBT implements Iterable<MaterialVariant> {
     if (listNBT.getElementType() != Tag.TAG_STRING || listNBT.isEmpty()) {
       return EMPTY;
     }
-
-    List<MaterialVariant> materials = listNBT.stream()
-      // if any material ID fails to parse (invalid string), replace with unknown
-      .map(tag -> requireNonNullElse(MaterialVariantId.tryParse(tag.getAsString()), IMaterial.UNKNOWN_ID))
-      .map(MaterialVariant::of)
-      .toList();
-    return new MaterialNBT(materials);
+    return LOADABLE.convert(NbtOps.INSTANCE, nbt, "materials");
   }
 
   /**
@@ -152,9 +170,7 @@ public class MaterialNBT implements Iterable<MaterialVariant> {
    * @return  List of materials
    */
   public ListTag serializeToNBT() {
-    return list.stream()
-               .map(lazy -> StringTag.valueOf(lazy.getVariant().toString()))
-               .collect(Collectors.toCollection(ListTag::new));
+    return (ListTag)LOADABLE.serialize(NbtOps.INSTANCE, this);
   }
 
 
