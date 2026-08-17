@@ -2,9 +2,6 @@ package slimeknights.tconstruct.gadgets.entity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
@@ -13,16 +10,16 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.entity.IEntityAdditionalSpawnData;
-import net.minecraftforge.network.NetworkHooks;
 import slimeknights.tconstruct.gadgets.TinkerGadgets;
 import slimeknights.tconstruct.shared.TinkerCommons;
 
-import javax.annotation.Nonnull;
-
-/** @deprecated use {@link slimeknights.tconstruct.tools.entity.ThrownShuriken} */
+/**
+ * @deprecated use {@link slimeknights.tconstruct.tools.entity.ThrownShuriken}
+ * @implNote  see {@link slimeknights.tconstruct.gadgets.entity.shuriken.ShurikenEntityBase} for why the 1.20
+ *            spawn-data overrides have no replacement: {@link ThrowableItemProjectile} already syncs its item.
+ */
 @Deprecated
-public class GlowballEntity extends ThrowableItemProjectile implements IEntityAdditionalSpawnData {
+public class GlowballEntity extends ThrowableItemProjectile {
   public GlowballEntity(EntityType<? extends GlowballEntity> p_i50159_1_, Level p_i50159_2_) {
     super(p_i50159_1_, p_i50159_2_);
   }
@@ -67,21 +64,5 @@ public class GlowballEntity extends ThrowableItemProjectile implements IEntityAd
       level.broadcastEntityEvent(this, (byte) 3);
       this.discard();
     }
-  }
-
-  @Override
-  public void writeSpawnData(FriendlyByteBuf buffer) {
-    buffer.writeItem(this.getItemRaw());
-  }
-
-  @Override
-  public void readSpawnData(FriendlyByteBuf additionalData) {
-    this.setItem(additionalData.readItem());
-  }
-
-  @Nonnull
-  @Override
-  public Packet<ClientGamePacketListener> getAddEntityPacket() {
-    return NetworkHooks.getEntitySpawningPacket(this);
   }
 }

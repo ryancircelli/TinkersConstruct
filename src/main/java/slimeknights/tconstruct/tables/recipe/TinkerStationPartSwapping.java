@@ -1,14 +1,13 @@
 package slimeknights.tconstruct.tables.recipe;
 
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import slimeknights.mantle.data.loadable.field.ContextKey;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
-import slimeknights.mantle.recipe.ingredient.SizedIngredient;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
 import slimeknights.tconstruct.library.recipe.RecipeResult;
@@ -31,16 +30,17 @@ import java.util.stream.IntStream;
  * Recipe that replaces a tool part with another
  */
 public class TinkerStationPartSwapping extends MaterialSwappingRecipe {
-  public static final RecordLoadable<TinkerStationPartSwapping> LOADER = RecordLoadable.create(ContextKey.ID.requiredField(), TOOLS_FIELD, STACK_SIZE_FIELD, EXTRA_REQUIREMENTS_FIELD, TinkerStationPartSwapping::new);
+  /**
+   * @apiNote The recipe's id is gone from both the loadable and the constructor: 1.21 keeps it on
+   * {@link net.minecraft.world.item.crafting.RecipeHolder}, so {@code LoadableRecipeSerializer} puts no
+   * {@code ContextKey.ID} in the parse context and asking for one here failed at load rather than at compile. The
+   * superclass shed its own copy when {@code library/recipe} was ported; this subclass and
+   * {@link slimeknights.tconstruct.tables.recipe.PartBuilderToolRecycle} were the two that did not follow.
+   */
+  public static final RecordLoadable<TinkerStationPartSwapping> LOADER = RecordLoadable.create(TOOLS_FIELD, STACK_SIZE_FIELD, EXTRA_REQUIREMENTS_FIELD, TinkerStationPartSwapping::new);
 
-  protected TinkerStationPartSwapping(ResourceLocation id, Ingredient tools, int maxStackSize, List<SizedIngredient> extraRequirements) {
-    super(id, tools, maxStackSize, extraRequirements);
-  }
-
-  /** @deprecated use {@link #TinkerStationPartSwapping(ResourceLocation, Ingredient, int, List)} */
-  @Deprecated(forRemoval = true)
-  public TinkerStationPartSwapping(ResourceLocation id, Ingredient tools, int maxStackSize) {
-    this(id, tools, maxStackSize, List.of());
+  protected TinkerStationPartSwapping(Ingredient tools, int maxStackSize, List<SizedIngredient> extraRequirements) {
+    super(tools, maxStackSize, extraRequirements);
   }
 
   @Override
@@ -76,7 +76,7 @@ public class TinkerStationPartSwapping extends MaterialSwappingRecipe {
   }
 
   @Override
-  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, RegistryAccess access) {
+  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, HolderLookup.Provider access) {
     // copy the tool NBT to ensure the original tool is intact
     List<IToolPart> parts = ToolPartsHook.parts(inv.getTinkerable().getDefinition());
 

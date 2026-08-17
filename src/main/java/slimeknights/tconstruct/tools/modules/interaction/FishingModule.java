@@ -11,7 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraftforge.common.ToolAction;
+import net.neoforged.neoforge.common.ItemAbility;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.data.loadable.record.SingletonLoader;
 import slimeknights.mantle.util.OffhandCooldownTracker;
@@ -62,7 +62,7 @@ public enum FishingModule implements ModifierModule, GeneralInteractionModifierH
   }
 
   @Override
-  public boolean canPerformAction(IToolStackView tool, ModifierEntry modifier, ToolAction toolAction) {
+  public boolean canPerformAction(IToolStackView tool, ModifierEntry modifier, ItemAbility toolAction) {
     return toolAction == TinkerToolActions.FISHING_ROD_CAST;
   }
 
@@ -110,7 +110,7 @@ public enum FishingModule implements ModifierModule, GeneralInteractionModifierH
           }
 
           // fetch the persistent data for the hook as modifiers may want to store data
-          ModDataNBT arrowData = PersistentDataCapability.getOrWarn(hook);
+          ModDataNBT arrowData = PersistentDataCapability.getData(hook);
 
           // let modifiers such as fiery and punch set properties
           for (ModifierEntry entry : modifiers.getModifiers()) {

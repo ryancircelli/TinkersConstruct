@@ -1,6 +1,10 @@
 package slimeknights.tconstruct.tools.modifiers.traits.melee;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -44,13 +48,13 @@ public class InsatiableModifier extends Modifier implements ProjectileHitModifie
     } else if (type == ToolType.MELEE_UNARMED) {
       type = ToolType.MELEE;
     }
-    return TinkerEffect.getLevel(attacker, TinkerModifiers.insatiableEffect.get(type));
+    return TinkerEffect.getLevel(attacker, BuiltInRegistries.MOB_EFFECT.wrapAsHolder(TinkerModifiers.insatiableEffect.get(type)));
   }
 
   /** Applies the effect to the target */
   public static void applyEffect(LivingEntity living, ToolType type, int duration, int add, int maxLevel) {
-    TinkerEffect effect = TinkerModifiers.insatiableEffect.get(type);
-    effect.apply(living, duration, Math.min(maxLevel, TinkerEffect.getAmplifier(living, effect) + add), true);
+    Holder<MobEffect> effect = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(TinkerModifiers.insatiableEffect.get(type));
+    living.addEffect(new MobEffectInstance(effect, duration, Math.min(maxLevel, TinkerEffect.getAmplifier(living, effect) + add), false, false, true));
   }
 
   @Override

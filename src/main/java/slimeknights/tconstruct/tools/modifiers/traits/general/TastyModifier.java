@@ -1,7 +1,11 @@
 package slimeknights.tconstruct.tools.modifiers.traits.general;
 
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import slimeknights.tconstruct.common.TinkerTags;
@@ -14,6 +18,7 @@ import slimeknights.tconstruct.library.modifiers.hook.behavior.ProcessLootModifi
 import slimeknights.tconstruct.library.modifiers.modules.behavior.EdibleModule;
 import slimeknights.tconstruct.library.modifiers.modules.build.StatBoostModule;
 import slimeknights.tconstruct.library.module.ModuleHookMap.Builder;
+import slimeknights.tconstruct.library.tools.helper.ModifierLootingHandler;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.shared.TinkerCommons;
 
@@ -30,6 +35,21 @@ public class TastyModifier extends Modifier implements ProcessLootModifierHook {
     hookBuilder.addModule(StatBoostModule.add(EdibleModule.SATURATION).flat(0.4f));
   }
 
+  /**
+   * Determines the looting level for the kill this loot context describes.
+   * @apiNote  Replaces {@code LootContext#getLootingModifier()}, a Forge addition caching the result of
+   * {@code LootingLevelEvent}. Neither exists in 1.21: looting is an enchantment value effect, so the base level comes
+   * from the attacker, and Tinkers' own say over that number is {@link ModifierLootingHandler#getLootingLevel}, the
+   * same computation the 1.20 event listener ran. Matches {@code SeveringModule}, the other loot processing hook.
+   */
+  private static int getLooting(LootContext context, LivingEntity target) {
+    int level = 0;
+    if (context.getParamOrNull(LootContextParams.ATTACKING_ENTITY) instanceof LivingEntity attacker) {
+      level = EnchantmentHelper.getEnchantmentLevel(context.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.LOOTING), attacker);
+    }
+    return ModifierLootingHandler.getLootingLevel(target, context.getParam(LootContextParams.DAMAGE_SOURCE), level);
+  }
+
   @Override
   public void processLoot(IToolStackView tool, ModifierEntry modifier, List<ItemStack> generatedLoot, LootContext context) {
     // if no damage source, probably not a mob
@@ -40,9 +60,9 @@ public class TastyModifier extends Modifier implements ProcessLootModifierHook {
 
     // must have an entity
     Entity entity = context.getParamOrNull(LootContextParams.THIS_ENTITY);
-    if (entity != null && entity.getType().is(TinkerTags.EntityTypes.BACON_PRODUCER)) {
+    if (entity instanceof LivingEntity living && entity.getType().is(TinkerTags.EntityTypes.BACON_PRODUCER)) {
       // at tasty 1, 2, 3, and 4 its a 2%, 4.15%, 6.25%, 8% per level
-      int looting = context.getLootingModifier();
+      int looting = getLooting(context, living);
       if (RANDOM.nextInt(48 / modifier.intEffectiveLevel()) <= looting) {
         // bacon
         generatedLoot.add(new ItemStack(TinkerCommons.bacon));

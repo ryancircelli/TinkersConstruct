@@ -1,15 +1,12 @@
 package slimeknights.tconstruct.tables.recipe;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import slimeknights.mantle.data.loadable.common.IngredientLoadable;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.primitive.IntLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.tconstruct.TConstruct;
@@ -26,15 +23,17 @@ import slimeknights.tconstruct.tables.TinkerTables;
 
 @RequiredArgsConstructor
 public class TinkerStationDamagingRecipe implements ITinkerStationRecipe {
+  /**
+   * @apiNote The {@code ContextKey.ID} field is gone, and its absence is not cosmetic: 1.21 moved a recipe's id onto
+   * {@link net.minecraft.world.item.crafting.RecipeHolder}, so {@code LoadableRecipeSerializer} no longer puts one in
+   * the parse context and asking for it here would have failed at load rather than at compile.
+   */
   public static final RecordLoadable<TinkerStationDamagingRecipe> LOADER = RecordLoadable.create(
-    ContextKey.ID.requiredField(),
     IngredientLoadable.DISALLOW_EMPTY.requiredField("ingredient", r -> r.ingredient),
     IntLoadable.FROM_ONE.requiredField("damage_amount", r -> r.damageAmount),
     TinkerStationDamagingRecipe::new);
   private static final RecipeResult<LazyToolStack> BROKEN = RecipeResult.failure(TConstruct.makeTranslationKey("recipe", "damaging.broken"));
 
-  @Getter
-  private final ResourceLocation id;
   private final Ingredient ingredient;
   private final int damageAmount;
 
@@ -48,7 +47,7 @@ public class TinkerStationDamagingRecipe implements ITinkerStationRecipe {
   }
 
   @Override
-  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, RegistryAccess access) {
+  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, HolderLookup.Provider access) {
     ToolStack tool = inv.getTinkerable();
     if (tool.isBroken()) {
       return BROKEN;

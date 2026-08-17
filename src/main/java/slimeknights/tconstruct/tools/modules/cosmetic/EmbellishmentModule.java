@@ -20,7 +20,7 @@ import slimeknights.tconstruct.library.module.HookProvider;
 import slimeknights.tconstruct.library.module.ModuleHook;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ModDataNBT;
-import slimeknights.tconstruct.library.utils.RestrictedCompoundTag;
+import slimeknights.tconstruct.library.tools.nbt.RawDataNBT;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -52,7 +52,7 @@ public enum EmbellishmentModule implements ModifierModule, DisplayNameModifierHo
   }
 
   @Override
-  public void addRawData(IToolStackView tool, ModifierEntry modifier, RestrictedCompoundTag tag) {
+  public void addRawData(IToolStackView tool, ModifierEntry modifier, RawDataNBT tag) {
     // on build, migrate material redirects
     ModDataNBT data = tool.getPersistentData();
     ResourceLocation key = modifier.getId();
@@ -68,7 +68,7 @@ public enum EmbellishmentModule implements ModifierModule, DisplayNameModifierHo
   }
 
   @Override
-  public void removeRawData(IToolStackView tool, Modifier modifier, RestrictedCompoundTag tag) {}
+  public void removeRawData(IToolStackView tool, Modifier modifier, RawDataNBT tag) {}
 
   @Nullable
   @Override

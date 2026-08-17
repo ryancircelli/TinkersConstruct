@@ -6,7 +6,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.common.EffectCures;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
 import slimeknights.tconstruct.library.modifiers.hook.armor.EquipmentChangeModifierHook;
@@ -32,8 +32,9 @@ public class RevengeModifier extends NoLevelsModifier implements EquipmentChange
     LivingEntity living = context.getEntity();
     if (trueSource != null && trueSource != living) { // no making yourself mad with slurping or self-destruct or alike
       MobEffectInstance effect = new MobEffectInstance(MobEffects.DAMAGE_BOOST, 300);
-      effect.getCurativeItems().clear();
-      effect.getCurativeItems().add(new ItemStack(living.getItemBySlot(slotType).getItem()));
+      // cured by removing the armor piece that granted it rather than by milk, see StrongBonesModifier#curedByItem
+      effect.getCures().remove(EffectCures.MILK);
+      effect.getCures().add(StrongBonesModifier.curedByItem(living.getItemBySlot(slotType).getItem()));
       living.addEffect(effect);
     }
   }
@@ -44,7 +45,7 @@ public class RevengeModifier extends NoLevelsModifier implements EquipmentChange
       IToolStackView replacement = context.getReplacementTool();
       if (replacement == null || replacement.getModifierLevel(this) == 0) {
         // cure effects using the helmet
-        context.getEntity().curePotionEffects(new ItemStack(tool.getItem()));
+        context.getEntity().removeEffectsCuredBy(StrongBonesModifier.curedByItem(tool.getItem()));
       }
     }
   }

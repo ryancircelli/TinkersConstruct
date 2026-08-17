@@ -8,7 +8,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.UseAnim;
-import net.minecraftforge.common.util.LazyOptional;
 import slimeknights.mantle.client.TooltipKey;
 import slimeknights.mantle.data.loadable.mapping.SimpleRecordLoadable;
 import slimeknights.mantle.data.loadable.primitive.EnumLoadable;
@@ -28,6 +27,7 @@ import slimeknights.tconstruct.library.tools.context.EquipmentChangeContext;
 import slimeknights.tconstruct.library.tools.helper.ModifierUtil;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -90,17 +90,19 @@ public enum ZoomModule implements ModifierModule, GeneralInteractionModifierHook
 
   /** Starts spyglass style zooming */
   private static void setZoom(ModifierEntry modifier, LivingEntity living, float amount) {
-    living.getCapability(TinkerDataCapability.CAPABILITY).ifPresent(data -> data.computeIfAbsent(TinkerDataKeys.FOV_MODIFIER).set(modifier.getId(), amount));
+    TinkerDataCapability.getData(living).computeIfAbsent(TinkerDataKeys.FOV_MODIFIER).set(modifier.getId(), amount);
   }
 
   /** Stops zooming */
-  private static void stopZoom(ModifierEntry modifier, LazyOptional<TinkerDataCapability.Holder> tinkerData) {
-    tinkerData.ifPresent(data -> data.computeIfAbsent(TinkerDataKeys.FOV_MODIFIER).remove(modifier.getId()));
+  private static void stopZoom(ModifierEntry modifier, @Nullable TinkerDataCapability.Holder tinkerData) {
+    if (tinkerData != null) {
+      tinkerData.computeIfAbsent(TinkerDataKeys.FOV_MODIFIER).remove(modifier.getId());
+    }
   }
 
   /** Stops zooming */
   private static void stopZoom(ModifierEntry modifier, LivingEntity entity) {
-    stopZoom(modifier, entity.getCapability(TinkerDataCapability.CAPABILITY));
+    stopZoom(modifier, TinkerDataCapability.getData(entity));
   }
 
 
@@ -162,7 +164,7 @@ public enum ZoomModule implements ModifierModule, GeneralInteractionModifierHook
     if (context.getEntity().level().isClientSide) {
       IToolStackView replacement = context.getReplacementTool();
       if (replacement == null || replacement.getModifierLevel(modifier.getModifier()) == 0) {
-        stopZoom(modifier, context.getTinkerData());
+        stopZoom(modifier, context.getDataHolder());
       }
     }
   }

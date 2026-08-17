@@ -154,9 +154,9 @@ public record FireballModule(List<FireballType> options, DamageTypePair damageTy
         Vec3 lookVec = entity.getLookAngle().scale(2);
         RandomSource random = entity.getRandom();
         CustomFireball projectile = new CustomFireball(level, entity, lookVec.x + random.nextGaussian() * inaccuracy, lookVec.y, lookVec.z + random.nextGaussian() * inaccuracy);
-        projectile.xPower *= velocity;
-        projectile.yPower *= velocity;
-        projectile.zPower *= velocity;
+        // 1.21 replaced the three power fields with an acceleration power plus a Vec3 movement set in the constructor,
+        // so scaling the movement is what scaling the powers used to do
+        projectile.setDeltaMovement(projectile.getDeltaMovement().scale(velocity));
         projectile.setPower(power);
         projectile.setPos(projectile.getX(), entity.getY(0.5D) + 0.5D, projectile.getZ());
 
@@ -179,7 +179,7 @@ public record FireballModule(List<FireballType> options, DamageTypePair damageTy
         EntityModifierCapability.getCapability(projectile).setModifiers(modifiers);
 
         // fetch the persistent data for the fireball as modifiers may want to store data
-        ModDataNBT projectileData = PersistentDataCapability.getOrWarn(projectile);
+        ModDataNBT projectileData = PersistentDataCapability.getData(projectile);
         // let modifiers set properties
         for (ModifierEntry entry : tool.getModifierList()) {
           entry.getHook(ModifierHooks.PROJECTILE_LAUNCH).onProjectileLaunch(tool, entry, entity, ItemStack.EMPTY, projectile, null, projectileData, true);
@@ -212,10 +212,10 @@ public record FireballModule(List<FireballType> options, DamageTypePair damageTy
 
   @Override
   public boolean startInteract(IToolStackView tool, ModifierEntry modifier, Player player, EquipmentSlot slot, TooltipKey keyModifier) {
-    if (keyModifier == TooltipKey.NORMAL && condition.matches(tool, modifier) && !tool.isBroken() && !player.hasEffect(TinkerModifiers.fireballCooldownEffect.get())) {
+    if (keyModifier == TooltipKey.NORMAL && condition.matches(tool, modifier) && !tool.isBroken() && !player.hasEffect(TinkerModifiers.fireballCooldownEffect)) {
       if (shoot(tool, modifier, player, player, slot)) {
         if (!player.level().isClientSide) {
-          player.addEffect(new MobEffectInstance(TinkerModifiers.fireballCooldownEffect.get(), GeneralInteractionModifierHook.getDrawtime(tool, player, 1)));
+          player.addEffect(new MobEffectInstance(TinkerModifiers.fireballCooldownEffect, GeneralInteractionModifierHook.getDrawtime(tool, player, 1)));
         }
         return true;
       }

@@ -2,6 +2,7 @@ package slimeknights.tconstruct.tools.recipe;
 
 import lombok.Getter;
 import net.minecraft.core.Holder.Reference;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -43,11 +44,7 @@ public class ArmorTrimRecipe implements ITinkerStationRecipe, IMultiRecipe<IDisp
   protected static final String KEY_INVALID_PATTERN = TConstruct.makeTranslationKey("recipe", "modifier.armor_trim.invalid_pattern");
 
 
-  @Getter
-  private final ResourceLocation id;
-
-  public ArmorTrimRecipe(ResourceLocation id) {
-    this.id = id;
+  public ArmorTrimRecipe() {
     ModifierRecipeLookup.addRecipeModifier(null, TinkerModifiers.trim);
   }
 
@@ -95,7 +92,7 @@ public class ArmorTrimRecipe implements ITinkerStationRecipe, IMultiRecipe<IDisp
   }
 
   @Override
-  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, RegistryAccess access) {
+  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, HolderLookup.Provider access) {
     // first need to find our trim and material instances
     TrimItems trimItems = findInputs(inv);
     // should never happen
@@ -151,9 +148,8 @@ public class ArmorTrimRecipe implements ITinkerStationRecipe, IMultiRecipe<IDisp
       List<ItemStack> toolInputs = RegistryHelper.getTagValueStream(BuiltInRegistries.ITEM, TinkerTags.Items.TRIM)
                                                  .map(IModifiableDisplay::getDisplayStack).toList();
       if (!trims.isEmpty() && !toolInputs.isEmpty()) {
-        ResourceLocation id = getId();
         displayRecipes = access.registryOrThrow(Registries.TRIM_MATERIAL).holders()
-          .map(material -> new DisplayRecipe(id, toolInputs, trims, material))
+          .map(material -> new DisplayRecipe(toolInputs, trims, material))
           .collect(Collectors.toList());
       } else {
         displayRecipes = List.of();
@@ -162,12 +158,16 @@ public class ArmorTrimRecipe implements ITinkerStationRecipe, IMultiRecipe<IDisp
     return displayRecipes;
   }
 
+  /**
+   * Display recipe instance.
+   * @apiNote  1.21 moved a recipe's ID onto {@link net.minecraft.world.item.crafting.RecipeHolder}, and
+   *           {@link slimeknights.mantle.recipe.IMultiRecipe#getRecipes} is handed the recipe rather than its holder,
+   *           so a generated display recipe can no longer name its parent and JEI shows it with no registry name.
+   */
   private static class DisplayRecipe implements IDisplayModifierRecipe {
     private static final IntRange LEVELS = new IntRange(1, 1);
     private final ModifierEntry RESULT = new ModifierEntry(TinkerModifiers.trim, 1);
 
-    @Getter
-    private final ResourceLocation recipeId;
     @Getter
     private final List<ItemStack> toolWithoutModifier;
     @Getter
@@ -177,12 +177,11 @@ public class ArmorTrimRecipe implements ITinkerStationRecipe, IMultiRecipe<IDisp
     @Getter
     private final Component variant;
 
-    public DisplayRecipe(ResourceLocation id, List<ItemStack> tools, List<ItemStack> trim, Reference<TrimMaterial> holder) {
-      this.recipeId = id;
-      TrimMaterial material = holder.get();
+    public DisplayRecipe(List<ItemStack> tools, List<ItemStack> trim, Reference<TrimMaterial> holder) {
+      TrimMaterial material = holder.value();
       toolWithoutModifier = tools;
       this.trim = trim;
-      this.material = List.of(new ItemStack(material.ingredient().get()));
+      this.material = List.of(new ItemStack(material.ingredient().value()));
       this.variant = material.description().plainCopy();
 
       String materialName = holder.key().location().toString();

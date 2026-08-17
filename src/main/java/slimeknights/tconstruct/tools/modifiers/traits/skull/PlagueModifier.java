@@ -26,7 +26,9 @@ public class PlagueModifier extends NoLevelsModifier implements DamageDealtModif
       // copy all negative effects to target
       LivingEntity attacker = context.getEntity();
       for (MobEffectInstance effect : context.getEntity().getActiveEffects()) {
-        if (!effect.getEffect().isBeneficial() && !effect.getCurativeItems().isEmpty()) {
+        // 1.21 replaced the curative item list with a set of EffectCure tokens; an effect declaring none is the
+        // uncurable effect the 1.20 check skipped, such as the Tinkers cooldowns
+        if (!effect.getEffect().value().isBeneficial() && !effect.getCures().isEmpty()) {
           target.addEffect(new MobEffectInstance(effect), attacker);
         }
       }

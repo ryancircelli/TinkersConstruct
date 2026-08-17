@@ -47,7 +47,8 @@ public record ReduceEffectOnUnequipModule(MobEffectCategory category, LevelingVa
       if (percent != 0) {
         // iterate all matching effects, updating the duration
         for (MobEffectInstance instance : entity.getActiveEffects()) {
-          if (!instance.isInfiniteDuration() && instance.getEffect().getCategory() == this.category && !instance.getCurativeItems().isEmpty()) {
+          // curative items became EffectCure tokens; an effect with no cure is still the "cannot be removed" case the check wants to skip
+          if (!instance.isInfiniteDuration() && instance.getEffect().value().getCategory() == this.category && !instance.getCures().isEmpty()) {
             instance.duration = Math.max(1, (int) (instance.duration * (1 - percent)));
           }
         }
