@@ -4,21 +4,22 @@ import com.google.common.collect.ImmutableList;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
+import slimeknights.mantle.data.loadable.Loadable;
+import slimeknights.mantle.data.loadable.primitive.StringLoadable;
 import slimeknights.tconstruct.library.materials.IMaterialRegistry;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialId;
+import slimeknights.tconstruct.library.materials.definition.MaterialVariant;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Similar to {@link slimeknights.tconstruct.library.tools.nbt.MaterialNBT}, but does not check materials against the registry.
@@ -29,6 +30,18 @@ import java.util.stream.Collectors;
 public class MaterialIdNBT {
   /** Instance containing no materials, for errors with parsing NBT */
   public final static MaterialIdNBT EMPTY = new MaterialIdNBT(ImmutableList.of());
+
+  /**
+   * Loadable for the ID list. Unlike {@link MaterialNBT#LOADABLE} an unparsable entry is dropped rather than replaced
+   * with unknown, which is what the tag reader did: this list is for rendering, where a missing entry falls back to
+   * the default texture, and an unknown entry would render as the unknown material instead.
+   */
+  public static final Loadable<MaterialIdNBT> LOADABLE = StringLoadable.DEFAULT.list(0).flatXmap(
+    list -> {
+      List<MaterialVariantId> materials = list.stream().map(MaterialVariantId::tryParse).filter(Objects::nonNull).toList();
+      return materials.isEmpty() ? EMPTY : new MaterialIdNBT(materials);
+    },
+    nbt -> nbt.materials.stream().map(MaterialVariantId::toString).toList());
 
   /** List of materials contained in this NBT */
   @Getter
@@ -84,13 +97,15 @@ public class MaterialIdNBT {
     if (listNBT.getElementType() != Tag.TAG_STRING) {
       return EMPTY;
     }
+    return LOADABLE.convert(NbtOps.INSTANCE, nbt, "materials");
+  }
 
-    List<MaterialVariantId> materials = listNBT.stream()
-      .map(Tag::getAsString)
-      .map(MaterialVariantId::tryParse)
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
-    return new MaterialIdNBT(materials);
+  /** Creates an ID list from a resolved material list */
+  public static MaterialIdNBT of(MaterialNBT materials) {
+    if (materials.isEmpty()) {
+      return EMPTY;
+    }
+    return new MaterialIdNBT(materials.getList().stream().map(MaterialVariant::getVariant).toList());
   }
 
   /**
@@ -98,35 +113,34 @@ public class MaterialIdNBT {
    * @return  List of materials
    */
   public ListTag serializeToNBT() {
-    return materials.stream()
-                    .map(MaterialVariantId::toString)
-                    .map(StringTag::valueOf)
-                    .collect(Collectors.toCollection(ListTag::new));
+    return (ListTag)LOADABLE.serialize(NbtOps.INSTANCE, this);
   }
 
   /**
-   * Parses the material list from a stack
+   * Parses the material list from a stack's tool component
    * @param stack  Tool stack instance
    * @return  MaterialNBT instance
    */
   public static MaterialIdNBT from(ItemStack stack) {
-    CompoundTag nbt = stack.getTag();
-    if (nbt != null) {
-      return readFromNBT(nbt.getList(ToolStack.TAG_MATERIALS, Tag.TAG_STRING));
-    }
-    return EMPTY;
+    return of(ToolDataComponent.get(stack).materials());
   }
 
-  /** Writes this material list to the given stack */
+  /** Writes this material list into the given stack's tool component, leaving the rest of the component alone */
   public ItemStack updateStack(ItemStack stack) {
-    stack.getOrCreateTag().put(ToolStack.TAG_MATERIALS, serializeToNBT());
+    ToolDataComponent.get(stack).withMaterials(toMaterialNBT()).set(stack);
     return stack;
   }
 
-  /** Writes this material list to the given stack */
-  @SuppressWarnings("UnusedReturnValue")
-  public CompoundTag updateNBT(CompoundTag nbt) {
-    nbt.put(ToolStack.TAG_MATERIALS, serializeToNBT());
-    return nbt;
+  /** Writes this material list into the given tool component */
+  public ToolDataComponent updateComponent(ToolDataComponent component) {
+    return component.withMaterials(toMaterialNBT());
+  }
+
+  /** Resolves this list against the material registry. Client only ID lists become unknown materials. */
+  public MaterialNBT toMaterialNBT() {
+    if (materials.isEmpty()) {
+      return MaterialNBT.EMPTY;
+    }
+    return new MaterialNBT(materials.stream().map(MaterialVariant::of).toList());
   }
 }

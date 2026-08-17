@@ -115,12 +115,18 @@ public class LazyToolStack {
     return tool;
   }
 
-  /** Gets the item stack for this instance */
+  /**
+   * Gets the item stack for this instance.
+   * If a tool was resolved it is committed onto the stack first: a tool no longer shares storage with its stack, so
+   * a recipe that edited the result through {@link #getTool()} would otherwise hand back the stack it started with.
+   */
   public ItemStack getStack() {
     if (stack == null) {
       assert tool != null;
       // if we have an original, base the stack off that
       stack = tool.createStack(size);
+    } else if (tool != null) {
+      tool.updateStack(stack);
     }
     return stack;
   }

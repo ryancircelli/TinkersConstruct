@@ -1,7 +1,6 @@
 package slimeknights.tconstruct.library.tools.nbt;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.nbt.CompoundTag;
@@ -17,17 +16,40 @@ import java.util.function.BiFunction;
  * Note unlike other NBT classes, the data inside this one is mutable as most of it is directly used by the tools.
  */
 @EqualsAndHashCode
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class ModDataNBT implements IModDataView {
+  /** Runnable for data with nobody watching it, so a write never has to null check */
+  private static final Runnable UNWATCHED = () -> {};
+
   /** Compound representing modifier data */
   @Getter(AccessLevel.PROTECTED)
   private final CompoundTag data;
+  /**
+   * Notified the first time anything writes through this object. Set by {@link ToolStack} so its edit tracker hears
+   * about a write rather than about the handing out of the handle: a tooltip reads persistent data through
+   * {@link IToolStackView}, and treating that read as an edit made the tracker report every rendered tool.
+   */
+  @EqualsAndHashCode.Exclude
+  private Runnable onEdit = UNWATCHED;
+
+  protected ModDataNBT(CompoundTag data) {
+    this.data = data;
+  }
 
   /**
    * Creates a new mod data containing empty data
    */
   public ModDataNBT() {
     this(new CompoundTag());
+  }
+
+  /** Sets the listener notified on every write to this data. Only one owner ever watches a given instance. */
+  void setOnEdit(Runnable onEdit) {
+    this.onEdit = onEdit;
+  }
+
+  /** Notifies the owner that this data was written to. Subclasses writing through {@link #getData()} must call it. */
+  protected void edited() {
+    onEdit.run();
   }
 
   @SuppressWarnings("unchecked")
@@ -67,6 +89,7 @@ public class ModDataNBT implements IModDataView {
    * @param nbt   NBT value
    */
   public void put(ResourceLocation name, Tag nbt) {
+    edited();
     data.put(name.toString(), nbt);
   }
 
@@ -76,6 +99,7 @@ public class ModDataNBT implements IModDataView {
    * @param value  Integer value
    */
   public void putInt(ResourceLocation name, int value) {
+    edited();
     data.putInt(name.toString(), value);
   }
 
@@ -85,6 +109,7 @@ public class ModDataNBT implements IModDataView {
    * @param value  Boolean value
    */
   public void putBoolean(ResourceLocation name, boolean value) {
+    edited();
     data.putBoolean(name.toString(), value);
   }
 
@@ -94,6 +119,7 @@ public class ModDataNBT implements IModDataView {
    * @param value  Float value
    */
   public void putFloat(ResourceLocation name, float value) {
+    edited();
     data.putFloat(name.toString(), value);
   }
 
@@ -103,6 +129,7 @@ public class ModDataNBT implements IModDataView {
    * @param value  String value
    */
   public void putString(ResourceLocation name, String value) {
+    edited();
     data.putString(name.toString(), value);
   }
 
@@ -111,6 +138,7 @@ public class ModDataNBT implements IModDataView {
    * @param name  Key to remove
    */
   public void remove(ResourceLocation name) {
+    edited();
     data.remove(name.toString());
   }
 
@@ -127,6 +155,7 @@ public class ModDataNBT implements IModDataView {
    * @param data  data
    */
   public void copyFrom(CompoundTag data) {
+    edited();
     this.data.getAllKeys().clear();
     this.data.merge(data);
   }

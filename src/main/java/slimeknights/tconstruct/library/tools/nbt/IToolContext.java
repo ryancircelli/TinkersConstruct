@@ -30,7 +30,8 @@ public interface IToolContext {
   /** Checks if the tool has the given tag */
   @SuppressWarnings("deprecation")
   default boolean hasTag(TagKey<Item> tag) {
-    return getItem().builtInRegistryHolder().containsTag(tag);
+    // Holder#containsTag became Holder#is(TagKey) in 1.21
+    return getItem().builtInRegistryHolder().is(tag);
   }
 
   /** Gets the given hook from the tool */
