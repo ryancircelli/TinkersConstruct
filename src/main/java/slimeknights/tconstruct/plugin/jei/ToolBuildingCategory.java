@@ -151,8 +151,9 @@ public class ToolBuildingCategory implements IRecipeCategory<ToolBuildingRecipe>
     return TConstructJEIConstants.TOOL_BUILDING;
   }
 
-  @Override
-  public ResourceLocation getRegistryName(ToolBuildingRecipe recipe) {
-    return recipe.getId();
-  }
+  // No getRegistryName override: 1.21 moved a recipe's ID onto RecipeHolder, and RecipeHelper#getJEIRecipes
+  // hands out the recipes themselves rather than their holders, so there is no ID reachable from here. JEI's
+  // default returns null for a non-holder, which is what a category without an ID is meant to say. The two
+  // display-only interfaces that still carry one (IDisplayableCastingRecipe, IDisplayModifierRecipe) keep
+  // their overrides; see IDisplayableCastingRecipe#getRecipeId for why a generated recipe has no ID at all.
 }

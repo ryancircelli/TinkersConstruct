@@ -1,27 +1,29 @@
 package slimeknights.tconstruct.plugin.jei.material;
 
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import slimeknights.tconstruct.library.recipe.material.ShapedMaterialsRecipe;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.IntStream;
 
-/** Logic to show {@link ShapedMaterialsRecipe} in JEI */
+/**
+ * Logic to show {@link ShapedMaterialsRecipe} in JEI
+ * @apiNote  A singleton since JEI 19; see {@link MaterialsCraftingExtension}.
+ */
 public class ShapedMaterialsExtension extends MaterialsCraftingExtension<ShapedMaterialsRecipe> {
-  private ShapedMaterialsExtension(ShapedMaterialsRecipe recipe) {
-    super(recipe);
-  }
+  public static final ShapedMaterialsExtension INSTANCE = new ShapedMaterialsExtension();
 
-  /** {@return Instance of the shaped extension, or null if the recipe is invalid for display} */
-  @Nullable
-  public static ShapedMaterialsExtension create(ShapedMaterialsRecipe recipe) {
-    for (Ingredient ingredient : recipe.getParts()) {
+  private ShapedMaterialsExtension() {}
+
+  @Override
+  public boolean isHandled(RecipeHolder<ShapedMaterialsRecipe> recipeHolder) {
+    for (Ingredient ingredient : recipeHolder.value().getParts()) {
       if (ingredient.getItems().length == 0) {
-        return null;
+        return false;
       }
     }
-    return new ShapedMaterialsExtension(recipe);
+    return true;
   }
 
   @Override
@@ -31,12 +33,12 @@ public class ShapedMaterialsExtension extends MaterialsCraftingExtension<ShapedM
   }
 
   @Override
-  public int getWidth() {
-    return recipe.getWidth();
+  public int getWidth(RecipeHolder<ShapedMaterialsRecipe> recipeHolder) {
+    return recipeHolder.value().getWidth();
   }
 
   @Override
-  public int getHeight() {
-    return recipe.getHeight();
+  public int getHeight(RecipeHolder<ShapedMaterialsRecipe> recipeHolder) {
+    return recipeHolder.value().getHeight();
   }
 }

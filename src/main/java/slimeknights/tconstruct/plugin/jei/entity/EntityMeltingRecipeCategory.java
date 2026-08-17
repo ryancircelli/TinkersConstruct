@@ -1,7 +1,6 @@
 package slimeknights.tconstruct.plugin.jei.entity;
 
 import lombok.Getter;
-import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.gui.builder.IIngredientAcceptor;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -9,6 +8,7 @@ import mezz.jei.api.gui.drawable.IDrawableAnimated.StartDirection;
 import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
@@ -19,7 +19,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import slimeknights.mantle.fluid.tooltip.FluidTooltipHandler;
 import slimeknights.mantle.plugin.jei.MantleJEIConstants;
 import slimeknights.mantle.plugin.jei.entity.EntityIngredientRenderer;
@@ -96,20 +96,21 @@ public class EntityMeltingRecipeCategory implements IRecipeCategory<EntityMeltin
     builder.addSlot(RecipeIngredientRole.OUTPUT, 115, 11)
            .setFluidRenderer(FluidValues.INGOT * 2, false, 16, 32)
            .addTooltipCallback(new FluidTooltip(recipe.getDamage())) // object is cheap, no need to cache
-           .addIngredient(ForgeTypes.FLUID_STACK, recipe.getOutput());
+           .addIngredient(NeoForgeTypes.FLUID_STACK, recipe.getOutput());
 
     // show fuels that are valid for this recipe
     builder.addSlot(RecipeIngredientRole.CATALYST, 75, 43)
            .setFluidRenderer(1, false, 16, 16)
            .setOverlay(tank, 0, 0)
            .addTooltipCallback(FluidTooltipCallback.NO_AMOUNT)
-           .addIngredients(ForgeTypes.FLUID_STACK, MeltingFuelHandler.getUsableFuels(1));
+           .addIngredients(NeoForgeTypes.FLUID_STACK, MeltingFuelHandler.getUsableFuels(1));
   }
 
-  @Override
-  public ResourceLocation getRegistryName(EntityMeltingRecipe recipe) {
-    return recipe.getId();
-  }
+  // No getRegistryName override: 1.21 moved a recipe's ID onto RecipeHolder, and RecipeHelper#getJEIRecipes
+  // hands out the recipes themselves rather than their holders, so there is no ID reachable from here. JEI's
+  // default returns null for a non-holder, which is what a category without an ID is meant to say. The two
+  // display-only interfaces that still carry one (IDisplayableCastingRecipe, IDisplayModifierRecipe) keep
+  // their overrides; see IDisplayableCastingRecipe#getRecipeId for why a generated recipe has no ID at all.
 
   /** Tooltip for relevant damage on the fluid */
   private record FluidTooltip(int damage) implements FluidTooltipCallback {

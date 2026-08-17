@@ -6,8 +6,8 @@ import com.google.common.cache.LoadingCache;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import mezz.jei.api.gui.drawable.IDrawable;
-import mezz.jei.api.gui.drawable.IDrawableAnimated;
 import mezz.jei.api.gui.drawable.IDrawableAnimated.StartDirection;
+import mezz.jei.api.gui.drawable.IDrawableAnimated;
 import mezz.jei.api.gui.drawable.IDrawableStatic;
 import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -20,7 +20,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import slimeknights.mantle.fluid.tooltip.FluidTooltipHandler;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.client.GuiUtil;
@@ -122,8 +122,9 @@ public abstract class AbstractMeltingCategory implements IRecipeCategory<Melting
     }
   }
 
-  @Override
-  public ResourceLocation getRegistryName(MeltingRecipe recipe) {
-    return recipe.getId();
-  }
+  // No getRegistryName override: 1.21 moved a recipe's ID onto RecipeHolder, and RecipeHelper#getJEIRecipes
+  // hands out the recipes themselves rather than their holders, so there is no ID reachable from here. JEI's
+  // default returns null for a non-holder, which is what a category without an ID is meant to say. The two
+  // display-only interfaces that still carry one (IDisplayableCastingRecipe, IDisplayModifierRecipe) keep
+  // their overrides; see IDisplayableCastingRecipe#getRecipeId for why a generated recipe has no ID at all.
 }
