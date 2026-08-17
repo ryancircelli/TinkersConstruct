@@ -107,7 +107,8 @@ public class ToolContainerScreen extends AbstractContainerScreen<ToolContainerMe
 
   @Override
   public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-    this.renderBackground(graphics);
+    // AbstractContainerScreen#render calls renderBackground itself in 1.21, and the no-argument form the manual call
+    // used is gone, so the only thing left for this override to add is the tooltip pass
     super.render(graphics, mouseX, mouseY, partialTicks);
     this.renderTooltip(graphics, mouseX, mouseY);
   }

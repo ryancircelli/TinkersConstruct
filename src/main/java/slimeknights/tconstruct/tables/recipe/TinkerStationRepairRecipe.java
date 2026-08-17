@@ -1,9 +1,6 @@
 package slimeknights.tconstruct.tables.recipe;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -29,15 +26,16 @@ import slimeknights.tconstruct.tables.TinkerTables;
 
 import java.util.function.IntConsumer;
 
-/** Recipe for repairing tools */
-@RequiredArgsConstructor
+/**
+ * Recipe for repairing tools
+ * @implNote  No longer carries its own {@code id}: 1.21 moved a recipe's id onto
+ *            {@link net.minecraft.world.item.crafting.RecipeHolder}, so a recipe registered through
+ *            {@link slimeknights.mantle.recipe.helper.SimpleRecipeSerializer} needs a genuine no-arg constructor.
+ */
 public class TinkerStationRepairRecipe implements ITinkerStationRecipe {
   protected static final RecipeResult<LazyToolStack> FULLY_REPAIRED = RecipeResult.failure(TConstruct.makeTranslationKey("recipe", "tool_repair.fully_repaired"));
   /** No action int consumer for recipe result */
   private static final IntConsumer NO_ACTION = i -> {};
-
-  @Getter
-  private final ResourceLocation id;
 
   /**
    * Gets the material for the given slot
@@ -132,7 +130,7 @@ public class TinkerStationRepairRecipe implements ITinkerStationRecipe {
   }
 
   @Override
-  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, RegistryAccess access) {
+  public RecipeResult<LazyToolStack> getValidatedResult(ITinkerStationContainer inv, HolderLookup.Provider access) {
     ToolStack tool = inv.getTinkerable();
     if (tool.getDefinition() == ToolDefinition.EMPTY) {
       return RecipeResult.pass();

@@ -6,7 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -22,7 +22,9 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -54,7 +56,6 @@ import slimeknights.tconstruct.library.modifiers.modules.ModifierModule;
 import slimeknights.tconstruct.library.module.HookProvider;
 import slimeknights.tconstruct.library.module.ModuleHook;
 import slimeknights.tconstruct.library.module.ModuleHookMap.Builder;
-import slimeknights.tconstruct.library.recipe.SingleItemContainer;
 import slimeknights.tconstruct.library.recipe.partbuilder.Pattern;
 import slimeknights.tconstruct.library.tools.capability.inventory.InventoryModule;
 import slimeknights.tconstruct.library.tools.context.EquipmentContext;
@@ -75,10 +76,8 @@ import static slimeknights.tconstruct.library.tools.capability.inventory.Invento
 public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeType, float multiplier, InventoryModule input, InventoryModule output) implements ModifierModule, MeleeHitModifierHook, MonsterMeleeHitModifierHook.RedirectAfter, LauncherHitModifierHook, BlockHarvestModifierHook, ProjectileLaunchModifierHook, OnAttackedModifierHook, PlantHarvestModifierHook, ShearsModifierHook, SlingLaunchModifierHook {
   /** NBT key to store the cooking time */
   private static final String TAG_TIME = "tic_remaining_time";
-  /** Container instance for recipe lookups */
-  private static final SingleItemContainer CONTAINER = new SingleItemContainer();
-  /** Cache of last recipe found */
-  private static AbstractCookingRecipe lastRecipe = null;
+  /** Cache of last recipe found. Holds the holder rather than the recipe as 1.21 moved the recipe ID there. */
+  private static RecipeHolder<? extends AbstractCookingRecipe> lastRecipe = null;
   /** Cooking time for when a slot has no available recipe */
   private static final int NO_RECIPE = -1;
   private static final List<ModuleHook<?>> DEFAULT_HOOKS = HookProvider.<SmeltingModule>defaultHooks(ModifierHooks.MELEE_HIT, ModifierHooks.MONSTER_MELEE_HIT, ModifierHooks.LAUNCHER_HIT, ModifierHooks.BLOCK_HARVEST, ModifierHooks.PROJECTILE_LAUNCH, ModifierHooks.ON_ATTACKED, ModifierHooks.PLANT_HARVEST, ModifierHooks.SHEAR_ENTITY, ModifierHooks.SLING_LAUNCH);
@@ -123,15 +122,16 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
 
   /** Finds the recipe for the given stack */
   @Nullable
-  private static AbstractCookingRecipe findRecipe(RecipeType<? extends AbstractCookingRecipe> recipeType, ItemStack stack, Level level, ModifierId modifier) {
-    CONTAINER.setStack(stack);
+  private static RecipeHolder<? extends AbstractCookingRecipe> findRecipe(RecipeType<? extends AbstractCookingRecipe> recipeType, ItemStack stack, Level level, ModifierId modifier) {
+    // 1.21 gives cooking recipes their own single stack input, so there is no shared container to fill and clear
+    SingleRecipeInput input = new SingleRecipeInput(stack);
     try {
       // first, try the cached recipe
-      if (lastRecipe != null && lastRecipe.matches(CONTAINER, level)) {
+      if (lastRecipe != null && lastRecipe.value().matches(input, level)) {
         return lastRecipe;
       }
       // if that failed, do a recipe lookup
-      AbstractCookingRecipe recipe = level.getRecipeManager().getRecipeFor(recipeType, CONTAINER, level).orElse(null);
+      RecipeHolder<? extends AbstractCookingRecipe> recipe = level.getRecipeManager().getRecipeFor(recipeType, input, level).orElse(null);
       if (recipe != null) {
         lastRecipe = recipe;
       }
@@ -140,8 +140,6 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
       // we don't have a good way to validate the recipe type on parse, so an invalid recipe type would error here
       TConstruct.LOG.error("Error fetching recipe for {} on modifier {}, this usually indicates a broken modifier or a broken recipe", stack, modifier, e);
       return null;
-    } finally {
-      CONTAINER.setStack(ItemStack.EMPTY);
     }
   }
 
@@ -166,7 +164,7 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
       float cookingPower = amount * multiplier;
       for (int i = 0; i < list.size(); i++) {
         // lazily load a few pieces of data
-        AbstractCookingRecipe recipe = null;
+        RecipeHolder<? extends AbstractCookingRecipe> recipe = null;
         ItemStack stack = null;
 
         CompoundTag entry = list.getCompound(i);
@@ -174,10 +172,10 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
         // 0 means no recipe, time for a lookup
         if (time == 0) {
           time = NO_RECIPE;
-          stack = ItemStack.of(entry);
+          stack = ItemStack.parseOptional(level.registryAccess(), entry);
           recipe = findRecipe(recipeType, stack, level, modifier.getId());
           if (recipe != null) {
-            time = recipe.getCookingTime();
+            time = recipe.value().getCookingTime();
           }
           entry.putInt(TAG_TIME, time);
         }
@@ -203,7 +201,7 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
 
             // use the recipe we fetched earlier if present
             if (recipe == null) {
-              stack = ItemStack.of(entry);
+              stack = ItemStack.parseOptional(level.registryAccess(), entry);
               if (!stack.isEmpty()) {
                 recipe = findRecipe(recipeType, stack, level, modifier.getId());
               }
@@ -211,9 +209,8 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
             // if we have a recipe, time to cook
             if (recipe != null) {
               // attempt to assemble the recipe, use a try/catch in case their assemble logic is bad
-              CONTAINER.setStack(stack);
               try {
-                ItemStack result = recipe.assemble(CONTAINER, level.registryAccess());
+                ItemStack result = recipe.value().assemble(new SingleRecipeInput(stack), level.registryAccess());
 
                 // check again if we have space for the result now that we know its size
                 if (!result.isEmpty()) {
@@ -222,9 +219,8 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
                     maxStackSize = Math.min(result.getMaxStackSize(), output.getSlotLimit(tool, modifier, slot));
                   }
                   // if not enough space for the combo or its type is wrong, just mark as almost finished and give up
-                  if (result.getCount() + currentResult.getCount() > maxStackSize || !currentResult.isEmpty() && !ItemStack.isSameItemSameTags(currentResult, result)) {
+                  if (result.getCount() + currentResult.getCount() > maxStackSize || !currentResult.isEmpty() && !ItemStack.isSameItemSameComponents(currentResult, result)) {
                     entry.putInt(TAG_TIME, 1);
-                    CONTAINER.setStack(ItemStack.EMPTY);
                     continue;
                   }
                 }
@@ -247,7 +243,7 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
                   // shrink stack
                   InventoryModule.writeStack(stack, slot, entry);
                   // update time to cook again
-                  entry.putInt(TAG_TIME, recipe.getCookingTime());
+                  entry.putInt(TAG_TIME, recipe.value().getCookingTime());
                 }
 
                 // play sound
@@ -255,7 +251,7 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
                   level.playSound(null, holder.getX(), holder.getY(), holder.getZ(), SoundEvents.GENERIC_EXTINGUISH_FIRE, holder.getSoundSource(), 1, 1);
 
                   // grant XP
-                  float experience = recipe.getExperience();
+                  float experience = recipe.value().getExperience();
                   if (experience > 0 && level instanceof ServerLevel serverLevel) {
                     int floored = Mth.floor(experience);
                     float fraction = Mth.frac(experience);
@@ -266,9 +262,8 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
                   }
                 }
               } catch (Exception e) {
-                TConstruct.LOG.error("Error getting result of recipe {} on modifier {}, this usually indicates a broken recipe", recipe.getId(), modifier, e);
+                TConstruct.LOG.error("Error getting result of recipe {} on modifier {}, this usually indicates a broken recipe", recipe.id(), modifier, e);
               }
-              CONTAINER.setStack(ItemStack.EMPTY);
             } else {
               // lost the recipe? stop trying to smelt it
               entry.putInt(TAG_TIME, NO_RECIPE);
@@ -368,12 +363,12 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
     }
 
     @Override
-    public ResourceLocation decode(FriendlyByteBuf buffer, TypedMap context) {
+    public ResourceLocation decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
       return buffer.readResourceLocation();
     }
 
     @Override
-    public void encode(FriendlyByteBuf buffer, SmeltingModule module) {
+    public void encode(RegistryFriendlyByteBuf buffer, SmeltingModule module) {
       buffer.writeResourceLocation(Objects.requireNonNull(module.output.key()));
     }
   }

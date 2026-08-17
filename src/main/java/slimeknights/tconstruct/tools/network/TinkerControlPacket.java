@@ -1,12 +1,12 @@
 package slimeknights.tconstruct.tools.network;
 
 import lombok.RequiredArgsConstructor;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraftforge.network.NetworkEvent.Context;
 import slimeknights.mantle.client.TooltipKey;
-import slimeknights.mantle.network.packet.IThreadsafePacket;
+import slimeknights.mantle.network.packet.IPacket;
+import slimeknights.mantle.network.packet.PacketContext;
 import slimeknights.tconstruct.shared.TinkerEffects;
 import slimeknights.tconstruct.tools.logic.DoubleJumpHandler;
 import slimeknights.tconstruct.tools.logic.InteractionHandler;
@@ -15,7 +15,7 @@ import slimeknights.tconstruct.tools.logic.InteractionHandler;
  * Generic packet for various controls the client may send to the server
  */
 @RequiredArgsConstructor
-public enum TinkerControlPacket implements IThreadsafePacket {
+public enum TinkerControlPacket implements IPacket.Threadsafe {
   DOUBLE_JUMP,
   ANTIGRAVITY_JUMP,
   // helmet
@@ -57,17 +57,17 @@ public enum TinkerControlPacket implements IThreadsafePacket {
     };
   }
 
-  public static TinkerControlPacket read(FriendlyByteBuf buffer) {
+  public static TinkerControlPacket read(RegistryFriendlyByteBuf buffer) {
     return buffer.readEnum(TinkerControlPacket.class);
   }
 
   @Override
-  public void encode(FriendlyByteBuf packetBuffer) {
+  public void encode(RegistryFriendlyByteBuf packetBuffer) {
     packetBuffer.writeEnum(this);
   }
 
   @Override
-  public void handleThreadsafe(Context context) {
+  public void handleThreadsafe(PacketContext context) {
     ServerPlayer player = context.getSender();
     if (player != null) {
       switch (this) {

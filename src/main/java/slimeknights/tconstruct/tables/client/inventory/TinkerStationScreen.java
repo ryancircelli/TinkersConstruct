@@ -470,7 +470,7 @@ public class TinkerStationScreen extends ToolTableScreen<TinkerStationBlockEntit
   }
 
   @Override
-  public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+  public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double delta) {
     if (this.tinkerInfo.handleMouseScrolled(mouseX, mouseY, delta)) {
       return false;
     }
@@ -479,7 +479,7 @@ public class TinkerStationScreen extends ToolTableScreen<TinkerStationBlockEntit
       return false;
     }
 
-    return super.mouseScrolled(mouseX, mouseY, delta);
+    return super.mouseScrolled(mouseX, mouseY, scrollX, delta);
   }
 
   @Override
@@ -632,11 +632,8 @@ public class TinkerStationScreen extends ToolTableScreen<TinkerStationBlockEntit
     }
   }
 
-  @Override
-  public void containerTick() {
-    super.containerTick();
-    this.textField.tick();
-  }
+  // no containerTick override: EditBox#tick() is gone in 1.21, its cursor blink is time-based (Util.getMillis())
+  // in EditBox#renderWidget rather than counted per tick, so there is nothing left for this override to do.
 
   @Override
   public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {

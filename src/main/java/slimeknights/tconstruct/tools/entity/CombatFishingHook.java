@@ -8,6 +8,7 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -17,6 +18,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -105,11 +107,11 @@ public class CombatFishingHook extends FishingHook implements ProjectileWithKnoc
   }
 
   @Override
-  protected void defineSynchedData() {
-    super.defineSynchedData();
-    this.entityData.define(GRAPPLE, (byte) GrappleType.NONE.ordinal());
-    this.entityData.define(COLLECTING, false);
-    this.entityData.define(MATERIAL, IMaterial.UNKNOWN_ID);
+  protected void defineSynchedData(SynchedEntityData.Builder builder) {
+    super.defineSynchedData(builder);
+    builder.define(GRAPPLE, (byte) GrappleType.NONE.ordinal());
+    builder.define(COLLECTING, false);
+    builder.define(MATERIAL, IMaterial.UNKNOWN_ID);
   }
 
   /** Gets the currently displayed material */
@@ -184,7 +186,10 @@ public class CombatFishingHook extends FishingHook implements ProjectileWithKnoc
       }
       // must be modifiable
       if (stack.is(TinkerTags.Items.MODIFIABLE)) {
-        ToolDamageUtil.damageAnimated(ToolStack.mutable(stack), 1, living, hand);
+        // damageAnimated takes a view and never commits, so the rod's damage only reaches the stack when we say so
+        ToolStack tool = ToolStack.mutable(stack);
+        ToolDamageUtil.damageAnimated(tool, 1, living, hand);
+        tool.updateStack();
       }
     }
   }
@@ -237,9 +242,11 @@ public class CombatFishingHook extends FishingHook implements ProjectileWithKnoc
         // actually hurt the entity
         float oldHealth = targetLiving != null ? targetLiving.getHealth() : 0;
         if (target.hurt(source, damage)) {
-          if (!this.level().isClientSide && owner instanceof LivingEntity ownerLiving) {
+          if (this.level() instanceof ServerLevel server && owner instanceof LivingEntity ownerLiving) {
             if (targetLiving != null) {
-              EnchantmentHelper.doPostHurtEffects(targetLiving, owner);
+              // 1.20's doPostHurtEffects ran the victim's own enchantments (thorns) and nothing else; passing a null
+              // item source is what keeps 1.21's merged call to the same half, as the rod's effects are ours to run
+              EnchantmentHelper.doPostAttackEffectsWithItemSource(server, targetLiving, source, null);
             }
 
             // run modifier hook
@@ -297,7 +304,9 @@ public class CombatFishingHook extends FishingHook implements ProjectileWithKnoc
     knockback = knockback.scale(GRAPPLE_STRENGTH * Math.pow(knockback.lengthSqr(), -0.25f));
     owner.push(knockback.x, knockback.y, knockback.z);
     if (isDrill() && owner instanceof Player player) {
-      player.startAutoSpinAttack(20);
+      // 1.21 asks for the spin damage and weapon up front; 1.20's Player#attack read the attack damage attribute and the
+      // mainhand stack at hit time, so passing those two reproduces it for a spin we started rather than a riptide trident
+      player.startAutoSpinAttack(20, (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE), player.getMainHandItem());
     }
     if (owner instanceof ServerPlayer player) {
       player.connection.send(new ClientboundSetEntityMotionPacket(player.getId(), player.getDeltaMovement()));

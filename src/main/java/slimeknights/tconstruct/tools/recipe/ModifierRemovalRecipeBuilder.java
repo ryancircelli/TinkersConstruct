@@ -1,17 +1,17 @@
 package slimeknights.tconstruct.tools.recipe;
 
-import com.mojang.datafixers.util.Function6;
+import com.mojang.datafixers.util.Function5;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import slimeknights.mantle.data.predicate.IJsonPredicate;
-import slimeknights.mantle.recipe.ingredient.SizedIngredient;
 import slimeknights.tconstruct.library.json.predicate.modifier.ModifierPredicate;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
 import slimeknights.tconstruct.library.recipe.worktable.AbstractSizedIngredientRecipeBuilder;
@@ -19,12 +19,11 @@ import slimeknights.tconstruct.library.tools.SlotType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /** Builder for {@link ModifierRemovalRecipe} and {@link ExtractModifierRecipe} */
 @RequiredArgsConstructor(staticName = "removal")
 public class ModifierRemovalRecipeBuilder extends AbstractSizedIngredientRecipeBuilder<ModifierRemovalRecipeBuilder> {
-  private final Function6<ResourceLocation,String,SizedIngredient,List<SizedIngredient>,List<ItemStack>,IJsonPredicate<ModifierId>,ModifierRemovalRecipe> constructor;
+  private final Function5<String,SizedIngredient,List<SizedIngredient>,List<ItemStack>,IJsonPredicate<ModifierId>,ModifierRemovalRecipe> constructor;
   private final List<ItemStack> leftovers = new ArrayList<>();
   @Accessors(chain = true)
   @Setter
@@ -59,7 +58,7 @@ public class ModifierRemovalRecipeBuilder extends AbstractSizedIngredientRecipeB
    * Sets the tool requirement for this recipe
    */
   public ModifierRemovalRecipeBuilder setTools(Ingredient ingredient) {
-    return setTools(SizedIngredient.of(ingredient));
+    return setTools(new SizedIngredient(ingredient, 1));
   }
 
   /**
@@ -78,16 +77,15 @@ public class ModifierRemovalRecipeBuilder extends AbstractSizedIngredientRecipeB
   }
 
   @Override
-  public void save(Consumer<FinishedRecipe> consumer) {
-    save(consumer, BuiltInRegistries.ITEM.getKey(leftovers.get(0).getItem()));
+  public void save(RecipeOutput output) {
+    save(output, BuiltInRegistries.ITEM.getKey(leftovers.get(0).getItem()));
   }
 
   @Override
-  public void save(Consumer<FinishedRecipe> consumer, ResourceLocation id) {
+  public void save(RecipeOutput output, ResourceLocation id) {
     if (inputs.isEmpty()) {
       throw new IllegalStateException("Must have at least one input");
     }
-    ResourceLocation advancementId = buildOptionalAdvancement(id, "modifiers");
-    consumer.accept(new LoadableFinishedRecipe<>(constructor.apply(id, name, tools, inputs, leftovers, modifierPredicate), ModifierRemovalRecipe.LOADER, advancementId));
+    save(output, id, constructor.apply(name, tools, inputs, leftovers, modifierPredicate), "modifiers");
   }
 }

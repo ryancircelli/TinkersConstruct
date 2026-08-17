@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -15,9 +16,11 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Fireball;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import slimeknights.mantle.util.CombatHelper;
 import slimeknights.tconstruct.library.modifiers.entity.ProjectileWithPower;
 import slimeknights.tconstruct.shared.TinkerEffects;
@@ -41,11 +44,11 @@ public class CustomFireball extends Fireball implements ProjectileWithPower {
   }
 
   public CustomFireball(Level level, LivingEntity shooter, double xOffset, double yOffset, double zOffset) {
-    super(TinkerModifiers.fireball.get(), shooter, xOffset, yOffset, zOffset, level);
+    super(TinkerModifiers.fireball.get(), shooter, new Vec3(xOffset, yOffset, zOffset), level);
   }
 
   public CustomFireball(Level pLevel, double x, double y, double z, double xOffset, double yOffset, double zOffset) {
-    super(TinkerModifiers.fireball.get(), x, y, z, xOffset, yOffset, zOffset, pLevel);
+    super(TinkerModifiers.fireball.get(), x, y, z, new Vec3(xOffset, yOffset, zOffset), pLevel);
   }
 
 
@@ -66,9 +69,16 @@ public class CustomFireball extends Fireball implements ProjectileWithPower {
     return false;
   }
 
+  /**
+   * @implNote  1.20 read the raw synched stack through {@code Fireball#getItemRaw()} so an unset item fell through to
+   *            the entity type name. That method is gone in 1.21 and the synched default is no longer empty but the
+   *            fire charge {@link Fireball} substitutes, so {@link Fireball#getItem()} is now the whole story. Every
+   *            fireball we spawn sets its item (see {@code FireballModule}), so only a fireball summoned by command
+   *            can reach the changed branch, where it now names itself after a fire charge.
+   */
   @Override
   protected Component getTypeName() {
-    ItemStack stack = getItemRaw();
+    ItemStack stack = getItem();
     if (!stack.isEmpty()) {
       return stack.getHoverName();
     }
@@ -89,16 +99,23 @@ public class CustomFireball extends Fireball implements ProjectileWithPower {
     return ProjectileWithPower.velocityScale(this, power * damageMultiplier);
   }
 
+  /**
+   * @implNote  {@code Entity#doEnchantDamageEffects(LivingEntity, Entity)} is gone; it ran the victim's thorns and the
+   *            attacker's weapon effects as two separate calls. 1.21 merges both into
+   *            {@link EnchantmentHelper#doPostAttackEffects(ServerLevel, Entity, DamageSource)}, which pulls the
+   *            attacker's weapon off the damage source, and that is what vanilla's {@code SmallFireball} now calls.
+   */
   @Override
   protected void onHitEntity(EntityHitResult hit) {
     super.onHitEntity(hit);
 
     // based on SmallFireball, uses custom damage type and power though
-    if (!this.level().isClientSide) {
+    if (this.level() instanceof ServerLevel server) {
       Entity target = hit.getEntity();
       Entity owner = this.getOwner();
-      if (target.hurt(CombatHelper.damageSource(TinkerEffects.needsEnderferenceOverride(target) ? enderferenceType : damageType, this, owner), getDamage()) && owner instanceof LivingEntity livingOwner) {
-        this.doEnchantDamageEffects(livingOwner, target);
+      DamageSource source = CombatHelper.damageSource(TinkerEffects.needsEnderferenceOverride(target) ? enderferenceType : damageType, this, owner);
+      if (target.hurt(source, getDamage()) && owner instanceof LivingEntity) {
+        EnchantmentHelper.doPostAttackEffects(server, target, source);
       }
     }
   }

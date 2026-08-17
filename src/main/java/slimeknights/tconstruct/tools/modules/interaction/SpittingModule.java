@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import slimeknights.mantle.client.TooltipKey;
@@ -101,7 +101,7 @@ public record SpittingModule(LevelingInt shots) implements ModifierModule, Gener
           int primaryIndex = shots / 2;
           Level world = entity.level();
           for (int shotIndex = 0; shotIndex < shots; shotIndex++) {
-            FluidEffectProjectile spit = new FluidEffectProjectile(world, entity, new FluidStack(fluid, amount), power);
+            FluidEffectProjectile spit = new FluidEffectProjectile(world, entity, fluid.copyWithAmount(amount), power);
             // apply fins
             spit.setWaterInertia(ConditionalStatModifierHook.getModifiedStat(tool, entity, ToolStats.WATER_INERTIA));
 
@@ -115,7 +115,7 @@ public record SpittingModule(LevelingInt shots) implements ModifierModule, Gener
             EntityModifierCapability.getCapability(spit).setModifiers(tool.getModifiers());
 
             // fetch the persistent data for the arrow as modifiers may want to store data
-            ModDataNBT arrowData = PersistentDataCapability.getOrWarn(spit);
+            ModDataNBT arrowData = PersistentDataCapability.getData(spit);
             // let modifiers set properties
             for (ModifierEntry entry : tool.getModifierList()) {
               entry.getHook(ModifierHooks.PROJECTILE_LAUNCH).onProjectileLaunch(tool, entry, entity, ItemStack.EMPTY, spit, null, arrowData, shotIndex == primaryIndex);

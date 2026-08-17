@@ -2,7 +2,6 @@ package slimeknights.tconstruct.tools.item;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.SlotAccess;
@@ -10,9 +9,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 import slimeknights.mantle.command.MantleCommand;
 import slimeknights.mantle.fluid.FluidTransferHelper;
 import slimeknights.tconstruct.TConstruct;
@@ -32,7 +31,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class CreativeSlotItem extends Item {
-  private static final String NBT_KEY = "slot";
   private static final String TOOLTIP = TConstruct.makeTranslationKey("item", "creative_slot.tooltip");
   private static final Component TOOLTIP_MISSING = TConstruct.makeTranslation("item", "creative_slot.missing").withStyle(ChatFormatting.RED);
   private static final Component CREATIVE_ONLY = TConstruct.makeTranslation("item", "creative_slot.only").withStyle(ChatFormatting.RED);
@@ -41,19 +39,15 @@ public class CreativeSlotItem extends Item {
     super(properties);
   }
 
-  /** Gets the value of the slot tag from the given stack */
+  /** Gets the slot type stored on the given stack */
   @Nullable
   public static SlotType getSlot(ItemStack stack) {
-    CompoundTag nbt = stack.getTag();
-    if (nbt != null && nbt.contains(NBT_KEY, Tag.TAG_STRING)) {
-      return SlotType.getIfPresent(nbt.getString(NBT_KEY));
-    }
-    return null;
+    return stack.get(TinkerModifiers.creativeSlotType);
   }
 
   /** Makes an item stack with the given slot type */
   public static ItemStack withSlot(ItemStack stack, SlotType type) {
-    stack.getOrCreateTag().putString(NBT_KEY, type.getName());
+    stack.set(TinkerModifiers.creativeSlotType, type);
     return stack;
   }
 
@@ -71,7 +65,7 @@ public class CreativeSlotItem extends Item {
   }
 
   @Override
-  public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+  public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
     SlotType slot = getSlot(stack);
     if (slot != null) {
       tooltip.add(Component.translatable(TOOLTIP, slot.getDisplayName()).withStyle(ChatFormatting.GRAY));
@@ -140,6 +134,9 @@ public class CreativeSlotItem extends Item {
               tool.rebuildStats();
             }
           }
+          // the persistent data write and the modifier add/remove/rebuild above are all local to the tool,
+          // so without this the creative slot item changed nothing at all
+          tool.updateStack();
           if (amount > 0) {
             FluidTransferHelper.playUISound(player, SoundEvents.ENCHANTMENT_TABLE_USE);
           } else {

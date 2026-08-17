@@ -3,31 +3,37 @@ package slimeknights.tconstruct.gadgets.entity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.entity.IEntityAdditionalSpawnData;
-import net.minecraftforge.network.NetworkHooks;
 import slimeknights.tconstruct.common.Sounds;
 import slimeknights.tconstruct.gadgets.TinkerGadgets;
 import slimeknights.tconstruct.library.utils.Util;
 
-public class FancyItemFrameEntity extends ItemFrame implements IEntityAdditionalSpawnData {
+/**
+ * @implNote  1.20's {@code writeSpawnData}/{@code readSpawnData}/{@code getAddEntityPacket} overrides sent
+ *            {@code VARIANT}, {@code pos} and {@code direction} over a custom spawn packet. None are needed in
+ *            1.21: {@code VARIANT} is a {@code SynchedEntityData} field like vanilla's own {@code DATA_ROTATION},
+ *            and {@code pos}/{@code direction} need no custom sync at all - a hanging entity's position and facing
+ *            are ordinary entity position/rotation state, already carried by the default spawn packet, the same as
+ *            for any other vanilla {@link ItemFrame}.
+ */
+public class FancyItemFrameEntity extends ItemFrame {
   private static final int DIAMOND_TIMER = 300;
   private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(FancyItemFrameEntity.class, EntityDataSerializers.INT);
   private static final String TAG_VARIANT = "Variant";
@@ -62,7 +68,17 @@ public class FancyItemFrameEntity extends ItemFrame implements IEntityAdditional
       Level level = level();
       BlockState state = level.getBlockState(behind);
       if (!state.isAir()) {
-        InteractionResult result = state.use(level, player, hand, Util.createTraceResult(behind, direction, false));
+        // BlockState#use(Level,Player,InteractionHand,BlockHitResult) split into useItemOn/useWithoutItem;
+        // reproduces vanilla's own fallback (ServerPlayerGameMode#useItemOn) rather than losing the block's own
+        // interaction (doors, buttons, levers all answer through useWithoutItem, not useItemOn)
+        BlockHitResult hitResult = Util.createTraceResult(behind, direction, false);
+        ItemInteractionResult itemResult = state.useItemOn(player.getItemInHand(hand), level, player, hand, hitResult);
+        InteractionResult result;
+        if (itemResult == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION && hand == InteractionHand.MAIN_HAND) {
+          result = state.useWithoutItem(level, player, hitResult);
+        } else {
+          result = itemResult.result();
+        }
         if (result.consumesAction()) {
           return result;
         }
@@ -155,9 +171,9 @@ public class FancyItemFrameEntity extends ItemFrame implements IEntityAdditional
   }
 
   @Override
-  protected void defineSynchedData() {
-    super.defineSynchedData();
-    this.entityData.define(VARIANT, 0);
+  protected void defineSynchedData(SynchedEntityData.Builder builder) {
+    super.defineSynchedData(builder);
+    builder.define(VARIANT, 0);
   }
 
   /** Gets the frame type */
@@ -196,8 +212,8 @@ public class FancyItemFrameEntity extends ItemFrame implements IEntityAdditional
   }
 
   @Override
-  public boolean ignoreExplosion() {
-    return super.ignoreExplosion() || getFrameId() == FrameType.NETHERITE.getId();
+  public boolean ignoreExplosion(Explosion explosion) {
+    return super.ignoreExplosion(explosion) || getFrameId() == FrameType.NETHERITE.getId();
   }
 
   @Override
@@ -233,26 +249,6 @@ public class FancyItemFrameEntity extends ItemFrame implements IEntityAdditional
       rotationTimer = compound.getInt(TAG_ROTATION_TIMER);
     }
   }
-
-  @Override
-  public Packet<ClientGamePacketListener> getAddEntityPacket() {
-    return NetworkHooks.getEntitySpawningPacket(this);
-  }
-
-  @Override
-  public void writeSpawnData(FriendlyByteBuf buffer) {
-    buffer.writeVarInt(this.getFrameId());
-    buffer.writeBlockPos(this.pos);
-    buffer.writeVarInt(this.direction.get3DDataValue());
-  }
-
-  @Override
-  public void readSpawnData(FriendlyByteBuf buffer) {
-    this.entityData.set(VARIANT, buffer.readVarInt());
-    this.pos = buffer.readBlockPos();
-    this.setDirection(Direction.from3DDataValue(buffer.readVarInt()));
-  }
-
 
   @Override
   protected Component getTypeName() {

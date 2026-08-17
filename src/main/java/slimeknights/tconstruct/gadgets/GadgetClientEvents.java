@@ -2,13 +2,14 @@ package slimeknights.tconstruct.gadgets;
 
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.ModelEvent.RegisterAdditional;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent.RegisterAdditional;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.ClientEventBase;
 import slimeknights.tconstruct.gadgets.client.FancyItemFrameRenderer;
@@ -20,8 +21,9 @@ import slimeknights.tconstruct.tools.client.material.ThrownShurikenRenderer;
 public class GadgetClientEvents extends ClientEventBase {
   @SubscribeEvent
   static void registerModels(RegisterAdditional event) {
-    FancyItemFrameRenderer.LOCATIONS_MODEL.values().forEach(event::register);
-    FancyItemFrameRenderer.LOCATIONS_MODEL_MAP.values().forEach(event::register);
+    // RegisterAdditional#register wants a ModelResourceLocation, not the bare ResourceLocation these maps hold
+    FancyItemFrameRenderer.LOCATIONS_MODEL.values().forEach(loc -> event.register(ModelResourceLocation.standalone(loc)));
+    FancyItemFrameRenderer.LOCATIONS_MODEL_MAP.values().forEach(loc -> event.register(ModelResourceLocation.standalone(loc)));
   }
 
   @SubscribeEvent
