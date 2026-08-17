@@ -1,6 +1,6 @@
 package slimeknights.tconstruct.test.characterization;
 
-import net.minecraft.core.MappedRegistry;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -11,8 +11,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraftforge.registries.ForgeRegistries;
 import slimeknights.tconstruct.TConstruct;
+import slimeknights.tconstruct.test.TestRegistries;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
 import slimeknights.tconstruct.library.materials.stats.MaterialStatsId;
@@ -20,18 +20,15 @@ import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * These headless unit tests never fire Forge's mod loading lifecycle (see {@code BaseMcTest}), so TConstruct's
+ * These headless unit tests never fire the mod loading lifecycle (see {@code BaseMcTest}), so TConstruct's
  * own items/blocks (registered via {@code DeferredRegister}, populated only by a live {@code RegisterEvent})
- * never actually exist in {@link ForgeRegistries#ITEMS}/{@link ForgeRegistries#BLOCKS} - only vanilla's do (via
+ * never actually exist in {@link BuiltInRegistries#ITEM}/{@link BuiltInRegistries#BLOCK} - only vanilla's do (via
  * {@code Bootstrap.bootStrap()}). Real recipe/tool-definition/station-layout JSON constantly references real
  * TConstruct items directly by id (not always via tag), and Mantle's loadables resolve those through the
  * registry eagerly at parse time, throwing {@code JsonSyntaxException} for anything missing.
@@ -47,7 +44,6 @@ public final class RealItemStubs {
 
   private static final Pattern ID_PATTERN = Pattern.compile("^[a-z0-9_.-]+:[a-z0-9_./-]+$");
   private static final Set<String> scannedFolders = new HashSet<>();
-  private static boolean unfrozen = false;
 
   /**
    * Scans the given classpath folders (if not already scanned) and stubs any item/block/attribute id referenced
@@ -55,16 +51,12 @@ public final class RealItemStubs {
    * multiple test classes' {@code @BeforeAll} - only newly-seen folders are rescanned.
    */
   public static synchronized void ensureRegistered(String... classpathFolders) {
-    if (!unfrozen) {
-      unfrozen = true;
-      // these headless tests never run a full game/datapack load, so BuiltInRegistries.ITEM/BLOCK/ATTRIBUTE are
-      // frozen as soon as Bootstrap.bootStrap() runs (see BaseMcTest); unfreeze the same way MaterialItemFixture does
-      unfreeze(BuiltInRegistries.ITEM);
-      unfreeze(BuiltInRegistries.BLOCK);
-      unfreeze(BuiltInRegistries.ATTRIBUTE);
-      unfreeze(BuiltInRegistries.MOB_EFFECT);
-      unfreeze(BuiltInRegistries.PARTICLE_TYPE);
-    }
+    // these headless tests never run a full game/datapack load, so BuiltInRegistries.ITEM/BLOCK/ATTRIBUTE are
+    // frozen as soon as Bootstrap.bootStrap() runs (see BaseMcTest); unfreeze the same way MaterialItemFixture does.
+    // This runs on every call rather than once: anything that asks for a HolderLookup over the built-in registries
+    // re-freezes them (TestRegistries does, building the datapack lookup), and which test class that lands between
+    // is JUnit's ordering to decide. A one-shot guard made stubbing silently depend on it.
+    TestRegistries.unfreezeBuiltIns();
     Set<String> ids = new HashSet<>();
     for (String folder : classpathFolders) {
       if (scannedFolders.add(folder)) {
@@ -74,7 +66,7 @@ public final class RealItemStubs {
     for (String id : ids) {
       ResourceLocation rl;
       try {
-        rl = new ResourceLocation(id);
+        rl = ResourceLocation.parse(id);
       } catch (Exception e) {
         continue;
       }
@@ -86,20 +78,14 @@ public final class RealItemStubs {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  private static void unfreeze(net.minecraft.core.Registry<?> registry) {
-    // yes, this is bad, but this is testing so we do bad things sometimes (mirrors MaterialItemFixture)
-    ((MappedRegistry<Object>) registry).unfreeze();
-  }
-
   private static void stubItem(ResourceLocation rl) {
-    if (!ForgeRegistries.ITEMS.containsKey(rl)) {
+    if (!BuiltInRegistries.ITEM.containsKey(rl)) {
       try {
         // Real fixtures reference item ids in many different typed roles (plain item, IModifiable tool,
         // IMaterialItem/IToolPart part item), and Mantle's field-typed loadables do an instanceof check at
         // parse time. A single stub class implementing all three marker interfaces satisfies every role at
         // once without needing to classify each id ahead of time.
-        ForgeRegistries.ITEMS.register(rl, new StubToolPartItem());
+        Registry.register(BuiltInRegistries.ITEM, rl, new StubToolPartItem());
       } catch (Exception ignored) {
         // not a valid item id (e.g. shape of a fluid/block/tag id) - fine, best effort
       }
@@ -131,9 +117,9 @@ public final class RealItemStubs {
   }
 
   private static void stubAttribute(ResourceLocation rl) {
-    if (!ForgeRegistries.ATTRIBUTES.containsKey(rl)) {
+    if (!BuiltInRegistries.ATTRIBUTE.containsKey(rl)) {
       try {
-        ForgeRegistries.ATTRIBUTES.register(rl, new RangedAttribute(rl.toString(), 0, -1000, 1000));
+        Registry.register(BuiltInRegistries.ATTRIBUTE, rl, new RangedAttribute(rl.toString(), 0, -1000, 1000));
       } catch (Exception ignored) {
         // fine, best effort
       }
@@ -141,9 +127,9 @@ public final class RealItemStubs {
   }
 
   private static void stubMobEffect(ResourceLocation rl) {
-    if (!ForgeRegistries.MOB_EFFECTS.containsKey(rl)) {
+    if (!BuiltInRegistries.MOB_EFFECT.containsKey(rl)) {
       try {
-        ForgeRegistries.MOB_EFFECTS.register(rl, new MobEffect(MobEffectCategory.NEUTRAL, 0xFFFFFF) {});
+        Registry.register(BuiltInRegistries.MOB_EFFECT, rl, new MobEffect(MobEffectCategory.NEUTRAL, 0xFFFFFF) {});
       } catch (Exception ignored) {
         // fine, best effort
       }
@@ -151,9 +137,9 @@ public final class RealItemStubs {
   }
 
   private static void stubParticleType(ResourceLocation rl) {
-    if (!ForgeRegistries.PARTICLE_TYPES.containsKey(rl)) {
+    if (!BuiltInRegistries.PARTICLE_TYPE.containsKey(rl)) {
       try {
-        ForgeRegistries.PARTICLE_TYPES.register(rl, new SimpleParticleType(false));
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE, rl, new SimpleParticleType(false));
       } catch (Exception ignored) {
         // fine, best effort
       }
@@ -161,9 +147,9 @@ public final class RealItemStubs {
   }
 
   private static void stubBlock(ResourceLocation rl) {
-    if (!ForgeRegistries.BLOCKS.containsKey(rl)) {
+    if (!BuiltInRegistries.BLOCK.containsKey(rl)) {
       try {
-        ForgeRegistries.BLOCKS.register(rl, new Block(BlockBehaviour.Properties.of()));
+        Registry.register(BuiltInRegistries.BLOCK, rl, new Block(BlockBehaviour.Properties.of()));
       } catch (Exception ignored) {
         // fine, best effort
       }
@@ -171,17 +157,13 @@ public final class RealItemStubs {
   }
 
   private static void collectIds(String classpathFolder, Set<String> ids) {
+    // reading goes through FixtureFiles rather than java.io.File: under ModLauncher the fixture folder is a
+    // union: URL, and the File constructor this used to call threw before a single id was collected - silently,
+    // since the failure landed in the catch below, leaving every fixture's item ids unstubbed
     for (String fileName : FixtureFiles.listJsonFileNames(classpathFolder)) {
-      java.io.File dir = resolveDirectory(classpathFolder);
-      if (dir == null) {
-        continue;
-      }
-      File file = new File(dir, fileName);
-      try {
-        String content = Files.readString(file.toPath());
+      String content = FixtureFiles.readFixture(classpathFolder, fileName);
+      if (content != null) {
         collectFromRawText(content, ids);
-      } catch (IOException ignored) {
-        // skip unreadable file
       }
     }
   }
@@ -197,15 +179,4 @@ public final class RealItemStubs {
     }
   }
 
-  private static File resolveDirectory(String folder) {
-    java.net.URL url = RealItemStubs.class.getClassLoader().getResource(folder);
-    if (url == null) {
-      return null;
-    }
-    try {
-      return new File(url.toURI());
-    } catch (Exception e) {
-      return new File(url.getPath());
-    }
-  }
 }

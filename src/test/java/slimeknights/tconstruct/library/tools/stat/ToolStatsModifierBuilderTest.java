@@ -1,7 +1,6 @@
 package slimeknights.tconstruct.library.tools.stat;
 
 import net.minecraft.world.item.Tiers;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import slimeknights.tconstruct.library.tools.nbt.StatsNBT;
 import slimeknights.tconstruct.test.BaseMcTest;
@@ -17,10 +16,6 @@ class ToolStatsModifierBuilderTest extends BaseMcTest {
                                                 .set(ToolStats.ATTACK_SPEED, 5f)
                                                 .build();
 
-  @BeforeAll
-  static void setup() {
-    setupTierSorting();
-  }
 
   @Test
   void empty() {

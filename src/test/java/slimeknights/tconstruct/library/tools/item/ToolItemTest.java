@@ -3,7 +3,6 @@ package slimeknights.tconstruct.library.tools.item;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,10 +29,11 @@ public abstract class ToolItemTest extends BaseMcTest {
     ModifierFixture.init();
     TagFixture.init();
     if (tool == null) {
-      tool = new ModifiableItem(new Item.Properties().stacksTo(1), ToolDefinitionFixture.getStandardToolDefinition());
-      ForgeRegistries.ITEMS.register(new ResourceLocation("test", "toolcore"), tool);
+      // MaterialItemFixture#register rather than the registry directly: a 1.21 registry's own register method takes
+      // a resource key and a RegistrationInfo, and the registry has to be unfrozen after Bootstrap first
+      tool = MaterialItemFixture.register(ResourceLocation.fromNamespaceAndPath("test", "toolcore"),
+                                          new ModifiableItem(new Item.Properties().stacksTo(1), ToolDefinitionFixture.getStandardToolDefinition()));
     }
-    setupTierSorting();
     // ModifierStatsBuilder.disableFilter();
   }
 

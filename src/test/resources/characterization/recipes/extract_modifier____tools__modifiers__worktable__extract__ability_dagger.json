@@ -27,7 +27,7 @@
   },
   "name": "abilities",
   "tools": {
-    "amount_needed": 2,
+    "count": 2,
     "item": "tconstruct:dagger"
   }
 }

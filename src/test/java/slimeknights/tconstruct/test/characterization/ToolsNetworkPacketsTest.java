@@ -4,10 +4,10 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.junit.jupiter.api.Test;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
@@ -31,7 +31,7 @@ class ToolsNetworkPacketsTest extends BaseMcTest {
   @Test
   void tinkerControlPacket_everyEnumConstant_roundTrips() {
     for (TinkerControlPacket value : TinkerControlPacket.values()) {
-      FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+      RegistryFriendlyByteBuf buffer = networkBuffer();
       value.encode(buffer);
       TinkerControlPacket decoded = TinkerControlPacket.read(buffer);
       assertThat(decoded).as("enum identity round trip for " + value).isSameAs(value);
@@ -41,7 +41,7 @@ class ToolsNetworkPacketsTest extends BaseMcTest {
   @Test
   void interactWithAirPacket_everyEnumConstant_roundTrips() {
     for (InteractWithAirPacket value : InteractWithAirPacket.values()) {
-      FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+      RegistryFriendlyByteBuf buffer = networkBuffer();
       value.encode(buffer);
       InteractWithAirPacket decoded = InteractWithAirPacket.read(buffer);
       assertThat(decoded).as("enum identity round trip for " + value).isSameAs(value);
@@ -59,7 +59,7 @@ class ToolsNetworkPacketsTest extends BaseMcTest {
     when(entity.getXRot()).thenReturn(-45f);
 
     EntityMovementChangePacket packet = new EntityMovementChangePacket(entity);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     EntityMovementChangePacket decoded = new EntityMovementChangePacket(buffer);
 
@@ -75,7 +75,7 @@ class ToolsNetworkPacketsTest extends BaseMcTest {
   void pushBlockRowPacket_roundTrips() {
     BlockPos pos = new BlockPos(7, 8, 9);
     PushBlockRowPacket packet = new PushBlockRowPacket(pos, Direction.NORTH, true, 3);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     PushBlockRowPacket decoded = new PushBlockRowPacket(buffer);
 
@@ -89,7 +89,7 @@ class ToolsNetworkPacketsTest extends BaseMcTest {
   void toolContainerFluidUpdatePacket_roundTrips() {
     FluidStack fluid = new FluidStack(net.minecraft.world.level.material.Fluids.WATER, 750);
     ToolContainerFluidUpdatePacket packet = new ToolContainerFluidUpdatePacket(fluid);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     ToolContainerFluidUpdatePacket decoded = new ToolContainerFluidUpdatePacket(buffer);
 
@@ -106,7 +106,7 @@ class ToolsNetworkPacketsTest extends BaseMcTest {
     persistentData.putBoolean("test", true);
 
     SyncProjectileModifiersPacket packet = new SyncProjectileModifiersPacket(17, modifiers, persistentData);
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    RegistryFriendlyByteBuf buffer = networkBuffer();
     packet.encode(buffer);
     SyncProjectileModifiersPacket decoded = new SyncProjectileModifiersPacket(buffer);
 

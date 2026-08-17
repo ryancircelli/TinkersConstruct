@@ -1,6 +1,7 @@
 package slimeknights.tconstruct.library.tools.layout;
 
 import com.google.gson.JsonElement;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -8,10 +9,8 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.VanillaIngredientSerializer;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.test.BaseMcTest;
@@ -27,14 +26,8 @@ import static org.mockito.Mockito.mock;
 class StationSlotLayoutLoaderTest extends BaseMcTest {
   private static final JsonFileLoader fileLoader = new JsonFileLoader(StationSlotLayoutLoader.GSON, StationSlotLayoutLoader.FOLDER);
 
-  @BeforeAll
-  static void setup() {
-    try {
-      CraftingHelper.register(new ResourceLocation("minecraft", "item"), VanillaIngredientSerializer.INSTANCE);
-    } catch (Exception e) {
-      // just need to ensure its registered
-    }
-  }
+  // no setup: a vanilla item ingredient is read by Ingredient.CODEC directly in 1.21, there is no serializer registry
+  // left to seed - CraftingHelper kept its name and lost every method this used.
 
   @Test
   void minimal_noTool() {
@@ -93,7 +86,8 @@ class StationSlotLayoutLoaderTest extends BaseMcTest {
     ItemStack[] stacks = ingredient.getItems();
     assertThat(stacks).hasSize(1);
     assertThat(stacks[0].getItem()).isEqualTo(item);
-    assertThat(stacks[0].getTag()).isNull();
+    // "no NBT" in 1.20; a stack carrying nothing beyond its item's defaults has an empty component patch
+    assertThat(stacks[0].isComponentsPatchEmpty()).isTrue();
   }
 
   @Test
@@ -108,8 +102,11 @@ class StationSlotLayoutLoaderTest extends BaseMcTest {
     ItemStack stack = layout.getIcon().getValue(ItemStack.class);
     assertThat(stack).isNotNull();
     assertThat(stack.getItem()).isEqualTo(Items.IRON_INGOT);
-    CompoundTag nbt = stack.getTag();
-    assertThat(nbt).isNotNull();
+    // the icon's "nbt" string became a "components" patch, so the arbitrary tag the fixture carries is now
+    // minecraft:custom_data - the component that exists to hold exactly the free-form NBT this used to be
+    CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+    assertThat(customData).isNotNull();
+    CompoundTag nbt = customData.copyTag();
     assertThat(nbt.getAllKeys()).hasSize(1);
     assertThat(nbt.getInt("test")).isEqualTo(1);
     // sort key

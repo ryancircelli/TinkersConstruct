@@ -6,11 +6,13 @@
   "inputs": [
     {
       "type": "mantle:fluid_container",
-      "amount": 250,
       "display": {
         "item": "tconstruct:sky_slime_bottle"
       },
-      "tag": "tconstruct:sky_slime"
+      "fluid": {
+        "amount": 250,
+        "tag": "tconstruct:sky_slime"
+      }
     }
   ],
   "modifier_predicate": {
