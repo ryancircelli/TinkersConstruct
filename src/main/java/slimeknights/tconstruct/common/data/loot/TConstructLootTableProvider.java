@@ -1,21 +1,25 @@
 package slimeknights.tconstruct.common.data.loot;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.LootTableProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public class TConstructLootTableProvider extends LootTableProvider {
-  private static final Set<ResourceLocation> REQUIRED_TABLES = Set.of();
+  /** 1.21 keys loot tables by {@link ResourceKey} rather than a raw ID */
+  private static final Set<ResourceKey<LootTable>> REQUIRED_TABLES = Set.of();
 
-  public TConstructLootTableProvider(PackOutput packOutput) {
+  public TConstructLootTableProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
     super(packOutput, REQUIRED_TABLES, List.of(
       new LootTableProvider.SubProviderEntry(BlockLootTableProvider::new, LootContextParamSets.BLOCK),
       new LootTableProvider.SubProviderEntry(AdvancementLootTableProvider::new, LootContextParamSets.ADVANCEMENT_REWARD),
-      new LootTableProvider.SubProviderEntry(EntityLootTableProvider::new, LootContextParamSets.ENTITY)));
+      new LootTableProvider.SubProviderEntry(EntityLootTableProvider::new, LootContextParamSets.ENTITY)), registries);
   }
 
   /*

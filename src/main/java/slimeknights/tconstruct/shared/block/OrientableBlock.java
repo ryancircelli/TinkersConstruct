@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.shared.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -15,9 +16,15 @@ import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
  * Block orientable in 4 directions
  */
 public class OrientableBlock extends Block {
+  public static final MapCodec<OrientableBlock> CODEC = simpleCodec(OrientableBlock::new);
   public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
   public OrientableBlock(Properties properties) {
     super(properties);
+  }
+
+  @Override
+  public MapCodec<? extends OrientableBlock> codec() {
+    return CODEC;
   }
 
   @Override
