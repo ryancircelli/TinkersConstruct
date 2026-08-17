@@ -3,9 +3,10 @@ package slimeknights.tconstruct.smeltery.block.entity.inventory;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import slimeknights.tconstruct.library.recipe.casting.ICastingContainer;
 import slimeknights.tconstruct.smeltery.block.entity.CastingBlockEntity;
 
@@ -37,8 +38,8 @@ public class CastingContainerWrapper implements ICastingContainer {
 
   @Nullable
   @Override
-  public CompoundTag getFluidTag() {
-    return fluid.getTag();
+  public DataComponentPatch getFluidComponents() {
+    return fluid.getComponentsPatch();
   }
 
   /** Uses the input for input (default) */

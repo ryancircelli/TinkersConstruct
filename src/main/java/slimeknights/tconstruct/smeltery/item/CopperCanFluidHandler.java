@@ -2,35 +2,23 @@ package slimeknights.tconstruct.smeltery.item;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import slimeknights.tconstruct.library.recipe.FluidValues;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
-/** Capability handler instance for the copper can item */
+/**
+ * Capability handler instance for the copper can item.
+ * <p>
+ * 1.20 also implemented {@code ICapabilityProvider} and returned itself; the capability is granted per item from
+ * {@code RegisterCapabilitiesEvent} now, so this is just the handler (M7 §5).
+ */
 @AllArgsConstructor
-public class CopperCanFluidHandler implements IFluidHandlerItem, ICapabilityProvider {
-  private final LazyOptional<IFluidHandlerItem> holder = LazyOptional.of(() -> this);
-
+public class CopperCanFluidHandler implements IFluidHandlerItem {
   @Getter
   private final ItemStack container;
-
-  @Nonnull
-  @Override
-  public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-    return ForgeCapabilities.FLUID_HANDLER_ITEM.orEmpty(cap, holder);
-  }
 
 
   /* Tank properties */
@@ -56,25 +44,19 @@ public class CopperCanFluidHandler implements IFluidHandlerItem, ICapabilityProv
     return getCapacity();
   }
 
-  /** Gets the contained fluid */
-  private Fluid getFluid() {
-    return CopperCanItem.getFluid(container);
-  }
-
-  /** Gets the contained fluid */
-  @Nullable
-  private CompoundTag getFluidTag() {
-    return CopperCanItem.getFluidTag(container);
+  /** Gets the contained fluid, normalized to one ingot */
+  private FluidStack getStored() {
+    return CopperCanItem.getFluidStack(container);
   }
 
   @Nonnull
   @Override
   public FluidStack getFluidInTank(int tank) {
-    Fluid fluid = getFluid();
-    if (fluid == Fluids.EMPTY) {
+    FluidStack stored = getStored();
+    if (stored.isEmpty()) {
       return FluidStack.EMPTY;
     }
-    return new FluidStack(getFluid(), getCapacity(), getFluidTag());
+    return stored.copyWithAmount(getCapacity());
   }
 
 
@@ -84,7 +66,7 @@ public class CopperCanFluidHandler implements IFluidHandlerItem, ICapabilityProv
   public int fill(FluidStack resource, FluidAction action) {
     // must not be filled, must have enough
     int capacity = getCapacity();
-    if (getFluid() != Fluids.EMPTY || resource.getAmount() < capacity) {
+    if (!getStored().isEmpty() || resource.getAmount() < capacity) {
       return 0;
     }
     // update fluid and return
@@ -103,14 +85,13 @@ public class CopperCanFluidHandler implements IFluidHandlerItem, ICapabilityProv
     if (resource.isEmpty() || resource.getAmount() < capacity) {
       return FluidStack.EMPTY;
     }
-    // must have a fluid, must match what they are draining
-    Fluid fluid = getFluid();
-    if (fluid == Fluids.EMPTY || fluid != resource.getFluid()) {
+    // must have a fluid, must match what they are draining, components included
+    FluidStack stored = getStored();
+    if (stored.isEmpty()) {
       return FluidStack.EMPTY;
     }
-    // make sure NBT matches the requested NBT
-    FluidStack output = new FluidStack(fluid, capacity, getFluidTag());
-    if (!FluidStack.areFluidStackTagsEqual(resource, output)) {
+    FluidStack output = stored.copyWithAmount(capacity);
+    if (!FluidStack.isSameFluidSameComponents(resource, output)) {
       return FluidStack.EMPTY;
     }
     // output 1 ingot times stack size
@@ -129,12 +110,12 @@ public class CopperCanFluidHandler implements IFluidHandlerItem, ICapabilityProv
       return FluidStack.EMPTY;
     }
     // must have a fluid
-    Fluid fluid = getFluid();
-    if (fluid == Fluids.EMPTY) {
+    FluidStack stored = getStored();
+    if (stored.isEmpty()) {
       return FluidStack.EMPTY;
     }
     // output 1 ingot
-    FluidStack output = new FluidStack(fluid, capacity, getFluidTag());
+    FluidStack output = stored.copyWithAmount(capacity);
     if (action.execute()) {
       CopperCanItem.setFluid(container, FluidStack.EMPTY);
     }

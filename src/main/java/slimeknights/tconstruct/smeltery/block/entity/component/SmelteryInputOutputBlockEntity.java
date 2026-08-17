@@ -3,6 +3,7 @@ package slimeknights.tconstruct.smeltery.block.entity.component;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.block.Block;
@@ -10,18 +11,12 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.common.util.NonNullConsumer;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.EmptyFluidHandler;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 import slimeknights.mantle.block.entity.IRetexturedBlockEntity;
-import slimeknights.mantle.inventory.EmptyItemHandler;
 import slimeknights.mantle.util.RetexturedHelper;
-import slimeknights.mantle.util.WeakConsumerWrapper;
 import slimeknights.tconstruct.common.multiblock.IMasterLogic;
 import slimeknights.tconstruct.smeltery.TinkerSmeltery;
 import slimeknights.tconstruct.smeltery.block.entity.tank.ISmelteryTankHandler;
@@ -33,41 +28,40 @@ import java.util.Objects;
 import static slimeknights.mantle.util.RetexturedHelper.TAG_TEXTURE;
 
 /**
- * Shared logic between drains and ducts
+ * Shared logic between drains and ducts.
+ * <p>
+ * This is the one cached-neighbor class in this package that is not built on
+ * {@link slimeknights.tconstruct.library.utils.NeighborCapabilityCache}, and the reason is worth stating: the block
+ * being watched is the multiblock's master, and for the fluid half the master exposes nothing at its own position -
+ * {@link ISmelteryTankHandler#getFluidHandler()} is read off the block entity directly, precisely so a pipe cannot
+ * talk to a smeltery controller. There is no registered capability there for a cache to watch. So the handler is
+ * memoized with the lifetime 1.20's LazyOptional had - dropped whenever the master changes - and dropping it also
+ * invalidates this block's own capability, which is what the old wrapper optional's invalidation did for whoever was
+ * caching the drain.
  */
 public abstract class SmelteryInputOutputBlockEntity<T> extends SmelteryComponentBlockEntity implements IRetexturedBlockEntity {
-  /** Capability this TE watches */
-  private final Capability<T> capability;
-  /** Empty capability for in case the valid capability becomes invalid without invalidating */
-  protected final T emptyInstance;
-  /** Listener to attach to consumed capabilities */
-  protected final NonNullConsumer<LazyOptional<T>> listener = new WeakConsumerWrapper<>(this, (te, cap) -> te.clearHandler());
+  /** Handler fetched from the master, null when the master has none */
   @Nullable
-  private LazyOptional<T> capabilityHolder = null;
+  private T handler;
+  /** Separate from a null handler, which means we looked and the master had nothing */
+  private boolean fetched = false;
 
   /* Retexturing */
   @Nonnull
   @Getter
   private Block texture = Blocks.AIR;
 
-  protected SmelteryInputOutputBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, Capability<T> capability, T emptyInstance) {
+  protected SmelteryInputOutputBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
     super(type, pos, state);
-    this.capability = capability;
-    this.emptyInstance = emptyInstance;
   }
 
-  /** Clears all cached capabilities */
+  /** Clears the cached handler and tells anyone caching ours that it changed */
   private void clearHandler() {
-    if (capabilityHolder != null) {
-      capabilityHolder.invalidate();
-      capabilityHolder = null;
+    handler = null;
+    fetched = false;
+    if (level != null) {
+      invalidateCapabilities();
     }
-  }
-
-  @Override
-  public void invalidateCaps() {
-    super.invalidateCaps();
-    clearHandler();
   }
 
   @Override
@@ -93,47 +87,32 @@ public abstract class SmelteryInputOutputBlockEntity<T> extends SmelteryComponen
   }
 
   /**
-   * Gets the capability to store in this IO block. Capability parent should have the proper listeners attached
+   * Gets the handler to expose from this IO block, given the master block entity.
    * @param parent  Parent tile entity
-   * @return  Capability from parent, or empty if absent
+   * @return  Handler from the parent, or null if it has none
    */
-  protected LazyOptional<T> getCapability(BlockEntity parent) {
-    LazyOptional<T> handler = parent.getCapability(capability);
-    if (handler.isPresent()) {
-      handler.addListener(listener);
-
-      return LazyOptional.of(() -> handler.orElse(emptyInstance));
-    }
-    return LazyOptional.empty();
-  }
+  @Nullable
+  protected abstract T fetchHandler(BlockEntity parent);
 
   /**
-   * Fetches the capability handlers if missing
+   * Gets the handler this block hands out as its capability, fetching it from the master if needed.
+   * @return  Handler, or null if there is no master or the master has none
    */
-  private LazyOptional<T> getCachedCapability() {
-    if (capabilityHolder == null) {
+  @Nullable
+  public T getHandler() {
+    if (!fetched) {
+      fetched = true;
       if (validateMaster()) {
         BlockPos master = getMasterPos();
         if (master != null && this.level != null) {
           BlockEntity te = level.getBlockEntity(master);
           if (te != null) {
-            capabilityHolder = getCapability(te);
-            return capabilityHolder;
+            handler = fetchHandler(te);
           }
         }
       }
-      capabilityHolder = LazyOptional.empty();
     }
-    return capabilityHolder;
-  }
-
-  @Nonnull
-  @Override
-  public <C> LazyOptional<C> getCapability(Capability<C> capability, @Nullable Direction facing) {
-    if (capability == this.capability) {
-      return getCachedCapability().cast();
-    }
-    return super.getCapability(capability, facing);
+    return handler;
   }
 
 
@@ -169,16 +148,16 @@ public abstract class SmelteryInputOutputBlockEntity<T> extends SmelteryComponen
   }
 
   @Override
-  protected void saveSynced(CompoundTag tags) {
-    super.saveSynced(tags);
+  protected void saveSynced(CompoundTag tags, HolderLookup.Provider registries) {
+    super.saveSynced(tags, registries);
     if (texture != Blocks.AIR) {
       tags.putString(TAG_TEXTURE, getTextureName());
     }
   }
 
   @Override
-  public void load(CompoundTag tags) {
-    super.load(tags);
+  protected void loadAdditional(CompoundTag tags, HolderLookup.Provider registries) {
+    super.loadAdditional(tags, registries);
     if (tags.contains(TAG_TEXTURE, Tag.TAG_STRING)) {
       texture = RetexturedHelper.getBlock(tags.getString(TAG_TEXTURE));
       RetexturedHelper.onTextureUpdated(this);
@@ -189,25 +168,25 @@ public abstract class SmelteryInputOutputBlockEntity<T> extends SmelteryComponen
   /** Fluid implementation of smeltery IO */
   public static abstract class SmelteryFluidIO extends SmelteryInputOutputBlockEntity<IFluidHandler> {
     protected SmelteryFluidIO(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-      super(type, pos, state, ForgeCapabilities.FLUID_HANDLER, EmptyFluidHandler.INSTANCE);
+      super(type, pos, state);
     }
 
-    /** Wraps the given capability */
-    protected LazyOptional<IFluidHandler> makeWrapper(LazyOptional<IFluidHandler> capability) {
-      return LazyOptional.of(() -> capability.orElse(emptyInstance));
+    /** Wraps the master's handler before handing it out */
+    protected IFluidHandler makeWrapper(IFluidHandler handler) {
+      return handler;
     }
 
+    @Nullable
     @Override
-    protected LazyOptional<IFluidHandler> getCapability(BlockEntity parent) {
+    protected IFluidHandler fetchHandler(BlockEntity parent) {
       // fluid capability is not exposed directly in the smeltery
       if (parent instanceof ISmelteryTankHandler tankHandler) {
-        LazyOptional<IFluidHandler> capability = tankHandler.getFluidCapability();
-        if (capability.isPresent()) {
-          capability.addListener(listener);
-          return makeWrapper(capability);
+        IFluidHandler handler = tankHandler.getFluidHandler();
+        if (handler != null) {
+          return makeWrapper(handler);
         }
       }
-      return LazyOptional.empty();
+      return null;
     }
   }
 
@@ -218,7 +197,14 @@ public abstract class SmelteryInputOutputBlockEntity<T> extends SmelteryComponen
     }
 
     protected ChuteBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-      super(type, pos, state, ForgeCapabilities.ITEM_HANDLER, EmptyItemHandler.INSTANCE);
+      super(type, pos, state);
+    }
+
+    @Nullable
+    @Override
+    protected IItemHandler fetchHandler(BlockEntity parent) {
+      assert level != null;
+      return level.getCapability(Capabilities.ItemHandler.BLOCK, parent.getBlockPos(), null);
     }
   }
 

@@ -2,46 +2,35 @@ package slimeknights.tconstruct.smeltery.item;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import slimeknights.tconstruct.smeltery.block.entity.component.TankBlockEntity;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
- * Handler that works with a tank item to adjust its tank in NBT
+ * Handler that works with a tank item to adjust the fluid component on it.
+ * <p>
+ * 1.20 also implemented {@code ICapabilityProvider} and returned itself; the capability is granted per item from
+ * {@code RegisterCapabilitiesEvent} now, so this is just the handler (M7 §5).
  */
 @RequiredArgsConstructor
-public class TankItemFluidHandler implements IFluidHandlerItem, ICapabilityProvider {
-  private final LazyOptional<IFluidHandlerItem> holder = LazyOptional.of(() -> this);
+public class TankItemFluidHandler implements IFluidHandlerItem {
   private final TankItem tankItem;
   @Getter
   private final ItemStack container;
 
   /** Gets the tank on the stack */
-  private FluidTank getTank() {
+  private ScaledFluidTank getTank() {
     // TODO: can we directly use the nested tank as our fluid handler instead of doing this wrapper?
     // might be more efficient, though it may require validating the stack size/NBT did not change externally
     return tankItem.getTank(container);
   }
 
   /** Updates the container from the given tank */
-  private void updateContainer(FluidTank tank) {
-    TankItem.setTank(container, tank);
-  }
-
-  @Nonnull
-  @Override
-  public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-    return ForgeCapabilities.FLUID_HANDLER_ITEM.orEmpty(cap, holder);
+  private void updateContainer(ScaledFluidTank tank) {
+    TankItem.setTank(container, tank.getStoredFluid());
   }
 
   @Override
@@ -67,7 +56,7 @@ public class TankItemFluidHandler implements IFluidHandlerItem, ICapabilityProvi
 
   @Override
   public int fill(FluidStack resource, FluidAction action) {
-    FluidTank tank = getTank();
+    ScaledFluidTank tank = getTank();
     int didFill = tank.fill(resource, action);
     if (didFill > 0 && action.execute()) {
       updateContainer(tank);
@@ -78,7 +67,7 @@ public class TankItemFluidHandler implements IFluidHandlerItem, ICapabilityProvi
   @Nonnull
   @Override
   public FluidStack drain(FluidStack resource, FluidAction action) {
-    FluidTank tank = getTank();
+    ScaledFluidTank tank = getTank();
     FluidStack didDrain = tank.drain(resource, action);
     if (!didDrain.isEmpty() && action.execute()) {
       updateContainer(tank);
@@ -89,7 +78,7 @@ public class TankItemFluidHandler implements IFluidHandlerItem, ICapabilityProvi
   @Nonnull
   @Override
   public FluidStack drain(int maxDrain, FluidAction action) {
-    FluidTank tank = getTank();
+    ScaledFluidTank tank = getTank();
     FluidStack didDrain = tank.drain(maxDrain, action);
     if (!didDrain.isEmpty() && action.execute()) {
       updateContainer(tank);

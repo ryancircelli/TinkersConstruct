@@ -6,8 +6,8 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.VillagerTrades.ItemListing;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.materials.RandomMaterial;
@@ -49,7 +49,8 @@ public enum AncientToolItemListing implements ItemListing {
       }
       // formula is a cost of 6-8 emeralds per tier, meaning cost ranges from 6 (min tier 1) to 32 (max tier 4)
       int cost = Math.round(tier * 6) + random.nextInt(Math.round(2 * tier) + 1);
-      return new MerchantOffer(new ItemStack(Items.EMERALD, cost), tool.createStack(), 1, 15, 1);
+      // MerchantOffer takes an ItemCost for its input side now, not a raw ItemStack
+      return new MerchantOffer(new ItemCost(Items.EMERALD, cost), tool.createStack(), 1, 15, 1);
     }
     return null;
   }

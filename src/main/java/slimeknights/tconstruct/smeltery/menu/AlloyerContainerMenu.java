@@ -3,7 +3,7 @@ package slimeknights.tconstruct.smeltery.menu;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -11,9 +11,9 @@ import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.EmptyFluidHandler;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.EmptyFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 import slimeknights.mantle.fluid.FluidTransferHelper;
 import slimeknights.mantle.fluid.transfer.IFluidContainerTransfer.TransferDirection;
 import slimeknights.mantle.fluid.transfer.IFluidContainerTransfer.TransferResult;
@@ -46,7 +46,7 @@ public class AlloyerContainerMenu extends TriggeringBaseContainerMenu<AlloyerBlo
         MixerAlloyTank alloyTank = alloyer.getAlloyTank();
         for (Direction direction : Direction.values()) {
           if (direction != Direction.DOWN) {
-            alloyTank.refresh(direction, true);
+            alloyTank.refresh(direction);
           }
         }
       }
@@ -72,7 +72,7 @@ public class AlloyerContainerMenu extends TriggeringBaseContainerMenu<AlloyerBlo
     }
   }
 
-  public AlloyerContainerMenu(int id, Inventory inv, FriendlyByteBuf buf) {
+  public AlloyerContainerMenu(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
     this(id, inv, getTileEntityFromBuf(buf, AlloyerBlockEntity.class));
   }
 

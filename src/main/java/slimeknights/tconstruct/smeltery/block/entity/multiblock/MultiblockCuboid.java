@@ -442,12 +442,17 @@ public abstract class MultiblockCuboid<T extends MultiblockStructureData> {
     if (!rootTag.contains(key, Tag.TAG_LIST)) {
       return Collections.emptyList();
     }
-    ListTag list = rootTag.getList(key, Tag.TAG_COMPOUND);
+    // 1.21 writes a block position as an int array rather than a compound of X/Y/Z, and the only reader vanilla
+    // exposes takes a key out of a compound, which a list element has none of - so the three ints are read directly
+    ListTag list = rootTag.getList(key, Tag.TAG_INT_ARRAY);
     List<BlockPos> collection = new ArrayList<>(list.size());
     for (int i = 0; i < list.size(); i++) {
-      BlockPos pos = NbtUtils.readBlockPos(list.getCompound(i));
-      if (!pos.equals(BlockPos.ZERO)) {
-        collection.add(pos.offset(offset));
+      int[] coords = list.getIntArray(i);
+      if (coords.length == 3) {
+        BlockPos pos = new BlockPos(coords[0], coords[1], coords[2]);
+        if (!pos.equals(BlockPos.ZERO)) {
+          collection.add(pos.offset(offset));
+        }
       }
     }
     return collection;
