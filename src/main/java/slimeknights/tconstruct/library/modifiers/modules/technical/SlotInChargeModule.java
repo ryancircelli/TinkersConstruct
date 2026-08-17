@@ -5,8 +5,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlot.Type;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.common.util.LazyOptional;
-import slimeknights.mantle.util.LogicHelper;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
@@ -43,12 +41,13 @@ public record SlotInChargeModule(TinkerDataKey<SlotInCharge> key, @Nullable TagK
     // remove slot in charge if that is us
     EquipmentSlot slot = context.getChangedSlot();
     if (toolValid(tool, slot, context)) {
-      context.getTinkerData().ifPresent(data -> {
+      TinkerDataCapability.Holder data = context.getDataHolder();
+      if (data != null) {
         SlotInCharge slotInCharge = data.get(key);
         if (slotInCharge != null) {
           slotInCharge.removeSlot(slot);
         }
-      });
+      }
     }
   }
 
@@ -56,7 +55,10 @@ public record SlotInChargeModule(TinkerDataKey<SlotInCharge> key, @Nullable TagK
   public void onEquip(IToolStackView tool, ModifierEntry modifier, EquipmentChangeContext context) {
     EquipmentSlot slot = context.getChangedSlot();
     if (toolValid(tool, slot, context)) {
-      context.getTinkerData().ifPresent(data -> data.computeIfAbsent(key, CONSTRUCTOR).addSlot(slot, modifier.getLevel()));
+      TinkerDataCapability.Holder data = context.getDataHolder();
+      if (data != null) {
+        data.computeIfAbsent(key, CONSTRUCTOR).addSlot(slot, modifier.getLevel());
+      }
     }
   }
 
@@ -66,8 +68,7 @@ public record SlotInChargeModule(TinkerDataKey<SlotInCharge> key, @Nullable TagK
   }
 
   /** Checks if the given slot is in charge */
-  public static boolean isInCharge(LazyOptional<TinkerDataCapability.Holder> capability, TinkerDataKey<SlotInCharge> key, EquipmentSlot slot) {
-    TinkerDataCapability.Holder data = LogicHelper.orElseNull(capability);
+  public static boolean isInCharge(@Nullable TinkerDataCapability.Holder data, TinkerDataKey<SlotInCharge> key, EquipmentSlot slot) {
     if (data != null) {
       SlotInCharge inCharge = data.get(key);
       return inCharge != null && inCharge.inCharge == slot;
@@ -76,8 +77,7 @@ public record SlotInChargeModule(TinkerDataKey<SlotInCharge> key, @Nullable TagK
   }
 
   /** Gets the total level if the passed slot is in charge. */
-  public static int getLevel(LazyOptional<TinkerDataCapability.Holder> capability, TinkerDataKey<SlotInCharge> key, EquipmentSlot slot) {
-    TinkerDataCapability.Holder data = LogicHelper.orElseNull(capability);
+  public static int getLevel(@Nullable TinkerDataCapability.Holder data, TinkerDataKey<SlotInCharge> key, EquipmentSlot slot) {
     if (data != null) {
       SlotInCharge inCharge = data.get(key);
       return inCharge != null && inCharge.inCharge == slot ? inCharge.totalLevel : 0;
@@ -85,9 +85,14 @@ public record SlotInChargeModule(TinkerDataKey<SlotInCharge> key, @Nullable TagK
     return 0;
   }
 
-  /** Tracker to determine which slot should be in charge */
+  /**
+   * Tracker to determine which slot should be in charge.
+   * @apiNote Indexed by {@link EquipmentSlot#ordinal()} rather than {@link EquipmentSlot#getFilterFlag()}: the
+   * filter flag is a bit position in an unrelated protocol and is not promised to stay dense now that
+   * {@link EquipmentSlot#BODY} exists (T8b SS5), while the enum's own ordinal is dense by construction.
+   */
   public static class SlotInCharge {
-    private final int[] levels = new int[6];
+    private final int[] levels = new int[EquipmentSlot.values().length];
     @Getter
     private int totalLevel = 0;
     @Getter
@@ -98,7 +103,7 @@ public record SlotInChargeModule(TinkerDataKey<SlotInCharge> key, @Nullable TagK
 
     /** Adds the given slot to the tracker */
     private void addSlot(EquipmentSlot slotType, int level) {
-      int index = slotType.getFilterFlag();
+      int index = slotType.ordinal();
       totalLevel += level - levels[index];
       levels[index] = level;
       // prefer armor in charge as hand only runs when blocking, prefer mainhand over offhand
@@ -109,19 +114,19 @@ public record SlotInChargeModule(TinkerDataKey<SlotInCharge> key, @Nullable TagK
 
     /** Removes the given slot from the tracker */
     private void removeSlot(EquipmentSlot slotType) {
-      int index = slotType.getFilterFlag();
+      int index = slotType.ordinal();
       totalLevel -= levels[index];
       levels[index] = 0;
       // prioritize armor slots
       for (EquipmentSlot armorSlot : ModifiableArmorMaterial.ARMOR_SLOTS) {
-        if (levels[armorSlot.getFilterFlag()] > 0) {
+        if (levels[armorSlot.ordinal()] > 0) {
           inCharge = armorSlot;
           return;
         }
       }
       // if none, find a hand slot
       for (EquipmentSlot hand : InteractionHandler.HAND_SLOTS) {
-        if (levels[hand.getFilterFlag()] > 0) {
+        if (levels[hand.ordinal()] > 0) {
           inCharge = hand;
           return;
         }

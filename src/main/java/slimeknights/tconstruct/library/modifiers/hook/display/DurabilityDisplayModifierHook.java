@@ -46,7 +46,8 @@ public interface DurabilityDisplayModifierHook {
   static boolean showDurabilityBar(ItemStack stack) {
     // don't show durability bar if the tool does not support durability
     // we don't use that feature in the base mod, but Tinkers' Things notably has a tool that uses it
-    if (!stack.getItem().canBeDepleted() || !stack.is(TinkerTags.Items.DURABILITY)) {
+    // Item#canBeDepleted is gone with the max damage field it read; the stack level question is the same one
+    if (!stack.isDamageableItem() || !stack.is(TinkerTags.Items.DURABILITY)) {
       return false;
     }
 
@@ -58,7 +59,8 @@ public interface DurabilityDisplayModifierHook {
         return show;
       }
     }
-    return tool.getItem().canBeDepleted() && tool.getDamage() > 0;
+    // the durability check at the top already answered the item half of this
+    return tool.getDamage() > 0;
   }
 
   /**

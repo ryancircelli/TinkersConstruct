@@ -8,10 +8,16 @@ import slimeknights.tconstruct.library.tools.definition.ModifiableArmorMaterial;
 
 import javax.annotation.Nullable;
 
-/** Helper class to keep track the max modifier level in a modifier, floats, keeps track of max slot, and tracks all 6 slots */
+/**
+ * Helper class to keep track the max modifier level in a modifier, floats, keeps track of max slot, and tracks every slot.
+ * @apiNote  1.21 added {@link EquipmentSlot#BODY} for animal armor, so this is no longer six slots and the array is
+ *           sized from the enum rather than counted by hand. It is indexed by {@link EquipmentSlot#ordinal()} for the
+ *           same reason: {@link EquipmentSlot#getFilterFlag()} happens to be dense today, but it is a bit position in
+ *           an unrelated protocol and nothing keeps it that way.
+ */
 public class ModifierMaxLevel {
   /** Level for each slot */
-  private final float[] levels = new float[6];
+  private final float[] levels = new float[EquipmentSlot.values().length];
   /** Max level across all slots */
   @Getter
   private float max = 0;
@@ -21,10 +27,10 @@ public class ModifierMaxLevel {
 
   /** Sets the given value in the structure */
   public void set(EquipmentSlot slot, float level) {
-    float oldLevel = levels[slot.getFilterFlag()];
+    float oldLevel = levels[slot.ordinal()];
     if (level != oldLevel) {
       // first, update level
-      levels[slot.getFilterFlag()] = level;
+      levels[slot.ordinal()] = level;
       // if larger than max, new max
       if (level >= max) {
         max = level;
@@ -33,7 +39,7 @@ public class ModifierMaxLevel {
         // if the old level was max, find new max
         max = 0;
         for (EquipmentSlot armorSlot : ModifiableArmorMaterial.ARMOR_SLOTS) {
-          float value = levels[armorSlot.getFilterFlag()];
+          float value = levels[armorSlot.ordinal()];
           if (value > max) {
             max = value;
             maxSlot = armorSlot;

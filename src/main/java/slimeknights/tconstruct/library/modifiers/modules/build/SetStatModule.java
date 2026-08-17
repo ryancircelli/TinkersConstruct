@@ -3,7 +3,7 @@ package slimeknights.tconstruct.library.modifiers.modules.build;
 import com.google.gson.JsonObject;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.util.JsonHelper;
@@ -81,12 +81,12 @@ public record SetStatModule<T>(IToolStat<T> stat, T value, ModifierCondition<ITo
     }
 
     @Override
-    public SetStatModule<?> decode(FriendlyByteBuf buffer, TypedMap context) {
+    public SetStatModule<?> decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
       return decode(buffer, ToolStats.LOADER.decode(buffer, context), context);
     }
 
     /** Handles generics for reading the value from network */
-    private static <T> SetStatModule<T> decode(FriendlyByteBuf buffer, IToolStat<T> stat, TypedMap context) {
+    private static <T> SetStatModule<T> decode(RegistryFriendlyByteBuf buffer, IToolStat<T> stat, TypedMap context) {
       return new SetStatModule<>(
         stat, stat.fromNetwork(buffer),
         ModifierCondition.CONTEXT_FIELD.decode(buffer, context)
@@ -94,14 +94,14 @@ public record SetStatModule<T>(IToolStat<T> stat, T value, ModifierCondition<ITo
     }
 
     @Override
-    public void encode(FriendlyByteBuf buffer, SetStatModule<?> object) {
+    public void encode(RegistryFriendlyByteBuf buffer, SetStatModule<?> object) {
       ToolStats.LOADER.encode(buffer, object.stat);
       writeValue(object, buffer);
       ModifierCondition.CONTEXT_FIELD.encode(buffer, object);
     }
 
     /** Handles generics for writing the value to network */
-    private static <T> void writeValue(SetStatModule<T> object, FriendlyByteBuf buffer) {
+    private static <T> void writeValue(SetStatModule<T> object, RegistryFriendlyByteBuf buffer) {
       object.stat.toNetwork(buffer, object.value);
     }
   };

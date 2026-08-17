@@ -1,25 +1,26 @@
 package slimeknights.tconstruct.library.modifiers.fluid;
 
 import com.google.common.collect.ImmutableList;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.data.loadable.primitive.IntLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.modifiers.fluid.block.MobEffectCloudFluidEffect;
+import slimeknights.tconstruct.library.tools.helper.ModifierUtil;
 import slimeknights.tconstruct.library.modifiers.fluid.entity.MobEffectFluidEffect;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 /**
  * Common logic for effects between {@link slimeknights.tconstruct.library.modifiers.fluid.entity.MobEffectFluidEffect} and {@link slimeknights.tconstruct.library.modifiers.fluid.block.MobEffectCloudFluidEffect}
@@ -51,11 +52,22 @@ public record FluidMobEffect(MobEffect effect, int time, int level, @Nullable Li
     return time == MobEffectInstance.INFINITE_DURATION;
   }
 
+  /**
+   * Gets a holder for this effect.
+   * @apiNote Mob effects are a built-in, not datapack, registry in 1.21 - {@link Loadables#MOB_EFFECT} still
+   * resolves to a plain {@link MobEffect} - but {@link MobEffectInstance} and {@link LivingEntity#getEffect}
+   * take a {@link Holder} regardless, the same split behavior attributes have.
+   */
+  private Holder<MobEffect> holder() {
+    return BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);
+  }
+
   /** Creates the final effect */
   public MobEffectInstance effectWithTime(int time) {
-    MobEffectInstance instance = new MobEffectInstance(effect, time, this.level - 1);
+    MobEffectInstance instance = new MobEffectInstance(holder(), time, this.level - 1);
     if (curativeItems != null) {
-      instance.setCurativeItems(curativeItems.stream().map(ItemStack::new).collect(Collectors.toList()));
+      // each curative item is its own interned token now (T17 §6.1), not an ItemStack list
+      curativeItems.forEach(item -> instance.getCures().add(ModifierUtil.curedByItem(item)));
     }
     return instance;
   }
@@ -84,7 +96,7 @@ public record FluidMobEffect(MobEffect effect, int time, int level, @Nullable Li
       used = 1;
     } else {
       // add and set both have distinct behavior under an existing effect, same otherwise
-      MobEffectInstance existingInstance = target.getEffect(effect);
+      MobEffectInstance existingInstance = target.getEffect(holder());
       int amplifier = amplifier();
       if (existingInstance != null && existingInstance.getAmplifier() >= amplifier) {
         // if the existing level is larger, just skip, would be a cheese to increase said level

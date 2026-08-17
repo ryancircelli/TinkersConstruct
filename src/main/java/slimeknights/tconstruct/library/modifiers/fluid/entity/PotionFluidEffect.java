@@ -1,12 +1,20 @@
 package slimeknights.tconstruct.library.modifiers.fluid.entity;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.component.CustomData;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import slimeknights.mantle.data.loadable.primitive.FloatLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.tconstruct.library.modifiers.fluid.EffectLevel;
@@ -28,12 +36,45 @@ public record PotionFluidEffect(float scale, TagPredicate predicate) implements 
     return LOADER;
   }
 
+  /**
+   * Gets the potion carried by a fluid stack.
+   * @apiNote {@code PotionUtils} and {@code FluidStack#getTag} are both gone in 1.21; a fluid carries data
+   * components exactly as an item does, so the primary path is {@link DataComponents#POTION_CONTENTS}, the same
+   * component {@link slimeknights.tconstruct.fluids.fluids.PotionFluidType} writes for Tinkers' own potion fluid.
+   * The raw "Potion" string read out of {@link DataComponents#CUSTOM_DATA} is compat for a fluid that has not
+   * migrated off free-form NBT (e.g. Create's own potion fluid) - unverified against that mod's own 1.21 port, since
+   * the closest 1.21 analogue of a fluid's old free-form tag is the same custom-data component an item uses.
+   * Defaults to an effect-less {@link Potion} exactly as {@code PotionUtils.getPotion} did for a missing key.
+   */
+  private static Potion getPotion(FluidStack fluid) {
+    PotionContents contents = fluid.get(DataComponents.POTION_CONTENTS);
+    if (contents != null && contents.potion().isPresent()) {
+      return contents.potion().get().value();
+    }
+    CustomData data = fluid.get(DataComponents.CUSTOM_DATA);
+    if (data != null) {
+      CompoundTag tag = data.copyTag();
+      if (tag.contains("Potion", Tag.TAG_STRING)) {
+        ResourceLocation id = ResourceLocation.tryParse(tag.getString("Potion"));
+        if (id != null) {
+          Potion potion = BuiltInRegistries.POTION.get(id);
+          if (potion != null) {
+            return potion;
+          }
+        }
+      }
+    }
+    return new Potion();
+  }
+
   @Override
   public float apply(FluidStack fluid, EffectLevel level, FluidEffectContext.Entity context, FluidAction action) {
     LivingEntity target = context.getLivingTarget();
+    CustomData data = fluid.get(DataComponents.CUSTOM_DATA);
+    CompoundTag tag = data != null ? data.copyTag() : null;
     // must match the tag predicate
-    if (target != null && predicate.test(fluid.getTag())) {
-      List<MobEffectInstance> effects = PotionUtils.getPotion(fluid.getTag()).getEffects();
+    if (target != null && predicate.test(tag)) {
+      List<MobEffectInstance> effects = getPotion(fluid).getEffects();
       if (!effects.isEmpty()) {
         LivingEntity attacker = context.getEntity();
         Entity directSource = context.getDirectSource();
@@ -43,13 +84,13 @@ public record PotionFluidEffect(float scale, TagPredicate predicate) implements 
         // report whichever effect used the most
         float used = 0;
         for (MobEffectInstance instance : effects) {
-          MobEffect effect = instance.getEffect();
-          if (effect.isInstantenous()) {
+          Holder<MobEffect> effect = instance.getEffect();
+          if (effect.value().isInstantenous()) {
             // instant effects just apply full value always
             used = level.value();
             if (action.execute()) {
               target.invulnerableTime = 0;
-              effect.applyInstantenousEffect(directSource, attacker, target, instance.getAmplifier(), used * scale);
+              effect.value().applyInstantenousEffect(directSource, attacker, target, instance.getAmplifier(), used * scale);
             }
           } else {
             // if the potion already exists, we scale up the existing time

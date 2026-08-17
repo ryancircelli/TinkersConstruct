@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
@@ -16,7 +18,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -58,6 +59,7 @@ import slimeknights.tconstruct.library.module.ModuleHook;
 import slimeknights.tconstruct.library.tools.context.EquipmentContext;
 import slimeknights.tconstruct.library.tools.context.ToolAttackContext;
 import slimeknights.tconstruct.library.tools.context.ToolHarvestContext;
+import slimeknights.tconstruct.library.tools.helper.ModifierUtil;
 import slimeknights.tconstruct.library.tools.helper.ToolDamageUtil;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ModDataNBT;
@@ -69,7 +71,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNullElse;
 import static slimeknights.tconstruct.TConstruct.RANDOM;
@@ -232,11 +233,14 @@ public interface MobEffectModule extends ModifierModule, ConditionalModule<ITool
       }
       float duration = this.time.computeValue(scaledLevel);
       if (duration > 0) {
-        MobEffectInstance instance = new MobEffectInstance(effect, (int)duration, level);
+        Holder<MobEffect> holder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);
+        MobEffectInstance instance = new MobEffectInstance(holder, (int)duration, level);
         if (curativeItems != null) {
-          instance.setCurativeItems(curativeItems.stream().map(ItemStack::new).collect(Collectors.toList()));
+          // each curative item is its own interned token now (T17 §6.1); the fix also stops discarding
+          // the cures into an instance that was never the one actually applied below
+          curativeItems.forEach(item -> instance.getCures().add(ModifierUtil.curedByItem(item)));
         }
-        target.addEffect(new MobEffectInstance(effect, (int)duration, level), cause);
+        target.addEffect(instance, cause);
       }
     }
 

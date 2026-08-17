@@ -98,9 +98,22 @@ public interface EntityInteractionModifierHook {
     return tool.hasTag(TinkerTags.Items.MELEE_WEAPON) && !meleeDisabled(tool);
   }
 
-  /** Logic to left click an entity using interaction modifiers */
+  /**
+   * Logic to left click an entity using interaction modifiers.
+   * <p>
+   * Every branch below can write to the tool - the interaction hooks say nothing about whether they do, and the melee
+   * fallback damages it - and each of them returns straight out, so the commit lives here rather than at the returns.
+   * Mirrors {@link ToolAttackUtil#attackEntity(ItemStack, Player, Entity)}, which wraps its view overload the same way.
+   */
   static boolean leftClickEntity(ItemStack stack, Player player, Entity target) {
     ToolStack tool = ToolStack.mutable(stack);
+    boolean result = leftClickEntity(stack, tool, player, target);
+    tool.updateStack();
+    return result;
+  }
+
+  /** Body of {@link #leftClickEntity(ItemStack, Player, Entity)}, split out so every exit commits exactly once */
+  private static boolean leftClickEntity(ItemStack stack, ToolStack tool, Player player, Entity target) {
     boolean noMelee = meleeDisabled(tool);
     if (stack.is(TinkerTags.Items.INTERACTABLE_LEFT)) {
       if (!player.getCooldowns().isOnCooldown(stack.getItem())) {

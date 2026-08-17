@@ -2,6 +2,7 @@ package slimeknights.tconstruct.library.modifiers.modules.behavior;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -73,8 +74,9 @@ public interface BlockTransformModule extends ModifierModule, BlockInteractionMo
 
       // if the tool breaks or it was a campfire, we are done
       if (ToolDamageUtil.damage(tool, 1, player, stack, modifier.getId())) {
+        // broadcastBreakEvent is gone; onEquippedItemBroken is the same broadcast, now keyed by the broken item too
         if (player != null) {
-          player.broadcastBreakEvent(slotType);
+          player.onEquippedItemBroken(stack.getItem(), slotType);
         }
         return InteractionResult.CONSUME;
       }
@@ -110,7 +112,7 @@ public interface BlockTransformModule extends ModifierModule, BlockInteractionMo
             // stop if the tool broke
             if (ToolDamageUtil.damage(tool, 1, player, stack, modifier.getId())) {
               if (player != null) {
-                player.broadcastBreakEvent(context.getHand());
+                player.onEquippedItemBroken(stack.getItem(), context.getHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
               }
               break;
             }

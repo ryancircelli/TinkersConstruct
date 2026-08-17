@@ -8,6 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.TooltipFlag;
@@ -118,14 +119,15 @@ public record ArmorStatModule(TinkerDataKey<Float> key, LevelingValue amount, bo
    * @param amount   Amount to add
    */
   public static void addStat(EquipmentChangeContext context, TinkerDataKey<Float> key, float amount) {
-    context.getTinkerData().ifPresent(data -> {
+    TinkerDataCapability.Holder data = context.getDataHolder();
+    if (data != null) {
       float totalLevels = data.get(key, 0f) + amount;
       if (totalLevels <= 0.005f) {
         data.remove(key);
       } else {
         data.put(key, totalLevels);
       }
-    });
+    }
   }
 
   /**
@@ -147,9 +149,22 @@ public record ArmorStatModule(TinkerDataKey<Float> key, LevelingValue amount, bo
    * @param living  Living entity
    * @param key     Key to get
    * @return  Level from the key
+   * @apiNote The capability is only ever attached to a {@link LivingEntity}, per
+   * {@link TinkerDataCapability#getData(LivingEntity)} (T8a SS11); an {@code Entity} that is not one simply has
+   * no data, the same answer the old Forge capability query gave it.
    */
   public static float getStat(Entity living, TinkerDataKey<Float> key) {
-    return living.getCapability(TinkerDataCapability.CAPABILITY).resolve().map(data -> data.get(key)).orElse(0f);
+    if (living instanceof LivingEntity entity) {
+      TinkerDataCapability.Holder data = TinkerDataCapability.getData(entity);
+      if (data != null) {
+        // the defaulting overload, because a holder that exists need not carry this key: the single argument one is
+        // @Nullable and unboxing its null is an NPE. 1.20 read this as
+        // `capability.resolve().map(data -> data.get(key)).orElse(0f)`, where Optional#map collapsed the null into
+        // the same 0f as a missing capability, so the null case was covered without ever being written down.
+        return data.get(key, 0f);
+      }
+    }
+    return 0f;
   }
 
 

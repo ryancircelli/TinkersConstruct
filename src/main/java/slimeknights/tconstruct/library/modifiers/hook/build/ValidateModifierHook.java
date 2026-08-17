@@ -4,7 +4,7 @@ import net.minecraft.network.chat.Component;
 import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
-import slimeknights.tconstruct.library.utils.RestrictedCompoundTag;
+import slimeknights.tconstruct.library.tools.nbt.RawDataNBT;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -21,7 +21,7 @@ public interface ValidateModifierHook {
    * Alternatives:
    * <ul>
    *   <li>{@link ModifierRemovalHook}: Called when the last level of a modifier is removed.</li>
-   *   <li>{@link RawDataModifierHook#removeRawData(IToolStackView, Modifier, RestrictedCompoundTag)}: Called before the modifier is actually removed</li>
+   *   <li>{@link RawDataModifierHook#removeRawData(IToolStackView, Modifier, RawDataNBT)}: Called before the modifier is actually removed</li>
    * </ul>
    * @param tool      Current tool instance
    * @param modifier  Modifier being validated

@@ -3,6 +3,7 @@ package slimeknights.tconstruct.library.modifiers.fluid;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.serialization.JsonOps;
 import lombok.Getter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -10,12 +11,13 @@ import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.conditions.ICondition.IContext;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.event.OnDatapackSyncEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.common.conditions.ICondition.IContext;
+import net.minecraft.core.RegistryAccess;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import net.neoforged.bus.api.EventPriority;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.recipe.ingredient.FluidIngredient;
@@ -23,6 +25,8 @@ import slimeknights.mantle.util.JsonHelper;
 import slimeknights.mantle.util.typed.TypedMapBuilder;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.utils.JsonUtils;
+
+import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +54,9 @@ public class FluidEffectManager extends SimpleJsonResourceReloadListener {
 
   /** Condition context for recipe loading */
   private IContext conditionContext = IContext.EMPTY;
+  /** Registry access from the reload, for an effect naming a datapack registry entry */
+  @Nullable
+  private RegistryAccess registryAccess;
 
   private FluidEffectManager() {
     super(JsonHelper.DEFAULT_GSON, FOLDER);
@@ -57,14 +64,17 @@ public class FluidEffectManager extends SimpleJsonResourceReloadListener {
 
   /** For internal use only */
   public void init() {
-    MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, AddReloadListenerEvent.class, this::addDataPackListeners);
-    MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, OnDatapackSyncEvent.class, e -> JsonUtils.syncPackets(e, new UpdateFluidEffectsPacket(this.fluids)));
+    NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, AddReloadListenerEvent.class, this::addDataPackListeners);
+    NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, OnDatapackSyncEvent.class, e -> JsonUtils.syncPackets(e, new UpdateFluidEffectsPacket(this.fluids)));
   }
 
   /** Adds the managers as datapack listeners */
   private void addDataPackListeners(final AddReloadListenerEvent event) {
     event.addListener(this);
     conditionContext = event.getConditionContext();
+    // both built in and datapack registries are loaded and frozen by the time this event fires, which is what makes
+    // it the place to take the registries an effect may name. See apply.
+    registryAccess = event.getRegistryAccess();
   }
 
   /** Creates context for modifier parsing */
@@ -83,11 +93,28 @@ public class FluidEffectManager extends SimpleJsonResourceReloadListener {
       try {
         JsonObject json = GsonHelper.convertToJsonObject(entry.getValue(), "fluid_effect");
 
-        // want to parse condition without parsing effects, as the effect serializer may be missing
-        if (!CraftingHelper.processConditions(json, "conditions", conditionContext)) {
-          continue;
+        // want to parse conditions without parsing effects, as the effect loader may be missing
+        // 1.21 replaced CraftingHelper#processConditions with ICondition#CODEC (T4 SS3.2, ModifierManager); this
+        // reads the same "conditions" array the old helper did, AND-combining every entry the same way.
+        JsonElement conditionsElement = json.get("conditions");
+        if (conditionsElement != null) {
+          List<ICondition> conditions = ICondition.LIST_CODEC.parse(JsonOps.INSTANCE, conditionsElement).getOrThrow(JsonSyntaxException::new);
+          boolean matches = true;
+          for (ICondition condition : conditions) {
+            if (!condition.test(conditionContext)) {
+              matches = false;
+              break;
+            }
+          }
+          if (!matches) {
+            continue;
+          }
         }
-        fluids.add(new FluidEffects.Entry(key, FluidEffects.LOADABLE.deserialize(json, contextBuilder(key).put(ContextKey.CONDITION_CONTEXT, conditionContext).build())));
+        // the registries go in the context because an effect may name a datapack registry entry - break_block's
+        // "enchantments" map is keyed by one - and Mantle's DynamicRegistryLoadable has no ops to read them from on
+        // this path. Same fix and same reason as ModifierManager.
+        fluids.add(new FluidEffects.Entry(key, FluidEffects.LOADABLE.deserialize(json, contextBuilder(key).put(ContextKey.CONDITION_CONTEXT, conditionContext)
+                                                                                                          .put(ContextKey.REGISTRY_ACCESS, registryAccess).build())));
       } catch (JsonSyntaxException e) {
         TConstruct.LOG.error("Failed to load fluid effect {}", key, e);
       }

@@ -4,6 +4,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
 import slimeknights.tconstruct.library.modifiers.hook.mining.BlockHarvestModifierHook;
@@ -12,7 +13,6 @@ import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * This interface exposes two methods, {@link #updateEnchantmentLevel(IToolStackView, ModifierEntry, Holder, int)} and {@link #updateEnchantments(IToolStackView, ModifierEntry, EnchantmentLevels)}
@@ -41,28 +41,27 @@ public interface EnchantmentModifierHook {
   void updateEnchantments(IToolStackView tool, ModifierEntry modifier, EnchantmentLevels enchantments);
 
   /**
-   * Gets the enchantment level for the given tool
+   * Gets the enchantment level for the given tool, for {@code IItemExtension#getEnchantmentLevel(ItemStack, Holder)}
    * @param stack        Item stack instance
    * @param enchantment  Enchantment to query
    * @return  Enchantment level
    */
-  static int getEnchantmentLevel(ItemStack stack, Enchantment enchantment) {
+  static int getEnchantmentLevel(ItemStack stack, Holder<Enchantment> enchantment) {
     int level = EnchantmentHelper.getTagEnchantmentLevel(enchantment, stack);
-    Holder<Enchantment> holder = EnchantmentLevels.holder(enchantment);
     IToolStackView tool = ToolStack.from(stack);
     for (ModifierEntry entry : tool.getModifierList()) {
-      level = entry.getHook(ModifierHooks.ENCHANTMENTS).updateEnchantmentLevel(tool, entry, holder, level);
+      level = entry.getHook(ModifierHooks.ENCHANTMENTS).updateEnchantmentLevel(tool, entry, enchantment, level);
     }
     // we allow hooks to return negative, such as to cancel out an enchantment
     return Math.max(level, 0);
   }
 
   /**
-   * Gets all enchantments on the given stack
+   * Gets all enchantments on the given stack, for {@code IItemExtension#getAllEnchantments(ItemStack, RegistryLookup)}
    * @param stack  Stack instance
    * @return  All contained enchantments
    */
-  static Map<Enchantment,Integer> getAllEnchantments(ItemStack stack) {
+  static ItemEnchantments getAllEnchantments(ItemStack stack) {
     EnchantmentLevels enchantments = EnchantmentLevels.fromStack(stack);
     IToolStackView tool = ToolStack.from(stack);
     for (ModifierEntry entry : tool.getModifierList()) {
@@ -70,7 +69,7 @@ public interface EnchantmentModifierHook {
     }
     // we allow hooks to return negative, such as to cancel out an enchantment
     enchantments.removeNonPositive();
-    return enchantments.toMap();
+    return enchantments.toComponent();
   }
 
   /** Merger that combines all modules together */
