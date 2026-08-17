@@ -1,0 +1,11 @@
+{
+  "type": "tconstruct:casting_basin_potion",
+  "bottle": {
+    "tag": "forge:bottles/splash"
+  },
+  "fluid": {
+    "amount": 250,
+    "tag": "forge:potion"
+  },
+  "result": "minecraft:splash_potion"
+}
