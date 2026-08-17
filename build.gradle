@@ -1,7 +1,7 @@
 /*
  * Tinkers Construct
  * Master build file
- * 
+ *
  * Authors: boni, Sunstrike, ProgWML6
  * Help from AbrarSyed
  */
@@ -10,49 +10,55 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '[6.0,6.0.37]'
-    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
-    id 'io.freefair.lombok' version '8.6'
+    // ModDevGradle replaces ForgeGradle 6 + Librarian for the 1.21.1 / NeoForge port.
+    id 'net.neoforged.moddev' version '2.0.143'
+    id 'io.freefair.lombok' version '8.14.4'
 }
-//apply plugin: 'maven'
-
-//import net.minecraftforge.gradle.common.task.SignJar
 
 repositories {
     mavenCentral()
-    maven { // Mantle
-        name 'DVS1 Maven FS'
-        url 'https://dvs1.progwml6.com/files/maven'
-    }
-    maven { // TOP
-        name 'tterrag maven'
-        url "https://maven.tterrag.com/"
-    }
-    maven { // CraftTweaker, Immersive Engineering, JEI
-        name 'BlameJared Maven'
-        url 'https://maven.blamejared.com'
-    }
-    maven { // JSON Things
-        name 'Dogforce Games'
-        url 'https://www.dogforce-games.com/maven/'
+    maven { // our maven
+        name = 'DVS1 Maven FS'
+        url = 'https://dvs1.progwml6.com/files/maven'
     }
     maven {
-        url "https://www.cursemaven.com"
+        // Parchment; also mirrored on the NeoForged maven that ModDevGradle adds itself,
+        // declared here so the mappings source is obvious from the build script.
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
+    }
+    // Mantle for 1.21.1 is our own in-flight port and is not on any maven yet, so it is
+    // consumed as a flat-dir artifact out of the sibling port checkout. See the dependencies
+    // block below; `mantle_version` in gradle.properties is the only line that moves when
+    // Mantle rebuilds, and this repository entry is the only line that moves when Mantle
+    // starts publishing for real.
+    flatDir {
+        dir "${rootDir}/../libs"
+    }
+    maven { // Immersive Engineering, JEI
+        name = 'BlameJared Maven'
+        url = 'https://maven.blamejared.com'
+    }
+    maven { // JSON Things
+        name = 'Dogforce Games'
+        url = 'https://www.dogforce-games.com/maven/'
+    }
+    maven { // Crafting Tweaks
+        url = 'https://www.cursemaven.com'
         content {
-            includeGroup "curse.maven"
+            includeGroup 'curse.maven'
         }
     }
-    // If you have mod jar dependencies in ./libs, you can declare them as a repository like so:
-     flatDir {
-         dir '../Mantle/build/libs'
-     }
+    // Still gone, and staying gone until the mods behind them ship for 1.21.1:
+    //   maven.tterrag.com - The One Probe. The 1.20 build already had its dependency
+    //                       commented out and no source referenced it.
 }
 
 group = 'slimeknights.tconstruct'
 base {
     archivesName = 'TinkersConstruct'
-}                                                          
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+}
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 // sets version to the slimeKnights version format
 task buildInfo {
@@ -111,127 +117,151 @@ idea {
     }
 }
 
-minecraft {
-    mappings channel: 'parchment', version: "${parchment_version}-${minecraft_version}"
+neoForge {
+    version = neoforge_version
 
-    // enableIdeaPrepareRuns = true
-    copyIdeResources = true
+    parchment {
+        minecraftVersion = parchment_minecraft_version
+        mappingsVersion = project.parchment_version
+    }
 
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    // The shipped access transformer is now Mojang-named end to end (translated and triaged in
+    // T2), so ModDevGradle's convention of picking up
+    // src/main/resources/META-INF/accesstransformer.cfg automatically is left alone.
+    // validateAccessTransformers fails the build if any active line stops resolving, which is
+    // the safety net T2 wants and keeps the file honest for the rest of the port.
+    validateAccessTransformers = true
+
+    mods {
+        tconstruct {
+            sourceSet sourceSets.main
+            // the gametests ride along with the mod classes so they can see production code,
+            // while staying out of the shipped jar (the jar task only takes main)
+            sourceSet sourceSets.gametest
+        }
+    }
+
+    // Puts Minecraft, NeoForge and this mod's own classes on the test classpath and runs `test`
+    // through NeoForge's test launcher, which is what bootstraps the registries the tests read.
+    // Worth knowing what this costs: the launcher runs full FML mod loading before any test class
+    // is loaded, so `test` is a mod-load smoke test as well as a unit suite, and a registry a test
+    // inspects is one the loaded mod has already populated.
+    unitTest {
+        enable()
+        testedMod = mods.tconstruct
+    }
 
     runs {
         // applies to all the run configs below
         configureEach {
-            workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
-            // The markers can be added/remove as needed separated by commas.
-            // "SCAN": For mods scan.
-            // "REGISTRIES": For firing of registry events.
-            // "REGISTRYDUMP": For getting the contents of all registries.
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP,CORE'
-
-            // Recommended logging level for the console
-            // You can set various levels here.
+            gameDirectory = project.file('run')
+            // Recommended logging level for the console.
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            property 'forge.logging.console.level', 'debug'
-            
-            // IE uses mixins, remap their mixins to work in dev
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-
-            mods {
-                tconstruct {
-                    source sourceSets.main
-                }
-            }
+            logLevel = org.slf4j.event.Level.DEBUG
         }
-    
+
         client {
+            client()
             //The below if statements are to add args to your gradle.properties file in user home
             // (DO NOT add them directly to the gradle.properties file for this project)
             // Setting the below properties allows use of your normal Minecraft account in the
             // dev environment including having your skin load. Each property also has a comment
             // explaining what information to set the value to/format it expects
-            // One thing to note is because of the caching that goes on, after changing these
-            // variables, you need to refresh the project and rerun genIntellijRuns/genEclipseRuns
             if (project.hasProperty('mc_uuid')) {
                 //Your uuid without any dashes in the middle
-                args '--uuid', project.getProperty('mc_uuid')
+                programArguments.addAll('--uuid', project.getProperty('mc_uuid'))
             }
             if (project.hasProperty('mc_username')) {
                 //Your username/display name, this is the name that shows up in chat
                 // Note: This is not your email, even if you have a Mojang account
-                args '--username', project.getProperty('mc_username')
+                programArguments.addAll('--username', project.getProperty('mc_username'))
             }
             if (project.hasProperty('mc_accessToken')) {
                 //Your access token, you can find it in your '.minecraft/launcher_profiles.json' file
-                args '--accessToken', project.getProperty('mc_accessToken')
+                programArguments.addAll('--accessToken', project.getProperty('mc_accessToken'))
             }
         }
 
         server {
-            args '--nogui'
+            server()
+            programArgument '--nogui'
         }
 
         data {
-            args '--mod', 'tconstruct', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/'), '--existing-mod', 'mantle'
+            data()
+            // ModDevGradle does not synthesise the data generator arguments the way ForgeGradle
+            // did, so they are carried over by hand, --existing-mod included.
+            programArguments.addAll(
+                    '--mod', 'tconstruct',
+                    '--all',
+                    '--output', file('src/generated/resources/').absolutePath,
+                    '--existing', file('src/main/resources/').absolutePath,
+                    '--existing-mod', 'mantle')
         }
 
         gameTestServer {
+            type = 'gameTestServer'
             // isolate the gametest world from the regular dev server's save data
-            workingDirectory project.file('run/gameTestServer')
-
-            // scans mod classes for @GameTestHolder("tconstruct") methods; without this Forge registers none
-            property 'forge.enabledGameTestNamespaces', 'tconstruct'
-
-            mods {
-                tconstruct {
-                    // ride along with the main mod classes so tests can see production code,
-                    // but keep the test sources out of the shipped jar
-                    source sourceSets.gametest
-                }
-            }
+            gameDirectory = project.file('run/gameTestServer')
+            // run out of the gametest source set, which pulls main along with it
+            sourceSet = sourceSets.gametest
+            // scans mod classes for @GameTestHolder("tconstruct") methods; the NeoForge spelling
+            // of what was forge.enabledGameTestNamespaces under ForgeGradle
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'tconstruct'
         }
     }
 }
 
-configurations {
-    deployerJars
-}
-
 dependencies {
-    minecraft 'net.minecraftforge:forge:' + minecraft_version + '-' + forge_version
+    // Minecraft and NeoForge come from the neoForge block above, not from a dependency line.
 
-    // would ideally use API for this, but that does not work well with fg.deobf in my understanding
-    implementation fg.deobf("slimeknights.mantle:Mantle:${minecraft_version}-${mantle_version}")
+    // Mantle: our own 1.21.1 port, taken from the sibling checkout's build/libs via the flatDir
+    // repository above. `implementation` puts it on the compile classpath and on the run
+    // configs' runtime classpath, where NeoForge's classpath mod locator picks it up as a mod.
+    implementation "slimeknights.mantle:Mantle:${mantle_version}"
 
+    // Compat. Every one of these is compileOnly: the plugin classes behind them are guarded by a
+    // ModList.isLoaded check in TConstruct's constructor and never touched when the mod is absent.
+    // JEI is the exception, because a JEI plugin is only worth anything with JEI actually running.
+    //
     // compile against the JEI API but do not include it at runtime
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     // at runtime, use the full JEI jar
-    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
+    runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
-    // implementation fg.deobf("mcjty.theoneprobe:TheOneProbe-${minecraft_base_version}:${minecraft_base_version}-${probe_version}")
+    compileOnly "blusunrize.immersiveengineering:ImmersiveEngineering:${ie_version}"
+    compileOnly "dev.gigaherz.jsonthings:JsonThings-${minecraft_version}:${json_things_version}"
+    compileOnly "curse.maven:crafting-tweaks-233071:${crafting_tweaks_file}"
 
-    compileOnly fg.deobf("blusunrize.immersiveengineering:ImmersiveEngineering:${minecraft_version}-${ie_version}")
-    runtimeOnly fg.deobf("curse.maven:MoonlightLib-499980:6000197")
-    implementation fg.deobf("curse.maven:MmmMmmMmmMmm-225738:5737040")
-//    runtimeOnly fg.deobf("curse.maven:the-twilight-forest-227639:5468648")
+    compileOnly "curse.maven:MmmMmmMmmMmm-225738:${dummy_file}"
 
-    compileOnly fg.deobf("curse.maven:diet-443570:4813904")
-
-    compileOnly fg.deobf("dev.gigaherz.jsonthings:JsonThings-${minecraft_version}:${json_things_version}")
-
-    compileOnly fg.deobf("curse.maven:balm-531761:5999476")
-    compileOnly fg.deobf("curse.maven:crafting-tweaks-233071:5623639")
-
-    deployerJars 'org.apache.maven.wagon:wagon-ssh:2.2'
+    // Dropped for 1.21.1, checked against the mod's own distribution on 2026-08-13:
+    //
+    //   Diet (curse.maven:diet-443570) - none of its 86 CurseForge files lists 1.21.1; the mod
+    //     stopped at 1.20.1 on Forge and 1.20.4 on Fabric, and it publishes nowhere else. There is
+    //     no artifact to compile against, so slimeknights/tconstruct/plugin/DietPlugin and its
+    //     isLoaded("diet") registration in TConstruct are deleted rather than kept compiling
+    //     against a stub of somebody else's API. ModifierUtil.foodConsumer keeps its no-op default
+    //     and simply has no setter call left in the tree.
+    //     Watch: a "diet" release listing 1.21.1. The plugin was eight lines over one method,
+    //     DietCapability.get(player).ifPresent(cap -> cap.consume(...)), and 1.21 would need that
+    //     method re-read anyway since Forge capabilities are gone; restoring it is one file, one
+    //     dependency line and one if.
+    //
+    //   Ceramics - not a dependency here (the compat is data-only, gated by mod_loaded conditions)
+    //     but in the same position: none of its 34 CurseForge files lists 1.21.1. See
+    //     SmelteryRecipeProvider's ceramics block for the two recipes that costs.
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-    testImplementation 'org.mockito:mockito-inline:4.2.0'
+    // Mockito 4.2.0 was 'mockito-inline', whose bundled Byte Buddy 1.12.4 refuses any class file newer than Java
+    // 18 ("Java 21 (65) is not supported by the current version of Byte Buddy"). 1.20 compiled and ran on Java 17
+    // so it never hit the ceiling; 1.21.1 is Java 21, and every mock() in the suite failed with
+    // "Could not modify all classes". Mockito 5 makes the inline mock maker the default, so mockito-core is the
+    // whole of what mockito-inline used to add and the separate artifact is not republished past 5.2.0.
+    testImplementation 'org.mockito:mockito-core:5.14.2'
     testImplementation 'org.assertj:assertj-core:3.21.0'
 }
 
@@ -244,15 +274,15 @@ tasks.named('processResources', ProcessResources).configure {
         'version': artifact_version,
         'loader_range': loader_range,
         'minecraft_range': minecraft_range,
-        'forge_range': forge_range,
-        'mantle_range': mantle_range,
-        'jei_range': jei_range,
-        'json_things_range': json_things_range
+        'neoforge_range': neoforge_range,
+        'mantle_range': mantle_range
     ]
     inputs.properties replaceProperties
 
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
-        expand replaceProperties + [project: project]
+    // No `project` in the binding: neither template references it, and reaching for
+    // Task.project at execution time is deprecated and configuration-cache hostile.
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties
     }
 }
 
@@ -270,7 +300,8 @@ tasks.named('jar', Jar).configure {
     }
 }
 
-jar.finalizedBy('reobfJar')
+// no reobfJar: 1.21 userdev and production are both Mojang-named, so there is nothing to
+// reobfuscate and ModDevGradle does not provide the task.
 
 java {
     withSourcesJar()
@@ -281,65 +312,23 @@ sourcesJar {
     exclude 'data/**'
     exclude 'pack.png'
     exclude 'pack.mcmeta'
-    exclude 'META-INF/mods.toml'
+    exclude 'META-INF/neoforge.mods.toml'
 }
 
 artifacts {
     archives sourcesJar
 }
 
-// verify the properties exist.. or initialize.
-if (!project.hasProperty("keystore_location")) // keystore location
-    ext.keystore_location = "."
-
-if (!project.hasProperty("keystore_user_alias")) // keystore user alias
-    ext.keystore_user_alias = ""
-if (!project.hasProperty("sftp_username"))
-    ext.sftp_username = ""
-if (!project.hasProperty("sftp_key"))
-    ext.sftp_key = ""
-if (!project.hasProperty("keystore_user_password")) // keystore user pass
-    ext.keystore_user_password = ""
-if (System.getenv().KSK_PW != null)
-    ext.keystore_user_password = System.getenv().KSK_PW
-
-
-task("uploadJars", dependsOn: "build") {
-
-    description = "uploads JARs"
-
-    if (project.hasProperty("local_maven") || project.hasProperty("sftp_maven")) {
-        apply plugin: 'maven'
-        uploadArchives {
-            repositories {
-                if (project.hasProperty("local_maven")) {
-                    mavenDeployer {
-                        repository(url: "file://${local_maven}")
-                    }
-                }
-                if (project.hasProperty("sftp_maven")) {
-                    repositories.mavenDeployer {
-                        configuration = configurations.deployerJars
-                        repository(url: "sftp://${sftp_maven}") {
-                            authentication(userName: "${sftp_username}", privateKey: "${sftp_key}")
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 // task signUniversal(type: SignJar, dependsOn: 'jar') {
 //     onlyIf {
 //         project.hasProperty('jarsigner')
 //     }
-// 
+//
 //     def jarsigner = [:]
-// 
+//
 //     if (project.hasProperty('jarsigner'))
 //         jarsigner = project.jarsigner
-// 
+//
 //     alias = 'tcon'
 //     storePass = jarsigner.storepass
 //     keyPass = jarsigner.keypass
@@ -347,7 +336,6 @@ task("uploadJars", dependsOn: "build") {
 //     inputFile = jar.archivePath
 //     outputFile = jar.archivePath
 // }
-// uploadArchives.dependsOn signUniversal
 // build.dependsOn signUniversal
 
 publishing {
