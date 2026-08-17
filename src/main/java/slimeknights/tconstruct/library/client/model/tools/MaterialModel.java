@@ -15,15 +15,14 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelState;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec2;
-import net.minecraftforge.client.model.CompositeModel;
-import net.minecraftforge.client.model.geometry.IGeometryBakingContext;
-import net.minecraftforge.client.model.geometry.IGeometryLoader;
-import net.minecraftforge.client.model.geometry.IUnbakedGeometry;
+import net.neoforged.neoforge.client.model.CompositeModel;
+import net.neoforged.neoforge.client.model.geometry.IGeometryBakingContext;
+import net.neoforged.neoforge.client.model.geometry.IGeometryLoader;
+import net.neoforged.neoforge.client.model.geometry.IUnbakedGeometry;
 import org.joml.Vector3f;
 import slimeknights.mantle.client.model.util.MantleItemLayerModel;
 import slimeknights.mantle.util.ItemLayerPixels;
@@ -113,7 +112,7 @@ public class MaterialModel implements IUnbakedGeometry<MaterialModel> {
   }
 
   /**
-   * Same as {@link #bake(IGeometryBakingContext, ModelBaker, Function, ModelState, ItemOverrides, ResourceLocation)} , but uses fewer arguments and does not require an instance
+   * Same as {@link #bake(IGeometryBakingContext, ModelBaker, Function, ModelState, ItemOverrides)} , but uses fewer arguments and does not require an instance
    * @param owner          Model configuration
    * @param spriteGetter   Sprite getter function
    * @param transform      Transform to apply to the quad fetching. Should not include rotation or it will look wrong in UIs
@@ -131,7 +130,7 @@ public class MaterialModel implements IUnbakedGeometry<MaterialModel> {
   }
 
   @Override
-  public BakedModel bake(IGeometryBakingContext owner, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelTransform, ItemOverrides vanillaOverrides, ResourceLocation modelLocation) {
+  public BakedModel bake(IGeometryBakingContext owner, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelTransform, ItemOverrides vanillaOverrides) {
     if (Config.CLIENT.logMissingMaterialTextures.get()) {
       validateMaterialTextures(owner, spriteGetter, "texture", material);
     }

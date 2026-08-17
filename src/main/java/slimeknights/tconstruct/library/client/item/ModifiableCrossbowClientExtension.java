@@ -1,12 +1,10 @@
 package slimeknights.tconstruct.library.client.item;
 
 import net.minecraft.client.model.HumanoidModel.ArmPose;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import slimeknights.tconstruct.library.tools.item.ranged.ModifiableCrossbowItem;
-import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 
 import javax.annotation.Nullable;
 
@@ -19,12 +17,10 @@ public class ModifiableCrossbowClientExtension extends ModifiableItemClientExten
   @Nullable
   @Override
   public ArmPose getArmPose(LivingEntity living, InteractionHand hand, ItemStack stack) {
-    if (!living.swinging) {
-      CompoundTag tag = stack.getTag();
-      // must have ammo in persistent data
-      if (tag != null && tag.getCompound(ToolStack.TAG_PERSISTENT_MOD_DATA).contains(ModifiableCrossbowItem.KEY_CROSSBOW_AMMO.toString(), CompoundTag.TAG_COMPOUND)) {
-        return ArmPose.CROSSBOW_HOLD;
-      }
+    // 1.21: the loaded ammo is `minecraft:charged_projectiles` rather than a compound in the tool's persistent data,
+    // so this asks the item instead of digging through NBT that no longer exists
+    if (!living.swinging && ModifiableCrossbowItem.isCharged(stack)) {
+      return ArmPose.CROSSBOW_HOLD;
     }
     return ArmPose.ITEM;
   }

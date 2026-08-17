@@ -5,20 +5,18 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockElement;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.Material;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.client.model.QuadTransformers;
-import net.minecraftforge.client.model.SimpleModelState;
-import net.minecraftforge.client.model.geometry.UnbakedGeometryHelper;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.model.QuadTransformers;
+import net.neoforged.neoforge.client.model.SimpleModelState;
+import net.neoforged.neoforge.client.model.geometry.UnbakedGeometryHelper;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.joml.Vector3f;
 import slimeknights.mantle.client.model.util.ColoredBlockModel;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.util.ItemLayerPixels;
-import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.client.model.FluidContainerModel;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.tools.capability.fluid.ToolTankHelper;
@@ -38,8 +36,6 @@ public record FluidModifierModel(Material small, @Nullable Material large, ToolT
     ToolTankHelper.LOADABLE.defaultField("tank_helper", ToolTankHelper.TANK_HELPER, false, FluidModifierModel::tankHelper),
     FluidModifierModel::new);
 
-  /** Location used for baking dynamic models, name does not matter so just using a constant */
-  private static final ResourceLocation BAKE_LOCATION = TConstruct.getResource("dynamic_fluid_model");
   /**
    * The vanilla model bakery uses an orgin of 0.5,0.5,0.5, and forges dynamic fluid code uses the vanilla model bakery. (see{@link net.minecraft.client.renderer.block.model.FaceBakery} {@code #rotateVertexBy()} for vanilla bakery)
    * However, item layer wants an origin of 0,0,0, which is what we expect in our tool models. So cancel out the origin.
@@ -51,15 +47,19 @@ public record FluidModifierModel(Material small, @Nullable Material large, ToolT
     this(small, large, ToolTankHelper.TANK_HELPER);
   }
 
-  /** Cache key for {@link #getCacheKey(IToolStackView, ModifierEntry)} */
-  private record CacheKey(Fluid fluid, @Nullable CompoundTag tag) {}
+  /**
+   * Cache key for {@link #getCacheKey(IToolStackView, ModifierEntry)}.
+   * 1.21: a fluid stack carries data components exactly as an item stack does, so what used to be its NBT tag is the
+   * component patch. The patch is immutable and implements equals, which is all a cache key asks of it.
+   */
+  private record CacheKey(Fluid fluid, DataComponentPatch components) {}
 
   @Nullable
   @Override
   public Object getCacheKey(IToolStackView tool, ModifierEntry modifier) {
     FluidStack fluid = tankHelper().getFluid(tool);
     if (!fluid.isEmpty()) {
-      return new CacheKey(fluid.getFluid(), fluid.getTag());
+      return new CacheKey(fluid.getFluid(), fluid.getComponentsPatch());
     }
     return null;
   }
@@ -89,10 +89,12 @@ public record FluidModifierModel(Material small, @Nullable Material large, ToolT
     IClientFluidTypeExtensions attributes = IClientFluidTypeExtensions.of(fluid.getFluid());
     TextureAtlasSprite fluidSprite = spriteGetter.apply(new Material(InventoryMenu.BLOCK_ATLAS, attributes.getStillTexture(fluid)));
 
-    // build fluid like the forge dynamic container model
-    List<BlockElement> unbaked = UnbakedGeometryHelper.createUnbakedItemMaskElements(-1, spriteGetter.apply(template).contents()); // Use template as mask
+    // build fluid like the neoforge dynamic container model
+    // 1.21: createUnbakedItemMaskElements takes the sprite rather than its contents, and bakeElements lost its
+    // trailing bake location along with every other geometry entry point (M10 SS1.2)
+    List<BlockElement> unbaked = UnbakedGeometryHelper.createUnbakedItemMaskElements(-1, spriteGetter.apply(template)); // Use template as mask
     // TODO: is there anything that can be done about the fluid? to prevent weird offsets?
-    List<BakedQuad> fluidQuads = UnbakedGeometryHelper.bakeElements(unbaked, mat -> fluidSprite, new SimpleModelState(transforms.applyOrigin(ORIGIN).compose(FluidContainerModel.FLUID_TRANSFORM), false), BAKE_LOCATION); // Bake with fluid texture
+    List<BakedQuad> fluidQuads = UnbakedGeometryHelper.bakeElements(unbaked, mat -> fluidSprite, new SimpleModelState(transforms.applyOrigin(ORIGIN).compose(FluidContainerModel.FLUID_TRANSFORM), false)); // Bake with fluid texture
 
     // apply brightness and color
     int luminosity = fluid.getFluid().getFluidType().getLightLevel(fluid);

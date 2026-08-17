@@ -27,7 +27,9 @@ import net.minecraft.client.resources.model.Material;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -37,14 +39,14 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec2;
-import net.minecraftforge.client.model.BakedModelWrapper;
-import net.minecraftforge.client.model.IModelBuilder;
-import net.minecraftforge.client.model.IQuadTransformer;
-import net.minecraftforge.client.model.QuadTransformers;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.client.model.geometry.IGeometryBakingContext;
-import net.minecraftforge.client.model.geometry.IGeometryLoader;
-import net.minecraftforge.client.model.geometry.IUnbakedGeometry;
+import net.neoforged.neoforge.client.model.BakedModelWrapper;
+import net.neoforged.neoforge.client.model.IModelBuilder;
+import net.neoforged.neoforge.client.model.IQuadTransformer;
+import net.neoforged.neoforge.client.model.QuadTransformers;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.geometry.IGeometryBakingContext;
+import net.neoforged.neoforge.client.model.geometry.IGeometryLoader;
+import net.neoforged.neoforge.client.model.geometry.IUnbakedGeometry;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import slimeknights.mantle.client.model.util.ColoredBlockModel;
@@ -71,11 +73,13 @@ import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
 import slimeknights.tconstruct.library.recipe.worktable.ModifierSetWorktableRecipe;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
+import slimeknights.tconstruct.library.tools.item.ranged.ModifiableCrossbowItem;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.MaterialIdNBT;
 import slimeknights.tconstruct.library.tools.nbt.ModDataNBT;
 import slimeknights.tconstruct.library.tools.nbt.ModifierNBT;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
+import slimeknights.tconstruct.library.utils.Util;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -362,7 +366,7 @@ public class ToolModel implements IUnbakedGeometry<ToolModel> {
   }
 
   /**
-   * Same as {@link #bake(IGeometryBakingContext, ModelBaker, Function, ModelState, ItemOverrides, ResourceLocation)}, but uses fewer arguments and does not require an instance
+   * Same as {@link #bake(IGeometryBakingContext, ModelBaker, Function, ModelState, ItemOverrides)}, but uses fewer arguments and does not require an instance
    * @param owner           Model configuration
    * @param spriteGetter    Sprite getter function
    * @param largeTransforms Transform to apply to the large parts. If null, only generates small parts
@@ -506,14 +510,17 @@ public class ToolModel implements IUnbakedGeometry<ToolModel> {
   }
 
   @Override
-  public BakedModel bake(IGeometryBakingContext owner, ModelBaker baker, Function<Material,TextureAtlasSprite> spriteGetter, ModelState modelTransform, ItemOverrides overrides, ResourceLocation modelLocation) {
+  public BakedModel bake(IGeometryBakingContext owner, ModelBaker baker, Function<Material,TextureAtlasSprite> spriteGetter, ModelState modelTransform, ItemOverrides overrides) {
+    // the bake location is gone in 1.21; the baking context's own name is what is left to tell a pack author which
+    // model the warning is about, and it is only ever used as a log subject here and in getModelsForTool below
+    String modelName = owner.getModelName();
     // warn on deprecated keys
     if (showTraits) {
-      TConstruct.LOG.warn("Using deprecated key 'show_traits' in tool model {}, use 'constant' in modifier model maps with TraitModel instead", modelLocation);
+      TConstruct.LOG.warn("Using deprecated key 'show_traits' in tool model {}, use 'constant' in modifier model maps with TraitModel instead", modelName);
     }
     for (FirstModifier modifier : firstModifiers) {
       if (modifier.forced) {
-        TConstruct.LOG.warn("Using 'forced' in 'first_modifiers' is deprecated in tool model {}, use 'constant' in modifier model maps instead", modelLocation);
+        TConstruct.LOG.warn("Using 'forced' in 'first_modifiers' is deprecated in tool model {}, use 'constant' in modifier model maps instead", modelName);
         break;
       }
     }
@@ -535,7 +542,7 @@ public class ToolModel implements IUnbakedGeometry<ToolModel> {
       }
     }
     // load modifier models
-    ModifierModelMap modifierModels = ModifierModelMapManager.INSTANCE.getModelsForTool(spriteGetter, this.modifierModels, smallModifierRoots, largeModifierRoots, modelLocation);
+    ModifierModelMap modifierModels = ModifierModelMapManager.INSTANCE.getModelsForTool(spriteGetter, this.modifierModels, smallModifierRoots, largeModifierRoots, modelName);
 
     // build transforms for various states
     // large tools are stretched in X and Y by 200%, and get a special offset
@@ -690,6 +697,35 @@ public class ToolModel implements IUnbakedGeometry<ToolModel> {
     }
 
     /**
+     * Reads the ammo this tool should display, empty if it has none.
+     * <p>
+     * 1.20 had a single answer: {@code ammoKey} named an entry in the tool's persistent data holding an
+     * {@link ItemStack} saved to NBT by hand, where a compound meant "draw this stack" and a boolean meant "drawn back,
+     * but there is no stack to draw". Only half of that survived. A crossbow's loaded ammo is vanilla's
+     * {@code minecraft:charged_projectiles} component now (see {@link ModifiableCrossbowItem}), while a bow's drawback
+     * ammo is still {@code tconstruct:drawback_ammo} in persistent data, so one JSON key names two different stores and
+     * this has to tell them apart. Asking the data component registry is what does it, and it is the same question
+     * {@code AbstractToolItemModelProvider} answers when it writes the crossbow's key in the first place.
+     * <p>
+     * Both branches answer "no ammo" rather than throwing for anything unexpected, per the model path's display
+     * discipline: a tool that renders without its arrow is a far better failure than one that crashes the item renderer.
+     */
+    private static ItemStack getAmmo(ResourceLocation ammoKey, ItemStack stack, IToolStackView tool) {
+      // a key naming a registered data component reads that component. Charged projectiles is the only component shape
+      // Tinkers writes here, and it is the only one this can read: pulling a stack out needs the payload's type.
+      if (BuiltInRegistries.DATA_COMPONENT_TYPE.get(ammoKey) == DataComponents.CHARGED_PROJECTILES) {
+        return ModifiableCrossbowItem.getChargedAmmo(stack);
+      }
+      // otherwise it is a persistent data key holding a saved stack. The compound check is load bearing and was in 1.20
+      // too: the same key holds a bare boolean when the launcher is set not to store the drawing item.
+      ModDataNBT persistentData = tool.getPersistentData();
+      if (persistentData.contains(ammoKey, Tag.TAG_COMPOUND)) {
+        return ItemStack.parseOptional(Util.registryAccess(), persistentData.getCompound(ammoKey));
+      }
+      return ItemStack.EMPTY;
+    }
+
+    /**
      * Bakes a copy of this model using the given material
      * @param materials  New materials for the model
      * @return  Baked model
@@ -820,17 +856,15 @@ public class ToolModel implements IUnbakedGeometry<ToolModel> {
       }
 
       // fetch ammo info from the stack
-      ItemStack ammo;
-      ModDataNBT persistentData = tool.getPersistentData();
-      if (ammoKey != null && persistentData.contains(ammoKey, Tag.TAG_COMPOUND)) {
-        ammo = ItemStack.of(persistentData.getCompound(ammoKey));
+      ItemStack ammo = ammoKey == null ? ItemStack.EMPTY : getAmmo(ammoKey, stack, tool);
+      if (!ammo.isEmpty()) {
         builder.add(ammo.getItem());
-        CompoundTag tag = ammo.getTag();
-        if (tag != null) {
-          builder.add(tag);
+        // 1.20 keyed on the stack's whole NBT tag; the components patch is the same question asked of a 1.21 stack,
+        // holding exactly what was set away from the item's defaults, and it is a value type so it keys correctly
+        DataComponentPatch patch = ammo.getComponentsPatch();
+        if (!patch.isEmpty()) {
+          builder.add(patch);
         }
-      } else {
-        ammo = ItemStack.EMPTY;
       }
 
       // render special model
