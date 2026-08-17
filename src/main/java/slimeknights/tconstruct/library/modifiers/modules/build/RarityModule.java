@@ -14,6 +14,7 @@ import slimeknights.tconstruct.library.modifiers.modules.ModifierModule;
 import slimeknights.tconstruct.library.module.HookProvider;
 import slimeknights.tconstruct.library.module.ModuleHook;
 import slimeknights.tconstruct.library.tools.helper.ModifierUtil;
+import slimeknights.tconstruct.library.tools.nbt.IModDataView;
 import slimeknights.tconstruct.library.tools.nbt.IToolContext;
 import slimeknights.tconstruct.library.tools.nbt.ModDataNBT;
 import slimeknights.tconstruct.library.tools.nbt.ToolDataNBT;
@@ -46,11 +47,32 @@ public record RarityModule(Rarity rarity) implements VolatileDataModifierHook, M
     return DEFAULT_HOOKS;
   }
 
-  /** Gets the rarity for the given stack */
+  /**
+   * Gets the rarity for the given stack.
+   * @deprecated 1.21 reads rarity off the {@code minecraft:rarity} component with no item hook, so a stack's rarity is
+   * whatever {@link slimeknights.tconstruct.library.tools.nbt.ToolStack} last wrote there. Use
+   * {@link net.minecraft.world.item.ItemStack#getRarity()}; this remains for the volatile-data view of the same number.
+   */
+  @Deprecated(forRemoval = true)
   public static Rarity getRarity(ItemStack stack) {
-    int rarity = ModifierUtil.getVolatileInt(stack, RARITY);
+    return fromOrdinal(ModifierUtil.getVolatileInt(stack, RARITY));
+  }
+
+  /** Gets the rarity a tool's volatile data computed, common when no modifier set one */
+  public static Rarity getRarity(IModDataView volatileData) {
+    return fromOrdinal(volatileData.getInt(RARITY));
+  }
+
+  /**
+   * Reads a stored rarity ordinal.
+   * @apiNote The clamp upper bound was {@code values.length} rather than {@code values.length - 1}, which is one past
+   * the end of the array it indexes. Unreachable through {@link #setRarity} - it only ever stores a real ordinal - but
+   * reachable from raw volatile data, and this is the first version where the value leaves the tooltip and reaches a
+   * data component.
+   */
+  private static Rarity fromOrdinal(int rarity) {
     Rarity[] values = Rarity.values();
-    return values[Mth.clamp(rarity, 0, values.length)];
+    return values[Mth.clamp(rarity, 0, values.length - 1)];
   }
 
   /**

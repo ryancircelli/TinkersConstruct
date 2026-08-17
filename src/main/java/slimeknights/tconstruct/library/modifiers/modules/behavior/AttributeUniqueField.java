@@ -2,12 +2,14 @@ package slimeknights.tconstruct.library.modifiers.modules.behavior;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.world.entity.EquipmentSlot;
 import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.field.LoadableField;
 import slimeknights.mantle.util.typed.TypedMap;
+import slimeknights.tconstruct.TConstruct;
 
 import java.util.function.Function;
 
@@ -15,6 +17,23 @@ import java.util.function.Function;
 public record AttributeUniqueField<P>(String key, Function<P,String> getter) implements LoadableField<String,P> {
   public AttributeUniqueField(Function<P, String> getter) {
     this("unique", getter);
+  }
+
+  /**
+   * Builds the {@link net.minecraft.world.entity.ai.attributes.AttributeModifier} ID for a unique key.
+   * @apiNote 1.21 identifies an attribute modifier by a {@link ResourceLocation} rather than a UUID plus a display
+   * name. The unique key is free text (validated only as a JSON string), so it becomes the id's path under
+   * Tinkers' own namespace rather than the modifier's namespace: two modules sharing a unique string collide
+   * exactly as they did when the string fed a name-based UUID, and nothing about a foreign mod's namespace was
+   * ever encoded in that UUID either.
+   */
+  public static ResourceLocation id(String unique) {
+    return TConstruct.getResource(unique);
+  }
+
+  /** Builds the per-slot {@link net.minecraft.world.entity.ai.attributes.AttributeModifier} ID for a unique key. */
+  public static ResourceLocation id(String unique, EquipmentSlot slot) {
+    return TConstruct.getResource(unique + "." + slot.getName());
   }
 
   @Override
@@ -38,12 +57,12 @@ public record AttributeUniqueField<P>(String key, Function<P,String> getter) imp
   }
 
   @Override
-  public String decode(FriendlyByteBuf buffer, TypedMap typedMap) {
+  public String decode(RegistryFriendlyByteBuf buffer, TypedMap typedMap) {
     return buffer.readUtf();
   }
 
   @Override
-  public void encode(FriendlyByteBuf buffer, P parent) {
+  public void encode(RegistryFriendlyByteBuf buffer, P parent) {
     buffer.writeUtf(getter.apply(parent));
   }
 }

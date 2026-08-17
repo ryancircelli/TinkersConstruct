@@ -1,6 +1,7 @@
 package slimeknights.tconstruct.library.modifiers.fluid.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -12,7 +13,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LevelEvent;
@@ -21,8 +21,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootParams.Builder;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.data.loadable.primitive.FloatLoadable;
 import slimeknights.mantle.data.loadable.primitive.IntLoadable;
@@ -34,7 +34,7 @@ import slimeknights.tconstruct.library.modifiers.fluid.FluidEffectContext;
 import java.util.Map;
 
 /** Breaks a block using a fluid */
-public record BreakBlockFluidEffect(float hardness, Map<Enchantment,Integer> enchantments) implements FluidEffect<FluidEffectContext.Block> {
+public record BreakBlockFluidEffect(float hardness, Map<Holder<Enchantment>,Integer> enchantments) implements FluidEffect<FluidEffectContext.Block> {
   public static final RecordLoadable<BreakBlockFluidEffect> LOADER = RecordLoadable.create(
     FloatLoadable.FROM_ZERO.defaultField("hardness", 0f, false, BreakBlockFluidEffect::hardness),
     Loadables.ENCHANTMENT.mapWithValues(IntLoadable.FROM_ONE, 0).defaultField("enchantments", Map.of(), BreakBlockFluidEffect::enchantments),
@@ -44,7 +44,7 @@ public record BreakBlockFluidEffect(float hardness, Map<Enchantment,Integer> enc
     this(hardness, Map.of());
   }
 
-  public BreakBlockFluidEffect(float hardness, Enchantment enchantment, int level) {
+  public BreakBlockFluidEffect(float hardness, Holder<Enchantment> enchantment, int level) {
     this(hardness, Map.of(enchantment, level));
   }
 
@@ -86,7 +86,9 @@ public record BreakBlockFluidEffect(float hardness, Map<Enchantment,Integer> enc
         ItemStack fakeTool = ItemStack.EMPTY;
         if (!enchantments.isEmpty()) {
           fakeTool = new ItemStack(Items.STICK);
-          EnchantmentHelper.setEnchantments(enchantments, fakeTool);
+          for (Map.Entry<Holder<Enchantment>,Integer> entry : enchantments.entrySet()) {
+            fakeTool.enchant(entry.getKey(), entry.getValue());
+          }
         }
 
         // ensures tile entity is fetched so its around for afterBlockBreak
@@ -140,8 +142,10 @@ public record BreakBlockFluidEffect(float hardness, Map<Enchantment,Integer> enc
     } else {
       translationKey += ".enchanted";
       Component enchantments = enchantments().entrySet().stream().<Component>map(entry -> {
-        Enchantment enchantment = entry.getKey();
-        MutableComponent component = Component.translatable(enchantment.getDescriptionId());
+        Enchantment enchantment = entry.getKey().value();
+        // 1.21 replaced Enchantment#getDescriptionId() (a translation key) with #description() (the component
+        // itself, since enchantment names are data-driven rather than resource-pack translated)
+        MutableComponent component = enchantment.description().copy();
         if (enchantment.getMaxLevel() != 1) {
           component.append(CommonComponents.SPACE).append(Component.translatable("enchantment.level." + entry.getValue()));
         }
