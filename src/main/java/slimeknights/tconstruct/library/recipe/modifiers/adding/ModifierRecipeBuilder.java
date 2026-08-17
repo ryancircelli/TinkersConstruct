@@ -1,19 +1,18 @@
 package slimeknights.tconstruct.library.recipe.modifiers.adding;
 
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
-import slimeknights.mantle.recipe.ingredient.SizedIngredient;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
 import slimeknights.tconstruct.library.modifiers.util.LazyModifier;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public class ModifierRecipeBuilder extends AbstractModifierRecipeBuilder<ModifierRecipeBuilder> {
@@ -59,7 +58,7 @@ public class ModifierRecipeBuilder extends AbstractModifierRecipeBuilder<Modifie
    * @return  Builder instance
    */
   public ModifierRecipeBuilder addInput(Ingredient ingredient) {
-    return addInput(SizedIngredient.of(ingredient));
+    return addInput(new SizedIngredient(ingredient, 1));
   }
 
   /**
@@ -69,7 +68,7 @@ public class ModifierRecipeBuilder extends AbstractModifierRecipeBuilder<Modifie
    * @return  Builder instance
    */
   public ModifierRecipeBuilder addInput(ItemLike item, int amount) {
-    return addInput(SizedIngredient.fromItems(amount, item));
+    return addInput(SizedIngredient.of(item, amount));
   }
 
   /**
@@ -88,7 +87,7 @@ public class ModifierRecipeBuilder extends AbstractModifierRecipeBuilder<Modifie
    * @return  Builder instance
    */
   public ModifierRecipeBuilder addInput(TagKey<Item> tag, int amount) {
-    return addInput(SizedIngredient.fromTag(tag, amount));
+    return addInput(SizedIngredient.of(tag, amount));
   }
 
   /**
@@ -104,11 +103,10 @@ public class ModifierRecipeBuilder extends AbstractModifierRecipeBuilder<Modifie
   /* Building */
 
   @Override
-  public void save(Consumer<FinishedRecipe> consumer, ResourceLocation id) {
+  public void save(RecipeOutput output, ResourceLocation id) {
     if (inputs.isEmpty() && !allowCrystal) {
       throw new IllegalStateException("Must have at least 1 input");
     }
-    ResourceLocation advancementId = buildOptionalAdvancement(id, "modifiers");
-    consumer.accept(new LoadableFinishedRecipe<>(new ModifierRecipe(id, inputs, tools, maxToolSize, result, ModifierEntry.VALID_LEVEL.range(minLevel, maxLevel), slots, allowCrystal, checkTraitLevel), ModifierRecipe.LOADER, advancementId));
+    save(output, id, new ModifierRecipe(inputs, tools, maxToolSize, result, ModifierEntry.VALID_LEVEL.range(minLevel, maxLevel), slots, allowCrystal, checkTraitLevel), "modifiers");
   }
 }

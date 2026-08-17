@@ -9,7 +9,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.field.LoadableField;
 import slimeknights.mantle.data.loadable.primitive.FloatLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
@@ -30,24 +29,16 @@ public class SeveringRecipe implements ICustomOutputRecipe<IEmptyContainer> {
   protected static LoadableField<Float,SeveringRecipe> LOOTING_BONUS_FIELD = FloatLoadable.PERCENT.defaultField("looting_bonus", 0.01f, true, r -> r.lootingBonus);
   /** Loader instance */
   public static final RecordLoadable<SeveringRecipe> LOADER = RecordLoadable.create(
-    ContextKey.ID.requiredField(), ENTITY_FIELD,
+    ENTITY_FIELD,
     ItemOutput.Loadable.REQUIRED_STACK.requiredField("result", r -> r.output),
     BASE_CHANCE_FIELD, LOOTING_BONUS_FIELD,
     SeveringRecipe::new);
 
   @Getter
-  private final ResourceLocation id;
-  @Getter
   protected final EntityIngredient ingredient;
   protected final ItemOutput output;
   protected final float baseChance;
   protected final float lootingBonus;
-
-  /** @deprecated use {@link #SeveringRecipe(ResourceLocation, EntityIngredient, ItemOutput, float, float)} */
-  @Deprecated(forRemoval = true)
-  public SeveringRecipe(ResourceLocation id, EntityIngredient ingredient, ItemOutput output) {
-    this(id, ingredient, output, 0.05f, 0.01f);
-  }
 
   /**
    * Checks if the recipe matches the given type

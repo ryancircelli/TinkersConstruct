@@ -2,11 +2,16 @@ package slimeknights.tconstruct.library.recipe;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import slimeknights.mantle.recipe.container.IRecipeContainer;
+import net.minecraft.world.item.crafting.RecipeInput;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 
-/** Container that contains a tinkerable stack and a number of inputs after */
-public interface ITinkerableContainer extends IRecipeContainer {
+/**
+ * Container that contains a tinkerable stack and a number of inputs after
+ * @apiNote  1.21 replaced the {@link net.minecraft.world.Container} a recipe took with {@link RecipeInput}, a far
+ *           smaller interface of exactly the three methods a recipe ever used. Mantle's {@code IRecipeContainer},
+ *           which existed only to stub out the container methods this interface had no answer for, is gone with it.
+ */
+public interface ITinkerableContainer extends RecipeInput {
   /**
    * Gets the stack in the tinkerable slot.
    *
@@ -67,7 +72,7 @@ public interface ITinkerableContainer extends IRecipeContainer {
   /** @deprecated use {@link #getInputCount()} */
   @Deprecated
   @Override
-  default int getContainerSize() {
+  default int size() {
     return getInputCount() + 1;
   }
 

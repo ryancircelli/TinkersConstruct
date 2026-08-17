@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -12,7 +12,6 @@ import net.minecraft.world.level.ItemLike;
 import slimeknights.mantle.recipe.data.AbstractRecipeBuilder;
 import slimeknights.tconstruct.common.TinkerTags;
 
-import java.util.function.Consumer;
 
 /**
  * Builder for overslime recipes
@@ -30,30 +29,28 @@ public class OverslimeModifierRecipeBuilder extends AbstractRecipeBuilder<Oversl
   }
 
   @Override
-  public void save(Consumer<FinishedRecipe> consumer) {
+  public void save(RecipeOutput output) {
     ItemStack[] stacks = ingredient.getItems();
     if (stacks.length == 0) {
       throw new IllegalStateException("Empty ingredient not allowed");
     }
-    save(consumer, BuiltInRegistries.ITEM.getKey(stacks[0].getItem()));
+    save(output, BuiltInRegistries.ITEM.getKey(stacks[0].getItem()));
   }
 
   @Override
-  public void save(Consumer<FinishedRecipe> consumer, ResourceLocation id) {
+  public void save(RecipeOutput output, ResourceLocation id) {
     if (ingredient == Ingredient.EMPTY) {
       throw new IllegalStateException("Empty ingredient not allowed");
     }
-    ResourceLocation advancementId = buildOptionalAdvancement(id, "modifiers");
-    consumer.accept(new LoadableFinishedRecipe<>(new OverslimeModifierRecipe(id, tools, ingredient, restoreAmount), OverslimeModifierRecipe.LOADER, advancementId));
+    save(output, id, new OverslimeModifierRecipe(tools, ingredient, restoreAmount), "modifiers");
   }
 
   /** Creates a crafting table overslime repair recipe */
-  public OverslimeModifierRecipeBuilder saveCrafting(Consumer<FinishedRecipe> consumer, ResourceLocation id) {
+  public OverslimeModifierRecipeBuilder saveCrafting(RecipeOutput output, ResourceLocation id) {
     if (ingredient == Ingredient.EMPTY) {
       throw new IllegalStateException("Empty ingredient not allowed");
     }
-    ResourceLocation advancementId = buildOptionalAdvancement(id, "modifiers");
-    consumer.accept(new LoadableFinishedRecipe<>(new OverslimeCraftingTableRecipe(id, tools, ingredient, restoreAmount), OverslimeCraftingTableRecipe.LOADER, advancementId));
+    save(output, id, new OverslimeCraftingTableRecipe(tools, ingredient, restoreAmount), "modifiers");
     return this;
   }
 }

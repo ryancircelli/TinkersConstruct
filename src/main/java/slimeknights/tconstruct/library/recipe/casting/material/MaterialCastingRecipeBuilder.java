@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -25,7 +25,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 @Accessors(chain = true)
@@ -161,20 +160,19 @@ public class MaterialCastingRecipeBuilder extends AbstractRecipeBuilder<Material
   }
 
   @Override
-  public void save(Consumer<FinishedRecipe> consumer) {
-    this.save(consumer, BuiltInRegistries.ITEM.getKey(Objects.requireNonNull(this.result).asItem()));
+  public void save(RecipeOutput output) {
+    this.save(output, BuiltInRegistries.ITEM.getKey(Objects.requireNonNull(this.result).asItem()));
   }
 
   @Override
-  public void save(Consumer<FinishedRecipe> consumer, ResourceLocation id) {
+  public void save(RecipeOutput output, ResourceLocation id) {
     if (this.itemCost <= 0) {
       throw new IllegalStateException("Material casting recipes require a positive amount of fluid");
     }
-    ResourceLocation advancementId = this.buildOptionalAdvancement(id, "casting");
     if (result != null) {
-      consumer.accept(new LoadableFinishedRecipe<>(new MaterialCastingRecipe(recipeSerializer, id, group, cast, itemCost, result, allowedMaterials, castPurpose != CastPurpose.CATALYST, switchSlots), MaterialCastingRecipe.LOADER, advancementId));
+      save(output, id, new MaterialCastingRecipe(recipeSerializer, group, cast, itemCost, result, allowedMaterials, castPurpose != CastPurpose.CATALYST, switchSlots), "casting");
     } else if (resultTool != null) {
-      consumer.accept(new LoadableFinishedRecipe<>(new ToolCastingRecipe(recipeSerializer, id, group, cast, itemCost, castPurpose, resultTool, allowedMaterials, extraMaterials), ToolCastingRecipe.LOADER, advancementId));
+      save(output, id, new ToolCastingRecipe(recipeSerializer, group, cast, itemCost, castPurpose, resultTool, allowedMaterials, extraMaterials), "casting");
     } else {
       throw new IllegalArgumentException("Must have either result or result tool");
     }

@@ -1,14 +1,12 @@
 package slimeknights.tconstruct.library.recipe.partbuilder;
 
 import lombok.Getter;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import slimeknights.mantle.data.loadable.common.IngredientLoadable;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.primitive.IntLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.recipe.helper.ItemOutput;
@@ -28,7 +26,6 @@ import java.util.List;
  */
 public class ItemPartRecipe implements IDisplayPartBuilderRecipe {
   public static final RecordLoadable<ItemPartRecipe> LOADER = RecordLoadable.create(
-    ContextKey.ID.requiredField(),
     MaterialVariantId.LOADABLE.defaultField("material", IMaterial.UNKNOWN_ID, r -> r.material.getVariant()),
     Pattern.PARSER.requiredField("pattern", ItemPartRecipe::getPattern),
     IngredientLoadable.DISALLOW_EMPTY.defaultField("pattern_item", DEFAULT_PATTERNS, r -> r.patternItem),
@@ -42,8 +39,6 @@ public class ItemPartRecipe implements IDisplayPartBuilderRecipe {
     });
 
   @Getter
-  private final ResourceLocation id;
-  @Getter
   private final MaterialVariant material;
   @Getter
   private final Pattern pattern;
@@ -52,8 +47,7 @@ public class ItemPartRecipe implements IDisplayPartBuilderRecipe {
   private final int cost;
   private final ItemOutput result;
 
-  public ItemPartRecipe(ResourceLocation id, MaterialVariantId material, Pattern pattern, Ingredient patternItem, int cost, ItemOutput result) {
-    this.id = id;
+  public ItemPartRecipe(MaterialVariantId material, Pattern pattern, Ingredient patternItem, int cost, ItemOutput result) {
     this.material = MaterialVariant.of(material);
     this.pattern = pattern;
     this.patternItem = patternItem;
@@ -105,12 +99,12 @@ public class ItemPartRecipe implements IDisplayPartBuilderRecipe {
   }
 
   @Override
-  public ItemStack getResultItem(RegistryAccess access) {
+  public ItemStack getResultItem(HolderLookup.Provider access) {
     return result.get();
   }
 
   @Override
-  public ItemStack assemble(IPartBuilderContainer inv, RegistryAccess access) {
+  public ItemStack assemble(IPartBuilderContainer inv, HolderLookup.Provider access) {
     ItemStack result = getResultItem(access).copy();
     IMaterialValue materialRecipe = inv.getMaterial();
     if (materialRecipe != null) {

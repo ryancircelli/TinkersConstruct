@@ -2,16 +2,14 @@ package slimeknights.tconstruct.library.recipe.tinkerstation.repairing;
 
 import lombok.Getter;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import slimeknights.mantle.data.loadable.field.ContextKey;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.TinkerTags;
@@ -28,7 +26,7 @@ import slimeknights.tconstruct.tools.TinkerModifiers;
 import java.util.function.Predicate;
 
 public class ModifierRepairCraftingRecipe extends CustomRecipe implements IModifierRepairRecipe {
-  public static final RecordLoadable<ModifierRepairCraftingRecipe> LOADER = RecordLoadable.create(ContextKey.ID.requiredField(), MODIFIER_FIELD, INGREDIENT_FIELD, REPAIR_AMOUNT_FIELD, ModifierRepairCraftingRecipe::new);
+  public static final RecordLoadable<ModifierRepairCraftingRecipe> LOADER = RecordLoadable.create(MODIFIER_FIELD, INGREDIENT_FIELD, REPAIR_AMOUNT_FIELD, ModifierRepairCraftingRecipe::new);
   private static final Predicate<ItemStack> TOOLS = stack -> stack.is(TinkerTags.Items.DURABILITY);
 
   @Getter
@@ -37,15 +35,15 @@ public class ModifierRepairCraftingRecipe extends CustomRecipe implements IModif
   private final Ingredient ingredient;
   @Getter
   private final int repairAmount;
-  public ModifierRepairCraftingRecipe(ResourceLocation idIn, ModifierId modifier, Ingredient ingredient, int repairAmount) {
-    super(idIn, CraftingBookCategory.EQUIPMENT);
+  public ModifierRepairCraftingRecipe(ModifierId modifier, Ingredient ingredient, int repairAmount) {
+    super(CraftingBookCategory.EQUIPMENT);
     this.modifier = modifier;
     this.ingredient = ingredient;
     this.repairAmount = repairAmount;
   }
 
   @Override
-  public boolean matches(CraftingContainer inv, Level world) {
+  public boolean matches(CraftingInput inv, Level world) {
     ToolFound inputs = OverslimeCraftingTableRecipe.findTool(inv, TOOLS, ingredient);
     if (inputs == null) {
       return false;
@@ -56,10 +54,12 @@ public class ModifierRepairCraftingRecipe extends CustomRecipe implements IModif
   }
 
   @Override
-  public ItemStack assemble(CraftingContainer inv, RegistryAccess access) {
+  public ItemStack assemble(CraftingInput inv, HolderLookup.Provider access) {
     ToolFound inputs = OverslimeCraftingTableRecipe.findTool(inv, TOOLS, ingredient);
     if (inputs == null) {
-      TConstruct.LOG.error("Recipe repair on {} failed to find items after matching", getId());
+      // getId() is gone from Recipe (1.21 moved it to RecipeHolder, which this call has no way to reach); the
+      // modifier this recipe repairs is the useful identifier a log reader actually wants, same as the 1.20 id was
+      TConstruct.LOG.error("Modifier repair recipe for {} failed to find items after matching", modifier);
       return ItemStack.EMPTY;
     }
 
@@ -81,8 +81,8 @@ public class ModifierRepairCraftingRecipe extends CustomRecipe implements IModif
   }
 
   @Override
-  public NonNullList<ItemStack> getRemainingItems(CraftingContainer inv) {
-    NonNullList<ItemStack> list = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
+  public NonNullList<ItemStack> getRemainingItems(CraftingInput inv) {
+    NonNullList<ItemStack> list = NonNullList.withSize(inv.size(), ItemStack.EMPTY);
     // step 1: find out how much we need to repair
     ToolFound inputs = OverslimeCraftingTableRecipe.findTool(inv, TOOLS, ingredient);
     int repairPerItem = 0;
