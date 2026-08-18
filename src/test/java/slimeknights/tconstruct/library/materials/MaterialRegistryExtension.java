@@ -14,7 +14,6 @@ import slimeknights.tconstruct.library.materials.definition.MaterialId;
 import slimeknights.tconstruct.library.materials.stats.IMaterialStats;
 import slimeknights.tconstruct.library.materials.stats.MaterialStatsId;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -47,8 +46,7 @@ public class MaterialRegistryExtension implements BeforeEachCallback, AfterAllCa
     Map<MaterialStatsId, IMaterialStats> defaultStats = MaterialStatsFixture.TIC_DEFAULT_STATS.stream()
       .collect(Collectors.toMap(IMaterialStats::getIdentifier, Function.identity()));
 
-    // empty map as nothing using the extension uses traits
-    materialRegistry = new MaterialRegistryFixture(materials, stats, defaultStats, Collections.emptyMap());
+    materialRegistry = new MaterialRegistryFixture(materials, stats, defaultStats, MaterialFixture.ALL_MATERIAL_TRAITS);
     MaterialRegistry.INSTANCE = new MaterialRegistry(materialRegistry);
     MaterialRegistry.fullyLoaded = true;
   }

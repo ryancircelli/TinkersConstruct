@@ -5,8 +5,12 @@ import com.google.common.collect.ImmutableMap;
 import net.minecraft.resources.ResourceLocation;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.Material;
+import slimeknights.tconstruct.library.materials.definition.MaterialId;
 import slimeknights.tconstruct.library.materials.definition.TestMaterial;
 import slimeknights.tconstruct.library.materials.stats.IMaterialStats;
+import slimeknights.tconstruct.library.materials.traits.MaterialTraits;
+import slimeknights.tconstruct.library.modifiers.ModifierEntry;
+import slimeknights.tconstruct.library.modifiers.ModifierFixture;
 
 import java.util.List;
 import java.util.Map;
@@ -26,9 +30,15 @@ public final class MaterialFixture {
   public static final Material MATERIAL_WITH_HANDLE = material("mat_handle", MaterialStatsFixture.MATERIAL_STATS_HANDLE);
   public static final Material MATERIAL_WITH_EXTRA = material("mat_extra", MaterialStatsFixture.MATERIAL_STATS_EXTRA);
   public static final Material MATERIAL_WITH_ALL_STATS = material("mat_all_stats", MaterialStatsFixture.MATERIAL_STATS_HEAD, MaterialStatsFixture.MATERIAL_STATS_HANDLE, MaterialStatsFixture.MATERIAL_STATS_EXTRA);
+  /** Material whose trait takes an ability slot on every part, letting a tool end up with negative slots */
+  public static final Material MATERIAL_WITH_SLOT_TRAIT = material("mat_slot_trait", MaterialStatsFixture.MATERIAL_STATS_HEAD, MaterialStatsFixture.MATERIAL_STATS_HANDLE, MaterialStatsFixture.MATERIAL_STATS_EXTRA);
 
   public static final List<Material> ALL_MATERIALS = ALL_MATERIALS_BUILDER.build();
   public static final Map<IMaterial, List<IMaterialStats>> ALL_MATERIAL_FIXTURES = ALL_MATERIAL_FIXTURES_BUILDER.build();
+  /** Traits for each material, materials missing from this map have no traits */
+  public static final Map<MaterialId, MaterialTraits> ALL_MATERIAL_TRAITS = ImmutableMap.of(
+    MATERIAL_WITH_SLOT_TRAIT.getIdentifier(),
+    new MaterialTraits(ImmutableList.of(new ModifierEntry(ModifierFixture.TEST_REMOVE_ABILITY_SLOT, 1)), ImmutableMap.of()));
 
   private static Material material(String mat, IMaterialStats... stats) {
     return material(mat, true, stats);
