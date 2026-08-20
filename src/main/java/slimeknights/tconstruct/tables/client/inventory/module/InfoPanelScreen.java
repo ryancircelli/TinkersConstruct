@@ -409,6 +409,12 @@ public class InfoPanelScreen<P extends MultiModuleScreen<?>, C extends AbstractC
   }
 
   @Override
+  public boolean handleMouseReleasedAnywhere(double mouseX, double mouseY, int state) {
+    // the slider must see the button go up even if the cursor has left the module, or it keeps following the cursor
+    return this.handleMouseReleased(mouseX, mouseY, state);
+  }
+
+  @Override
   public boolean handleMouseScrolled(double mouseX, double mouseY, double scrollData) {
     if (!this.slider.isEnabled() || !this.isMouseInModule((int) mouseX, (int) mouseY) || this.isMouseOverFullSlot(mouseX, mouseY)) {
       return false;
