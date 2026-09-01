@@ -1,5 +1,6 @@
 package slimeknights.tconstruct.library.tools.helper;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -12,11 +13,13 @@ import slimeknights.tconstruct.library.materials.definition.MaterialId;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariant;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariantId;
 import slimeknights.tconstruct.library.materials.stats.MaterialStatsId;
+import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
 import slimeknights.tconstruct.library.tools.definition.module.material.ToolMaterialHook;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
 import slimeknights.tconstruct.library.tools.nbt.MaterialIdNBT;
 import slimeknights.tconstruct.library.tools.nbt.MaterialNBT;
+import slimeknights.tconstruct.library.tools.nbt.ToolDataNBT;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
 
@@ -60,11 +63,41 @@ public final class ToolBuildHandler {
     return ToolStack.createTool(tool.asItem(), tool.getToolDefinition(), materials).createStack();
   }
 
+  /**
+   * Ensures a generated tool has no negative modifier slots, granting back any missing slots.
+   * The tinker station rejects a tool with negative slots, but generated tools have no player to show that error to, so the slots are corrected instead.
+   * Without this, a trait granting negative slots produces a tool which can neither be modified nor repaired.
+   * @param tool  Tool to correct, modified in place
+   * @return  Passed tool, for chaining
+   */
+  public static ToolStack ensureValidSlots(ToolStack tool) {
+    ToolDataNBT persistentData = null;
+    for (SlotType slotType : SlotType.getAllSlotTypes()) {
+      int free = tool.getFreeSlots(slotType);
+      if (free < 0) {
+        if (persistentData == null) {
+          persistentData = tool.getPersistentData();
+        }
+        persistentData.addSlots(slotType, -free);
+      }
+    }
+    // nothing to do in the common case, only pay for a rebuild if we actually changed slots
+    if (persistentData != null) {
+      tool.rebuildStats();
+      // slots are the only thing we can fix here, so if a trait still rejects the tool all we can do is tell the pack author
+      Component error = tool.tryValidate();
+      if (error != null) {
+        TConstruct.LOG.warn("Generated tool {} is still invalid after correcting modifier slots: {}", tool.getItem(), error.getString());
+      }
+    }
+    return tool;
+  }
+
   /** Method to build an ancient tool with random materials */
   public static ToolStack buildToolRandomMaterials(IModifiable tool, RandomMaterial material, RandomSource randomSource) {
     ToolDefinition definition = tool.getToolDefinition();
     List<MaterialStatsId> stats = ToolMaterialHook.stats(definition);
-    return ToolStack.createTool(tool.asItem(), definition, RandomMaterial.build(stats, Collections.nCopies(stats.size(), material), randomSource));
+    return ensureValidSlots(ToolStack.createTool(tool.asItem(), definition, RandomMaterial.build(stats, Collections.nCopies(stats.size(), material), randomSource)));
   }
 
   /** Method to build an ancient tool with random materials */

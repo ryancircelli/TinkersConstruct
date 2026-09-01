@@ -16,6 +16,7 @@ import slimeknights.tconstruct.library.modifiers.ModifierManager;
 import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
 import slimeknights.tconstruct.library.tools.definition.module.material.ToolMaterialHook;
+import slimeknights.tconstruct.library.tools.helper.ToolBuildHandler;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
 import slimeknights.tconstruct.library.tools.nbt.ModifierNBT;
 import slimeknights.tconstruct.library.tools.nbt.ToolDataNBT;
@@ -54,6 +55,8 @@ public abstract class TravelersPlateSlimeEntity extends ArmoredSlimeEntity {
       ToolStack tool = ToolStack.createTool(
         helmetItem.asItem(), definition,
         RandomMaterial.build(ToolMaterialHook.stats(definition), List.of(RandomMaterial.fixed(getPlating()), RandomMaterial.ancient()), random));
+      // traits from the rolled materials may leave us with negative slots, correct them before we start spending slots below
+      ToolBuildHandler.ensureValidSlots(tool);
       ModifierNBT modifiers = tool.getUpgrades();
       ToolDataNBT persistentData = tool.getPersistentData();
 

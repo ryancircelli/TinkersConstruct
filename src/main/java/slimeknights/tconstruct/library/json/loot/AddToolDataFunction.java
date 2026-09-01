@@ -21,6 +21,7 @@ import slimeknights.tconstruct.library.materials.RandomMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialId;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
 import slimeknights.tconstruct.library.tools.definition.module.material.ToolMaterialHook;
+import slimeknights.tconstruct.library.tools.helper.ToolBuildHandler;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.stat.ToolStats;
 import slimeknights.tconstruct.tools.TinkerTools;
@@ -64,6 +65,8 @@ public class AddToolDataFunction extends LootItemConditionalFunction {
         // not multipart? no sense doing materials, just initialize stats
         tool.rebuildStats();
       }
+      // traits from the rolled materials may leave us with negative slots, which would make the tool unmodifiable
+      ToolBuildHandler.ensureValidSlots(tool);
       // set damage last to a percentage of max damage if requested
       if (damage > 0) {
         tool.setDamage((int)(tool.getStats().get(ToolStats.DURABILITY) * damage));

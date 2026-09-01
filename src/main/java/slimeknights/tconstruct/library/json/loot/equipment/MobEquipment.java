@@ -34,6 +34,7 @@ import slimeknights.tconstruct.library.materials.RandomMaterial;
 import slimeknights.tconstruct.library.tools.capability.fluid.ToolTankHelper;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
 import slimeknights.tconstruct.library.tools.definition.module.material.ToolMaterialHook;
+import slimeknights.tconstruct.library.tools.helper.ToolBuildHandler;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 
 import javax.annotation.Nullable;
@@ -106,6 +107,8 @@ public record MobEquipment(EquipmentSlot slot, IJsonPredicate<Item> match, ItemO
         } else {
           tool.rebuildStats();
         }
+        // traits from the rolled materials may leave us with negative slots, which would make the tool unmodifiable
+        ToolBuildHandler.ensureValidSlots(tool);
         // if requested, fill with fluid
         if (fluid != null) {
           // fill with between 0mb and the max amount
